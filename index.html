@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="it">
+<meta charset="utf-8">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sfida 365">
+<meta name="theme-color" content="#0d1117">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<link rel="manifest" href="manifest.json">
+<title>Sfida 365</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<style>
+:root{
+  --bg:#0d1117; --card:#161d27; --card2:#1d2632; --line:#2a3646;
+  --txt:#e8eef5; --mut:#8b9bb0; --acc:#ff7a1a; --acc2:#ffb347;
+  --ok:#3ddc84; --warn:#ffcf3f; --bad:#ff5c5c; --blu:#4da3ff;
+  --r:16px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding-bottom:84px;max-width:560px;margin:0 auto}
+h1,h2,h3{margin:0}
+.screen{display:none;padding:16px}
+.screen.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.btn{display:block;width:100%;border:none;border-radius:14px;padding:16px;font-size:17px;font-weight:800;cursor:pointer;color:#1a1006;background:linear-gradient(135deg,var(--acc),var(--acc2))}
+.btn.sec{background:var(--card2);color:var(--txt);border:1px solid var(--line);font-weight:600}
+.btn.small{padding:10px 14px;font-size:14px;width:auto;display:inline-block}
+.btn:active{transform:scale(.98)}
+.mut{color:var(--mut);font-size:13px}
+.row{display:flex;gap:10px;align-items:center}
+.grow{flex:1}
+.tag{display:inline-block;background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--mut)}
+.tag.hot{color:var(--acc2);border-color:var(--acc)}
+/* nav */
+#nav{position:fixed;bottom:0;left:0;right:0;max-width:560px;margin:0 auto;display:flex;background:#10161f;border-top:1px solid var(--line);z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+#nav button{flex:1;background:none;border:none;color:var(--mut);font-size:11px;padding:9px 0 8px;cursor:pointer}
+#nav button .ic{display:block;font-size:21px;margin-bottom:2px;filter:grayscale(1);opacity:.6}
+#nav button.on{color:var(--acc2)}
+#nav button.on .ic{filter:none;opacity:1}
+/* streak hero */
+.hero{text-align:center;padding:22px 16px}
+.flame{font-size:56px;line-height:1}
+.flame.dead{filter:grayscale(1);opacity:.45}
+.snum{font-size:44px;font-weight:900;letter-spacing:-1px}
+.slab{color:var(--mut);font-size:13px;text-transform:uppercase;letter-spacing:1px}
+.danger{background:#2a1515;border-color:#5c2626}
+.pulse{animation:pu 1.2s infinite}
+@keyframes pu{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+/* stats */
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.stat b{display:block;font-size:20px}
+.stat span{font-size:11px;color:var(--mut)}
+/* xp bar */
+.xpbar{height:10px;background:var(--card2);border-radius:99px;overflow:hidden;margin:8px 0 4px}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:99px}
+/* exercise list */
+.exli{border-bottom:1px solid var(--line);padding:12px 0}
+.exli:last-child{border-bottom:none}
+.exli .nm{font-weight:700;font-size:15px}
+.steps{margin:8px 0 0;padding-left:18px;font-size:14px;color:#c6d2e0}
+.steps li{margin-bottom:5px}
+.cue{background:#14231a;border:1px solid #1f4630;border-radius:10px;padding:8px 10px;font-size:13px;margin-top:8px;color:#a9e8c3}
+.saf{background:#26190e;border:1px solid #5c3d1a;border-radius:10px;padding:8px 10px;font-size:13px;margin-top:8px;color:#ffd9a8}
+.ytb{display:inline-block;margin-top:9px;background:#2a1215;border:1px solid #6b2530;color:#ff9aa5;border-radius:10px;padding:7px 12px;font-size:13px;text-decoration:none;font-weight:600}
+.vid{margin-top:10px}
+.vid iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000;display:block}
+/* timer */
+#tmr{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;flex-direction:column;padding:20px;max-width:560px;margin:0 auto}
+#tmr.on{display:flex}
+.tphase{text-align:center;font-size:14px;letter-spacing:2px;text-transform:uppercase;font-weight:800}
+.tname{text-align:center;font-size:26px;font-weight:900;margin:6px 0;min-height:64px;display:flex;align-items:center;justify-content:center}
+.tclock{text-align:center;font-size:96px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1;margin:8px 0}
+.tnext{text-align:center;color:var(--mut);font-size:14px}
+.ring{width:100%;height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin:18px 0}
+.ring i{display:block;height:100%;border-radius:99px;transition:width .3s linear}
+.work .tphase,.work .tclock{color:var(--acc2)} .work .ring i{background:var(--acc)}
+.rest .tphase,.rest .tclock{color:var(--blu)} .rest .ring i{background:var(--blu)}
+.warm .tphase,.warm .tclock{color:var(--ok)} .warm .ring i{background:var(--ok)}
+/* heatmap */
+.hm{display:grid;grid-template-columns:repeat(13,1fr);gap:4px}
+.hm i{aspect-ratio:1;border-radius:4px;background:var(--card2)}
+.hm i.d1{background:#6b3a10}.hm i.d2{background:var(--acc)}.hm i.fz{background:var(--blu)}
+/* badges */
+.bgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bdg{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.bdg.off{opacity:.35;filter:grayscale(1)}
+.bdg .bi{font-size:30px}
+.bdg b{display:block;font-size:13px;margin-top:4px}
+.bdg span{font-size:11px;color:var(--mut)}
+/* meals */
+.meal{border-left:3px solid var(--acc);padding:8px 12px;margin-bottom:10px;background:var(--card2);border-radius:0 10px 10px 0}
+.meal b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--acc2)}
+.meal p{margin:4px 0 0;font-size:14px}
+.plate{display:flex;gap:8px;margin-top:10px}
+.plate div{flex:1;border-radius:10px;padding:10px 8px;text-align:center;font-size:12px;font-weight:700}
+.pl1{background:#153322;color:#7fe0a8}.pl2{background:#33241a;color:#ffb98a}.pl3{background:#1a2740;color:#8fbcff}
+/* misc */
+input,textarea{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:12px;font-size:15px;font-family:inherit}
+textarea{min-height:110px;font-size:12px}
+details{border-top:1px solid var(--line)}
+details summary{padding:12px 0;cursor:pointer;font-weight:700;font-size:15px;list-style:none;display:flex;align-items:center;gap:8px}
+details summary::after{content:"▾";margin-left:auto;color:var(--mut)}
+details[open] summary::after{content:"▴"}
+#toast{position:fixed;top:14px;left:16px;right:16px;max-width:520px;margin:0 auto;background:var(--card2);border:1px solid var(--acc);color:var(--txt);padding:13px 16px;border-radius:12px;z-index:200;display:none;font-size:14px;font-weight:600}
+#conf{position:fixed;inset:0;pointer-events:none;z-index:300}
+.wkrow{display:flex;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;align-items:center}
+.wkrow:last-child{border:none}
+.wkrow .dd{width:38px;font-weight:800;color:var(--acc2)}
+.done✓{color:var(--ok)}
+</style>
+
+<div id="toast"></div>
+<canvas id="conf"></canvas>
+
+<!-- ===================== HOME ===================== -->
+<div class="screen on" id="s-home">
+  <div class="card hero" id="heroCard">
+    <div class="flame" id="flame">🔥</div>
+    <div class="snum" id="streakN">0</div>
+    <div class="slab">giorni di streak</div>
+    <div id="streakMsg" class="mut" style="margin-top:8px"></div>
+  </div>
+  <div id="freezeBox"></div>
+  <div class="stats" style="margin-bottom:14px">
+    <div class="stat"><b id="stDone">0</b><span>allenamenti</span></div>
+    <div class="stat"><b id="stBest">0</b><span>record streak</span></div>
+    <div class="stat"><b id="stPct">0%</b><span>dell'anno</span></div>
+  </div>
+  <div class="card">
+    <div class="row"><h3 class="grow" id="lvlName">Novizio</h3><span class="tag hot" id="lvlTag">Lv 1</span></div>
+    <div class="xpbar"><i id="xpFill" style="width:0%"></i></div>
+    <div class="mut" id="xpTxt"></div>
+  </div>
+  <div class="card">
+    <div class="row" style="margin-bottom:6px">
+      <h2 class="grow" id="todayTitle">Oggi</h2>
+      <span class="tag" id="weekTag"></span>
+    </div>
+    <div class="mut" id="todaySub"></div>
+    <div id="todayDoneBox"></div>
+    <button class="btn" id="goBtn" style="margin-top:14px" onclick="openWorkout()">VAI ALL'ALLENAMENTO →</button>
+  </div>
+</div>
+
+<!-- ===================== WORKOUT PREVIEW ===================== -->
+<div class="screen" id="s-work">
+  <button class="btn sec small" onclick="show('home')">← Indietro</button>
+  <div style="height:12px"></div>
+  <div class="card">
+    <h2 id="wTitle"></h2>
+    <div class="mut" id="wSub" style="margin-top:4px"></div>
+    <div style="margin-top:10px" id="wTags"></div>
+  </div>
+  <div class="card">
+    <h3 style="margin-bottom:4px">📋 Esercizi di oggi</h3>
+    <div class="mut" style="margin-bottom:6px">Apri ogni esercizio per la guida. Se è la prima volta, guarda il video prima di iniziare.</div>
+    <div id="wList"></div>
+  </div>
+  <button class="btn" onclick="startTimer()">▶ START — 20 MINUTI</button>
+  <div style="height:10px"></div>
+  <div class="mut" style="text-align:center">Il timer gestisce lavoro e recupero: tu pensa solo a muoverti.</div>
+</div>
+
+<!-- ===================== TIMER ===================== -->
+<div id="tmr">
+  <div class="row"><button class="btn sec small" onclick="quitTimer()">✕ Esci</button><div class="grow"></div><span class="tag" id="tProg"></span></div>
+  <div class="grow" style="display:flex;flex-direction:column;justify-content:center" id="tBody">
+    <div class="tphase" id="tPhase">LAVORO</div>
+    <div class="tname" id="tName"></div>
+    <div class="tclock" id="tClock">0:30</div>
+    <div class="ring"><i id="tRing" style="width:100%"></i></div>
+    <div class="tnext" id="tNext"></div>
+  </div>
+  <div class="row">
+    <button class="btn sec" id="tPause" onclick="pauseT()">⏸ Pausa</button>
+    <button class="btn sec" onclick="skipT()">⏭ Salta</button>
+  </div>
+</div>
+
+<!-- ===================== PLAN ===================== -->
+<div class="screen" id="s-plan">
+  <h2 style="margin-bottom:12px">📅 Il piano</h2>
+  <div class="card" id="phaseCard"></div>
+  <div class="card">
+    <h3>La tua settimana</h3>
+    <div id="weekPlan" style="margin-top:6px"></div>
+  </div>
+  <div class="card">
+    <h3>Come progredisce</h3>
+    <div class="mut" style="margin-top:8px;font-size:14px;line-height:1.55">
+      Ogni allenamento dura sempre 20 minuti: 3' riscaldamento + 15' circuito (3 giri da 5 esercizi) + 2' defaticamento. A cambiare è il rapporto lavoro/recupero, che cresce ogni 4 settimane:<br><br>
+      <b style="color:var(--ok)">Fase Fondamenta</b> (sett. 1–4): 30" lavoro / 30" recupero — impara la tecnica.<br>
+      <b style="color:var(--blu)">Fase Resistenza</b> (sett. 5–8): 35" / 25".<br>
+      <b style="color:var(--acc2)">Fase Forza</b> (sett. 9–12): 40" / 20" — movimenti lenti e controllati.<br>
+      <b style="color:var(--bad)">Fase Potenza</b> (sett. 13–16): 45" / 15".<br><br>
+      Poi il ciclo riparte a un <b>livello superiore</b>: gli esercizi diventano varianti più difficili (es. push-up sulle ginocchia → standard → piedi rialzati). In 52 settimane attraversi 3 livelli completi.
+    </div>
+  </div>
+  <div class="card saf" style="border-radius:16px">
+    <b>⚠️ Regole per le tue spalle (sublussazione)</b><br><br>
+    Niente spinte sopra la testa, niente snatch, niente dip. Mai portare il braccio in posizioni estreme sotto carico. Se senti la spalla "uscire" o instabile: fermati subito, salta l'esercizio (tasto ⏭) e passa al successivo. Dolore acuto = stop e giorno di recupero. Il mercoledì è dedicato proprio a rinforzare la stabilità delle scapole: è il giorno più importante, non saltarlo.
+  </div>
+</div>
+
+<!-- ===================== MEALS ===================== -->
+<div class="screen" id="s-meal">
+  <h2 style="margin-bottom:12px">🍽 Cosa mangiare oggi</h2>
+  <div class="card" id="mealToday"></div>
+  <div class="card">
+    <h3>La regola del piatto (sempre)</h3>
+    <div class="plate">
+      <div class="pl1">½<br>Verdure</div>
+      <div class="pl2">¼<br>Proteine</div>
+      <div class="pl3">¼<br>Carbo integrali</div>
+    </div>
+    <div class="mut" style="margin-top:10px;font-size:14px;line-height:1.5">
+      Nessuna dieta, solo equilibrio: ogni pranzo e cena metà verdure, un quarto proteine (carne bianca, pesce, uova, legumi), un quarto carboidrati integrali (pane, pasta, riso). Colazione con proteine + frutta. 1 cucchiaio di olio EVO a pasto, 1,5–2 L di acqua al giorno. Uno sgarro a settimana è previsto, non è un fallimento.
+    </div>
+  </div>
+  <div class="card" id="mealWeek"></div>
+</div>
+
+<!-- ===================== PROGRESS ===================== -->
+<div class="screen" id="s-prog">
+  <h2 style="margin-bottom:12px">📈 Progressi</h2>
+  <div class="card">
+    <h3>Ultime 13 settimane</h3>
+    <div class="hm" id="heat" style="margin-top:10px"></div>
+    <div class="mut" style="margin-top:8px">🟧 allenamento · 🟦 streak congelato · grigio = perso</div>
+  </div>
+  <div class="card">
+    <div class="row"><h3 class="grow">🧊 Gettone salva-streak</h3><span class="tag hot" id="fzTag"></span></div>
+    <div class="mut" style="margin-top:6px">1 al mese. Se salti un giorno, puoi usarlo per non perdere lo streak. Usalo con saggezza.</div>
+  </div>
+  <h3 style="margin:16px 0 10px">🏅 Medaglie</h3>
+  <div class="bgrid" id="badges"></div>
+  <div class="card" style="margin-top:16px">
+    <h3>💾 Backup dati</h3>
+    <div class="mut" style="margin:6px 0 10px">I dati vivono in questo browser. Ogni tanto copia il backup e salvalo (note, email a te stesso).</div>
+    <div class="row">
+      <button class="btn sec small" onclick="doExport()">Esporta</button>
+      <button class="btn sec small" onclick="doImport()">Importa</button>
+    </div>
+    <textarea id="bak" placeholder="Il backup apparirà qui / incolla qui per importare" style="margin-top:10px"></textarea>
+  </div>
+  <div class="card">
+    <h3>⚙️ Impostazioni</h3>
+    <div class="mut" style="margin:8px 0 4px">Data di inizio sfida</div>
+    <input type="date" id="setStart" onchange="setStart(this.value)">
+  </div>
+</div>
+
+<div id="nav">
+  <button class="on" data-s="home" onclick="show('home')"><span class="ic">🔥</span>Oggi</button>
+  <button data-s="plan" onclick="show('plan')"><span class="ic">📅</span>Piano</button>
+  <button data-s="meal" onclick="show('meal')"><span class="ic">🍽</span>Pasti</button>
+  <button data-s="prog" onclick="show('prog')"><span class="ic">📈</span>Progressi</button>
+</div>
+
+<script>
+'use strict';
+/* ============ DATA: EXERCISES ============ */
+/* Each exercise: icon, muscles, variants per level [1,2,3]: {n:name, s:steps, c:cue, yt:query}, saf: shoulder note */
+const EX = {
+pushup:{ic:'💪',m:'Petto, tricipiti',saf:'Non scendere oltre il punto in cui la spalla è comoda. Gomiti a 45°, mai larghi a 90°.',v:[
+ {n:'Push-up sulle ginocchia',s:['Ginocchia a terra, mani sotto le spalle, corpo in linea dalla testa alle ginocchia','Scendi controllato piegando i gomiti a 45° dal busto','Spingi tornando su, senza bloccare i gomiti'],c:'Addome contratto, non far cadere i fianchi',yt:'push up ginocchia tutorial'},
+ {n:'Push-up standard',s:['Posizione di plank, mani sotto le spalle, piedi uniti','Scendi con il petto verso terra, gomiti a 45°','Risali spingendo forte il pavimento'],c:'Corpo rigido come una tavola per tutta la discesa',yt:'push up perfetto tutorial italiano'},
+ {n:'Push-up presa stretta',s:['Come lo standard ma mani più vicine, sotto il petto','Gomiti che sfiorano i fianchi in discesa','Spinta esplosiva in salita'],c:'Più lavoro sui tricipiti: scendi lento (3 secondi)',yt:'diamond push up tutorial'}]},
+floorpress:{ic:'🏋️',m:'Petto, tricipiti',saf:'Esercizio IDEALE per spalle instabili: il pavimento limita il movimento e protegge la spalla.',v:[
+ {n:'Floor press a 2 mani',s:['Sdraiato a pancia in su, ginocchia piegate, kettlebell impugnato per le corna sul petto','Spingi il peso verso l’alto sopra il petto','Scendi lento finché i gomiti toccano terra, pausa, risali'],c:'Gomiti a 45° dal busto, polsi dritti',yt:'kettlebell floor press tutorial'},
+ {n:'Floor press 1 braccio (cambia a metà)',s:['Stessa posizione, kettlebell in una mano sola, l’altra a terra per stabilità','Spingi su controllando che il peso non oscilli','A metà tempo cambia braccio'],c:'La spalla resta "incollata" a terra, non alzarla',yt:'single arm kettlebell floor press'},
+ {n:'Floor press 1 braccio lento',s:['Come livello 2, ma discesa in 3-4 secondi','Pausa di 1 secondo con il gomito a terra','Spinta veloce in salita'],c:'Il controllo nella discesa è tutto',yt:'tempo kettlebell floor press'}]},
+triext:{ic:'🦾',m:'Tricipiti',saf:'Movimento solo del gomito: la spalla resta ferma e sicura.',v:[
+ {n:'Estensione tricipiti a terra',s:['Sdraiato, kettlebell per le corna sopra il petto, braccia tese','Piega SOLO i gomiti portando il peso verso la fronte, lento','Riestendi le braccia senza muovere le spalle'],c:'Gomiti che puntano al soffitto, fermi',yt:'kettlebell skull crusher tutorial'},
+ {n:'Estensione + presa singola',s:['Come livello 1 ma impugnatura con due mani sovrapposte sulla sfera','Discesa in 3 secondi verso la fronte','Estensione completa con contrazione finale'],c:'Fermati un attimo in alto e "strizza" il tricipite',yt:'kettlebell triceps extension'},
+ {n:'Estensione seduto (nuca)',s:['Seduto su sedia, schiena dritta, kettlebell dietro la nuca con due mani','Estendi i gomiti portando il peso in alto SOLO se la spalla è comoda','Se senti fastidio, resta sulla versione a terra'],c:'Versione opzionale: a terra va benissimo per sempre',yt:'seated kettlebell triceps extension'}]},
+plankcore:{ic:'🧱',m:'Core, spalle (stabilità)',saf:'Ottimo per stabilizzare le scapole. Se la spalla trema troppo, appoggia le ginocchia.',v:[
+ {n:'Plank sulle ginocchia',s:['Avambracci a terra, gomiti sotto le spalle, ginocchia appoggiate','Corpo in linea, addome e glutei contratti','Respira normalmente, tieni la posizione'],c:'Spingi il pavimento con gli avambracci: le scapole lavorano',yt:'plank principianti tutorial'},
+ {n:'Plank completo',s:['Avambracci a terra, piedi uniti, corpo in linea perfetta','Non alzare il sedere, non inarcare la schiena','Tieni fino al bip'],c:'Immagina di tirare i gomiti verso i piedi',yt:'plank perfetto tutorial'},
+ {n:'Plank con tocco spalle',s:['Plank su mani tese','Stacca una mano e tocca la spalla opposta, lento','Alterna, senza far oscillare i fianchi'],c:'Piedi più larghi = più stabilità. Fianchi immobili',yt:'plank shoulder taps tutorial'}]},
+hollow:{ic:'🎯',m:'Addome',saf:'Nessun carico sulle spalle.',v:[
+ {n:'Crunch',s:['Sdraiato, ginocchia piegate, mani sulle tempie','Solleva le scapole da terra guardando il soffitto','Scendi lento, senza tirare il collo'],c:'Espira mentre sali',yt:'crunch corretto tutorial'},
+ {n:'Dead bug',s:['Pancia in su, braccia verso il soffitto, ginocchia a 90°','Estendi lentamente braccio destro e gamba sinistra','Torna e alterna, schiena sempre a terra'],c:'La zona lombare NON si stacca mai dal pavimento',yt:'dead bug tutorial italiano'},
+ {n:'Hollow hold',s:['Sdraiato, braccia lungo i fianchi sollevate, gambe tese sollevate a 30 cm','Zona lombare premuta a terra','Tieni la posizione respirando'],c:'Più le gambe sono basse, più è difficile',yt:'hollow body hold tutorial'}]},
+gobsquat:{ic:'🦵',m:'Quadricipiti, glutei',saf:'Kettlebell tenuto al petto, vicino al corpo: zero stress sulla spalla.',v:[
+ {n:'Goblet squat',s:['Kettlebell al petto per le corna, gomiti stretti, piedi larghezza spalle','Scendi spingendo i fianchi indietro, ginocchia in fuori','Risali spingendo con tutto il piede'],c:'Petto alto, talloni sempre a terra',yt:'goblet squat kettlebell tutorial'},
+ {n:'Goblet squat profondo + pausa',s:['Come livello 1 ma scendi più giù, cosce sotto il parallelo se riesci','Pausa di 2 secondi in basso','Risalita potente'],c:'La pausa elimina il rimbalzo: lavoro vero',yt:'goblet squat pause tutorial'},
+ {n:'Squat jump (senza peso)',s:['Squat a corpo libero, scendi al parallelo','Esplodi in un salto verticale','Atterra morbido piegando le ginocchia e riparti'],c:'Atterraggio silenzioso = atterraggio giusto',yt:'squat jump tutorial'}]},
+lunge:{ic:'🚶',m:'Gambe, glutei',saf:'Kettlebell al petto o lasciato a terra se perdi equilibrio.',v:[
+ {n:'Affondo indietro (corpo libero)',s:['In piedi, passo indietro con una gamba','Il ginocchio dietro scende verso terra','Spingi con la gamba davanti per tornare su. Alterna'],c:'Busto verticale, il ginocchio davanti non supera la punta',yt:'affondi indietro tutorial'},
+ {n:'Affondo indietro con kettlebell',s:['Kettlebell al petto stile goblet','Passo indietro, discesa controllata','Risali e alterna le gambe'],c:'Più lento scendi, più lavori',yt:'goblet reverse lunge tutorial'},
+ {n:'Affondo in camminata',s:['Kettlebell al petto, passo in AVANTI','Scendi finché il ginocchio dietro sfiora terra','Riporta il piede dietro avanti e prosegui alternando'],c:'Equilibrio: fissa un punto davanti a te',yt:'walking lunge kettlebell'}]},
+rdl:{ic:'🍑',m:'Femorali, glutei, schiena bassa',saf:'Braccia rilassate lungo il corpo: la spalla non lavora.',v:[
+ {n:'Stacco rumeno kettlebell',s:['In piedi, kettlebell davanti alle cosce con due mani','Spingi i fianchi INDIETRO scendendo con il peso lungo le gambe, ginocchia poco piegate','Schiena dritta; risali contraendo i glutei'],c:'Senti tirare dietro le cosce = stai lavorando bene',yt:'stacco rumeno kettlebell tutorial'},
+ {n:'Stacco rumeno lento',s:['Come livello 1 ma discesa in 4 secondi','Pausa sotto, risalita normale','Massima tensione sui femorali'],c:'La schiena resta piatta come un tavolo',yt:'romanian deadlift tempo kettlebell'},
+ {n:'Stacco rumeno 1 gamba (assistito)',s:['Kettlebell nella mano opposta alla gamba d’appoggio, l’altra mano sfiora il muro','Scendi allungando la gamba libera indietro','Risali col gluteo della gamba a terra. Cambia a metà'],c:'Fianchi paralleli al pavimento, non aprirli',yt:'single leg deadlift kettlebell tutorial'}]},
+bridge:{ic:'🌉',m:'Glutei, femorali',saf:'Nessun carico sulle spalle.',v:[
+ {n:'Ponte glutei',s:['Sdraiato, ginocchia piegate, piedi vicini ai glutei','Solleva il bacino contraendo i glutei','Pausa di 1 secondo in alto, scendi lento'],c:'Spingi con i talloni, non con la punta',yt:'ponte glutei tutorial'},
+ {n:'Ponte glutei con kettlebell',s:['Kettlebell appoggiato sul bacino, tienilo con le mani','Solleva il bacino fino ad allineare spalle-ginocchia','Discesa controllata'],c:'In alto "strizza" i glutei per 2 secondi',yt:'glute bridge kettlebell tutorial'},
+ {n:'Ponte 1 gamba',s:['Stessa posizione ma una gamba tesa verso il soffitto','Spingi con la gamba a terra sollevando il bacino','Metà tempo per gamba'],c:'Il bacino resta dritto, non ruotare',yt:'single leg glute bridge tutorial'}]},
+calf:{ic:'🦶',m:'Polpacci',saf:'Nessun impatto sulle spalle.',v:[
+ {n:'Calf raise',s:['In piedi, mano al muro per equilibrio','Sali sulle punte più in alto che puoi','Scendi lento fino a terra'],c:'Pausa di 1 secondo in cima',yt:'calf raise tutorial'},
+ {n:'Calf raise con kettlebell',s:['Kettlebell in una mano (lato che lavora di più), altra mano al muro','Sali sulle punte, discesa in 3 secondi','Cambia mano a metà'],c:'Movimento completo: massima salita, massima discesa',yt:'kettlebell calf raise'},
+ {n:'Calf raise 1 gamba',s:['Una gamba sola, mano al muro','Sali e scendi lento sulla punta di un piede','Cambia a metà tempo'],c:'Se bruciano, stai facendo bene',yt:'single leg calf raise tutorial'}]},
+scap:{ic:'🛡️',m:'Stabilità scapole (prehab spalla)',saf:'Il TUO esercizio chiave: rinforza proprio ciò che tiene la spalla in sede. Movimento piccolo e controllato.',v:[
+ {n:'Scap push-up sulle ginocchia',s:['Posizione plank sulle ginocchia, braccia TESE','Senza piegare i gomiti, lascia scendere il petto avvicinando le scapole','Poi spingi il pavimento allontanandole al massimo'],c:'Movimento piccolo: sono solo le scapole a muoversi',yt:'scapular push up tutorial'},
+ {n:'Scap push-up completo',s:['Plank completo, braccia tese','Scapole che si avvicinano, poi spinta massima verso l’alto','Lento e preciso, mai di fretta'],c:'Immagina di allontanare il pavimento da te',yt:'scapular push up plank'},
+ {n:'Scap push-up + pausa',s:['Come livello 2, ma 2 secondi di pausa a scapole strette e 2 a scapole larghe','Qualità totale del movimento',''],c:'Questo esercizio protegge la tua spalla: trattalo con rispetto',yt:'scapular push up slow'}]},
+ytw:{ic:'✈️',m:'Cuffia dei rotatori, trapezio basso',saf:'Fondamentale per la sublussazione. SENZA peso o con bottiglietta da 500ml. MAI il kettlebell.',v:[
+ {n:'Y-T a terra',s:['Sdraiato a pancia in giù, fronte appoggiata','Braccia a Y (in alto in diagonale): sollevale di pochi cm, pollici verso l’alto, 5 volte','Poi braccia a T (in fuori): solleva 5 volte. Alterna'],c:'Sollevi le braccia strizzando le scapole, non con il collo',yt:'prone Y T raises tutorial'},
+ {n:'Y-T-W a terra',s:['Come livello 1, aggiungi la W: gomiti piegati vicino ai fianchi','Sequenza: 5 Y, 5 T, 5 W e ripeti','Movimento lento, 2 secondi su e 2 giù'],c:'Se il collo si affatica, appoggia la fronte su un asciugamano',yt:'YTW exercise shoulder'},
+ {n:'Y-T-W con pausa',s:['Sequenza completa con 2 secondi di tenuta in alto','Eventualmente bottigliette d’acqua da 500 ml nelle mani','Mai andare a fatica estrema qui: è prevenzione'],c:'Costanza qui = spalle che non escono più',yt:'YTW raises hold'}]},
+carry:{ic:'🧳',m:'Presa, core, stabilità spalla',saf:'Perfetto per la spalla: il peso "tira giù" e la muscolatura impara a tenerla in sede.',v:[
+ {n:'Suitcase hold + marcia',s:['Kettlebell in una mano lungo il fianco, come una valigia','Marcia sul posto restando PERFETTAMENTE dritto','Cambia mano a metà tempo'],c:'Non pendere di lato: il core combatte per tenerti dritto',yt:'suitcase carry tutorial'},
+ {n:'Suitcase march ginocchia alte',s:['Come livello 1 ma ginocchia che salgono all’altezza dell’anca','Passo lento e controllato, 1 secondo di equilibrio su una gamba','Cambia mano a metà'],c:'Spalla bassa e indietro, petto aperto',yt:'suitcase march kettlebell'},
+ {n:'Suitcase carry camminata',s:['Cammina avanti e indietro per la stanza col kettlebell in una mano','Passi lenti, corpo verticale','Cambia mano a metà'],c:'Immagina un libro in equilibrio sulla testa',yt:'loaded carry kettlebell tutorial'}]},
+sideplank:{ic:'📐',m:'Obliqui, stabilità',saf:'Se la spalla d’appoggio dà fastidio, resta sulle ginocchia.',v:[
+ {n:'Side plank ginocchia',s:['Su un fianco, gomito sotto la spalla, ginocchia piegate a terra','Solleva il bacino formando una linea testa-ginocchia','Metà tempo per lato'],c:'Spingi il pavimento con l’avambraccio',yt:'side plank ginocchia tutorial'},
+ {n:'Side plank completo',s:['Gambe tese, piedi sovrapposti','Bacino alto, corpo in linea','Cambia lato a metà tempo'],c:'Non lasciar cadere il fianco verso terra',yt:'side plank tutorial'},
+ {n:'Side plank + sollevamento bacino',s:['Dal side plank, abbassa e rialza il bacino ritmicamente','Movimento controllato','Cambia lato a metà'],c:'Il gomito resta esattamente sotto la spalla',yt:'side plank hip dips'}]},
+birddog:{ic:'🐕',m:'Core, schiena, coordinazione',saf:'Sicuro e ottimo per la postura.',v:[
+ {n:'Bird dog',s:['A quattro zampe, mani sotto le spalle','Estendi braccio destro e gamba sinistra insieme, lenti','Torna e alterna'],c:'Fianchi e spalle paralleli al pavimento, niente rotazioni',yt:'bird dog esercizio tutorial'},
+ {n:'Bird dog + pausa',s:['Come livello 1 con 3 secondi di tenuta in estensione','Tocca gomito-ginocchio sotto la pancia prima di riestendere',''],c:'Immagina un bicchiere d’acqua sulla schiena',yt:'bird dog hold tutorial'},
+ {n:'Bird dog lento + occhi chiusi',s:['Estensione in 3 secondi, tenuta 3, ritorno in 3','Prova qualche ripetizione a occhi chiusi per l’equilibrio',''],c:'Il controllo totale è l’obiettivo',yt:'bird dog advanced'}]},
+row:{ic:'🚣',m:'Dorsali, bicipiti',saf:'Tira il gomito verso il fianco, MAI oltre la linea del corpo: protegge la spalla.',v:[
+ {n:'Rematore 1 braccio appoggiato',s:['Mano e ginocchio sinistri su una sedia/divano, schiena piatta','Kettlebell nella mano destra, braccio disteso','Tira il gomito verso il fianco, scapola indietro, scendi lento. Cambia a metà'],c:'Il gomito sfiora il fianco, non si apre in fuori',yt:'rematore kettlebell un braccio tutorial'},
+ {n:'Rematore lento',s:['Come livello 1 ma discesa in 3-4 secondi','Pausa di 1 secondo col peso in alto','Cambia braccio a metà tempo'],c:'Parte prima la scapola, poi il braccio',yt:'single arm row tempo'},
+ {n:'Rematore in piedi (piegato)',s:['In piedi, busto inclinato 45°, schiena dritta, mano libera sul ginocchio','Rema con l’altro braccio, gomito al fianco','Cambia a metà'],c:'La schiena non si muove: rema solo il braccio',yt:'bent over row kettlebell single arm'}]},
+curl:{ic:'💪',m:'Bicipiti',saf:'Gomiti fermi ai fianchi: la spalla non partecipa.',v:[
+ {n:'Curl a 2 mani',s:['In piedi, kettlebell per le corna con entrambe le mani','Piega i gomiti portando il peso al petto','Scendi LENTO in 3 secondi'],c:'Gomiti incollati ai fianchi per tutto il movimento',yt:'kettlebell curl tutorial'},
+ {n:'Curl 1 braccio',s:['Kettlebell in una mano, presa salda','Curl controllato, discesa lenta','Cambia braccio a metà tempo'],c:'Non dondolare il corpo per aiutarti',yt:'single arm kettlebell curl'},
+ {n:'Curl 1 braccio lento + pausa',s:['Salita in 2 secondi, pausa a metà discesa di 2 secondi','Discesa completata in altri 2 secondi','Cambia a metà'],c:'La pausa a metà è dove crescono i bicipiti',yt:'kettlebell curl tempo pause'}]},
+deadlift:{ic:'🏗️',m:'Gambe, glutei, schiena',saf:'Braccia = semplici corde. La spalla non lavora.',v:[
+ {n:'Stacco kettlebell',s:['Kettlebell a terra tra i piedi','Fianchi indietro, schiena piatta, afferra la maniglia con due mani','Spingi con le gambe e alzati dritto, poi riappoggia controllato'],c:'È una spinta di gambe, non una tirata di schiena',yt:'kettlebell deadlift tutorial'},
+ {n:'Stacco + salita veloce',s:['Come livello 1 ma risalita rapida e potente','Discesa sempre lenta e controllata','I glutei si contraggono forte in piedi'],c:'Potenza in salita, controllo in discesa',yt:'kettlebell deadlift speed'},
+ {n:'Stacco 1 mano (cambia a metà)',s:['Kettlebell con una mano sola','Il core lavora per non farti ruotare','Cambia mano a metà tempo'],c:'Spalle parallele al pavimento anche col peso da un lato',yt:'single arm kettlebell deadlift'}]},
+superman:{ic:'🦸',m:'Schiena, lombari',saf:'Braccia AVANTI solo se comodo, altrimenti lungo i fianchi.',v:[
+ {n:'Superman braccia ai fianchi',s:['A pancia in giù, braccia lungo i fianchi','Solleva petto e gambe da terra insieme','Tieni 2 secondi, scendi lento'],c:'Guarda il pavimento, non alzare il mento',yt:'superman esercizio schiena tutorial'},
+ {n:'Superman braccia avanti',s:['Braccia distese avanti (se la spalla è comoda)','Solleva braccia, petto e gambe','Tenuta di 2 secondi'],c:'Allungati, non solo sollevarti',yt:'superman exercise tutorial'},
+ {n:'Superman alternato + tenuta',s:['Solleva braccio destro + gamba sinistra, poi cambia','Ogni tenuta 3 secondi','Ritmo lento e costante'],c:'Qualità sopra la velocità, sempre',yt:'alternating superman exercise'}]},
+swing:{ic:'💨',m:'Full body: glutei, gambe, core',saf:'MAI sopra l’altezza del petto. Le braccia sono corde: il movimento nasce dai fianchi. Se la spalla protesta, torna allo stacco veloce.',v:[
+ {n:'Hinge veloce (pre-swing)',s:['Come lo stacco rumeno ma ritmico e continuo','Kettlebell che oscilla appena tra le gambe','Fianchi che scattano avanti a ogni risalita'],c:'Impara lo scatto d’anca: è il motore dello swing',yt:'kettlebell hinge tutorial'},
+ {n:'Swing basso (2 mani)',s:['Kettlebell oscilla dalle gambe fino all’altezza dell’ombelico','Lo scatto dei fianchi lancia il peso, le braccia NON tirano','Lascia tornare il peso tra le gambe e ripeti'],c:'Glutei che "schioccano" a ogni risalita',yt:'kettlebell swing tutorial italiano'},
+ {n:'Swing al petto (2 mani)',s:['Swing completo: il peso sale fino all’altezza del petto, MAI oltre','Corpo in linea in cima, glutei contratti','Ritmo costante e potente'],c:'Se le braccia si stancano, stai tirando: usa i fianchi',yt:'russian kettlebell swing perfect form'}]},
+mtclimb:{ic:'⛰️',m:'Cardio, core',saf:'Se le spalle si affaticano in appoggio, passa alla marcia veloce sul posto.',v:[
+ {n:'Marcia veloce / skip basso',s:['Corsa sul posto a bassa intensità','Ginocchia che salgono a ritmo','Braccia che accompagnano rilassate'],c:'Atterra sull’avampiede, leggero',yt:'marcia sul posto workout'},
+ {n:'Mountain climber lento',s:['Posizione plank su mani','Porta un ginocchio al petto, poi l’altro, alternando','Ritmo controllato, fianchi bassi'],c:'Le spalle restano sopra le mani',yt:'mountain climber tutorial'},
+ {n:'Mountain climber veloce',s:['Come livello 2 ma a ritmo di corsa','Core sempre contratto','Fino al bip senza fermarti'],c:'Respira! Non trattenere il fiato',yt:'mountain climbers fast'}]}
+};
+
+/* verified YouTube video per exercise */
+const VIDS={pushup:'IODxDxX7oi4',floorpress:'Lp1O5CnuOiU',triext:'bTzJTIM0NpI',plankcore:'A2b2EmIg0dA',hollow:'JrcoGEZn6L4',gobsquat:'0eW8av1WC4g',lunge:'ALl174GTuoY',rdl:'TVHt4Mo4KWw',bridge:'L9KZfxT654Y',calf:'4HQ8Am9IuME',scap:'uN3HsCkcbSA',ytw:'R6hm0NI_e58',carry:'SXf6ePnQMJ8',sideplank:'0M-erHBl48U',birddog:'wiFNA3sqjCA',row:'8gg400ddt-g',curl:'40t3Dld3YCA',deadlift:'MJPGkNqAXzg',superman:'z6PJMT2y8GQ',swing:'Y2HTBalOeBY',mtclimb:'K3Xt4QH4b-U'};
+
+/* warmup & cooldown (fixed) */
+const WARM=[{n:'Marcia sul posto veloce',d:45},{n:'Circonduzioni scapole + braccia (piccole)',d:45},{n:'Cat-cow (gatto-mucca)',d:45},{n:'Squat a corpo libero lenti',d:45}];
+const COOL=[{n:'Allungamento pettorale al muro (dolce)',d:30},{n:'Allungamento quadricipite in piedi',d:30},{n:'Allungamento femorali',d:30},{n:'Respirazione profonda',d:30}];
+
+/* recovery day sequence (Sunday) */
+const RECOV=[
+ {n:'Pendolo di Codman (braccio rilassato che oscilla)',d:60},{n:'Cat-cow lento',d:60},
+ {n:'Apertura pettorale sullo stipite (DOLCE, sotto la soglia)',d:60},{n:'Rotazioni toraciche a terra',d:60},
+ {n:'Allungamento flessori dell’anca',d:60},{n:'Allungamento femorali',d:60},
+ {n:'Figura 4 (glutei)',d:60},{n:'Posizione del bambino + respirazione',d:60}];
+
+/* weekly schedule: getDay() -> workout */
+const SCHED={
+ 1:{t:'Petto & Tricipiti',ic:'💪',ex:['pushup','floorpress','triext','plankcore','hollow']},
+ 2:{t:'Gambe & Glutei',ic:'🦵',ex:['gobsquat','lunge','rdl','bridge','calf']},
+ 3:{t:'Spalle Blindate & Core',ic:'🛡️',ex:['scap','ytw','carry','sideplank','birddog']},
+ 4:{t:'Schiena & Bicipiti',ic:'🚣',ex:['row','curl','deadlift','superman','hollow']},
+ 5:{t:'Full Body Power',ic:'⚡',ex:['swing','gobsquat','pushup','row','mtclimb']},
+ 6:{t:'Gambe & Core',ic:'🔥',ex:['gobsquat','rdl','lunge','sideplank','bridge']},
+ 0:{t:'Recupero Attivo & Mobilità',ic:'🧘',ex:null}
+};
+const PHASES=[{n:'Fondamenta',w:30,r:30,col:'var(--ok)'},{n:'Resistenza',w:35,r:25,col:'var(--blu)'},{n:'Forza',w:40,r:20,col:'var(--acc2)'},{n:'Potenza',w:45,r:15,col:'var(--bad)'}];
+
+/* meals: 7 days */
+const MEALS=[
+ {c:'Yogurt greco + miele + noci + un frutto',s:'Una manciata di mandorle',p:'Pasta integrale al pomodoro + insalatona con tonno e olive',ce:'Frittata di 2-3 uova con zucchine + pane integrale'},
+ {c:'Fiocchi d’avena con latte, banana e cannella',s:'Yogurt bianco',p:'Riso con pollo a striscioline e verdure saltate',ce:'Minestrone + crostini integrali + scaglie di parmigiano'},
+ {c:'Pane integrale tostato + ricotta + marmellata',s:'Un frutto di stagione',p:'Insalata di farro con mozzarella, pomodorini e rucola',ce:'Filetto di pesce al forno + patate e verdure arrosto'},
+ {c:'Yogurt greco + frutti di bosco + granola',s:'Una manciata di noci',p:'Panino integrale con tacchino, insalata e pomodoro',ce:'Zuppa di legumi (ceci o lenticchie) + verdure di contorno'},
+ {c:'Uova strapazzate + pane integrale + spremuta',s:'Un frutto',p:'Pasta integrale con tonno e pomodorini + verdura cruda',ce:'Petto di pollo alla piastra + insalata mista + pane'},
+ {c:'Fiocchi d’avena + latte + mela e cannella',s:'Yogurt o kefir',p:'Riso basmati con salmone (anche in scatola) e zucchine',ce:'Pizza! (una a settimana ci sta) + insalata prima',},
+ {c:'Colazione libera del weekend (con un po’ di proteine)',s:'Frutta secca',p:'Pranzo della domenica: porzioni normali, verdure per prime',ce:'Cena leggera: vellutata di verdure + uovo o formaggio magro + pane'}];
+
+const BADGES=[
+ {id:'s3',ic:'🔥',n:'Scintilla',d:'3 giorni di fila',f:s=>s.best>=3},
+ {id:'s7',ic:'🎯',n:'Prima settimana',d:'7 giorni di fila',f:s=>s.best>=7},
+ {id:'s14',ic:'⚡',n:'Due settimane',d:'14 giorni di fila',f:s=>s.best>=14},
+ {id:'s30',ic:'🏆',n:'Un mese intero',d:'30 giorni di fila',f:s=>s.best>=30},
+ {id:'s60',ic:'💎',n:'Diamante',d:'60 giorni di fila',f:s=>s.best>=60},
+ {id:'s100',ic:'👑',n:'Club dei 100',d:'100 giorni di fila',f:s=>s.best>=100},
+ {id:'s180',ic:'🚀',n:'Metà anno',d:'180 giorni di fila',f:s=>s.best>=180},
+ {id:'s365',ic:'🌟',n:'LEGGENDA 365',d:'Un anno intero!',f:s=>s.best>=365},
+ {id:'t10',ic:'🥉',n:'Decina',d:'10 allenamenti totali',f:s=>s.tot>=10},
+ {id:'t50',ic:'🥈',n:'Mezzo centinaio',d:'50 allenamenti totali',f:s=>s.tot>=50},
+ {id:'t100',ic:'🥇',n:'Centurione',d:'100 allenamenti totali',f:s=>s.tot>=100},
+ {id:'t250',ic:'🏛️',n:'Spartano',d:'250 allenamenti totali',f:s=>s.tot>=250}];
+const LVLS=['Novizio','Costante','Determinato','Disciplinato','Guerriero','Atleta','Macchina','Titano','Leggenda'];
+
+/* ============ STATE ============ */
+const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0};
+let S=DEF;
+function load(){try{const r=localStorage.getItem('sfida365');if(r)S=Object.assign({},DEF,JSON.parse(r));}catch(e){}}
+function save(){try{localStorage.setItem('sfida365',JSON.stringify(S));}catch(e){}}
+function dstr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function today(){return dstr(new Date());}
+function addD(ds,n){const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()+n);return dstr(d);}
+function active(ds){return !!S.log[ds]||!!S.frozen[ds];}
+
+/* streak: consecutive active days ending today or yesterday */
+function calcStreak(){
+  let t=today(),n=0,d=S.log[t]?t:addD(t,-1);
+  if(!S.log[t]&&!active(d))return 0;
+  while(active(d)){n++;d=addD(d,-1);}
+  if(S.log[t]&&!active(addD(t,-1)))return 1;
+  return n;
+}
+/* can save yesterday with a freeze token? */
+function freezeInfo(){
+  const t=today(),y=addD(t,-1),by=addD(t,-2);
+  const mon=t.slice(0,7);
+  const avail=!S.fz[mon];
+  // offer if: yesterday missed, but day before was active (there IS a streak to save)
+  const offer=avail&&!active(y)&&active(by)&&!S.log[t];
+  return {avail,offer,y,mon};
+}
+function useFreeze(){
+  const f=freezeInfo();if(!f.offer)return;
+  S.frozen[f.y]=1;S.fz[f.mon]=1;save();
+  toast('🧊 Streak salvato! Gettone del mese usato.');
+  render();
+}
+
+/* week & phase */
+function weekNum(){
+  const s=new Date(S.start+'T12:00:00'),n=new Date(today()+'T12:00:00');
+  return Math.max(1,Math.floor((n-s)/(864e5*7))+1);
+}
+function phaseOf(w){return PHASES[Math.floor((w-1)/4)%4];}
+function levelOf(w){return Math.min(3,Math.floor((w-1)/16)+1);}
+
+/* xp */
+function lvlIdx(){return Math.min(LVLS.length-1,Math.floor(S.xp/600));}
+
+/* ============ RENDER ============ */
+function show(id){
+  document.querySelectorAll('.screen').forEach(e=>e.classList.remove('on'));
+  document.getElementById('s-'+id).classList.add('on');
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.s===id));
+  window.scrollTo(0,0);
+  if(id==='prog')renderProg();if(id==='meal')renderMeal();if(id==='plan')renderPlan();
+}
+function toast(msg,ms){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',ms||3500);}
+
+function render(){
+  const st=calcStreak(),t=today(),doneToday=!!S.log[t];
+  if(st>S.best){S.best=st;save();}
+  document.getElementById('streakN').textContent=st;
+  const fl=document.getElementById('flame');
+  fl.className='flame'+(st===0?' dead':'');fl.textContent=st===0?'🔥':st>=30?'🔥🔥🔥':st>=7?'🔥🔥':'🔥';
+  const hero=document.getElementById('heroCard');
+  const msg=document.getElementById('streakMsg');
+  const hr=new Date().getHours();
+  hero.classList.remove('danger');fl.classList.remove('pulse');
+  if(doneToday){msg.innerHTML='✅ Fatto anche oggi. Sei una roccia.';}
+  else if(st>0&&hr>=18){hero.classList.add('danger');fl.classList.add('pulse');msg.innerHTML='<b style="color:var(--bad)">⚠️ Lo streak di '+st+' giorni MUORE a mezzanotte!</b><br>Ti bastano 20 minuti. Ora.';}
+  else if(st>0){msg.innerHTML='Oggi non ti sei ancora allenato. Non spezzare la catena.';}
+  else{msg.innerHTML='Ogni leggenda inizia dal giorno 1. Inizia oggi.';}
+  /* freeze offer */
+  const f=freezeInfo(),fb=document.getElementById('freezeBox');
+  fb.innerHTML=f.offer?'<div class="card danger"><b>😱 Hai saltato ieri!</b><div class="mut" style="margin:6px 0 10px">Puoi ancora salvare lo streak col gettone di questo mese.</div><button class="btn small" onclick="useFreeze()">🧊 USA IL GETTONE SALVA-STREAK</button></div>':'';
+  /* stats */
+  const tot=Object.values(S.log).filter(x=>x.t==='w').length+Object.values(S.log).filter(x=>x.t==='r').length;
+  document.getElementById('stDone').textContent=Object.keys(S.log).length;
+  document.getElementById('stBest').textContent=S.best;
+  document.getElementById('stPct').textContent=Math.min(100,Math.round(S.best/365*100))+'%';
+  /* xp */
+  const li=lvlIdx();
+  document.getElementById('lvlName').textContent=LVLS[li];
+  document.getElementById('lvlTag').textContent='Lv '+(li+1);
+  const into=S.xp-li*600;
+  document.getElementById('xpFill').style.width=Math.min(100,into/6)+'%';
+  document.getElementById('xpTxt').textContent=li>=LVLS.length-1?S.xp+' XP — livello massimo!':into+' / 600 XP per diventare '+LVLS[li+1];
+  /* today card */
+  const w=weekNum(),ph=phaseOf(w),lv=levelOf(w),day=new Date().getDay(),sc=SCHED[day];
+  document.getElementById('weekTag').textContent='Settimana '+Math.min(w,52)+'/52';
+  document.getElementById('todayTitle').textContent=sc.ic+' '+sc.t;
+  document.getElementById('todaySub').innerHTML=day===0?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':'Fase <b style="color:'+ph.col+'">'+ph.n+'</b> · '+ph.w+'" lavoro / '+ph.r+'" recupero · Livello esercizi '+lv;
+  document.getElementById('todayDoneBox').innerHTML=doneToday?'<div class="cue" style="margin-top:10px">✅ Completato oggi! Puoi rifarlo per piacere, ma lo streak è già al sicuro.</div>':'';
+  document.getElementById('goBtn').textContent=day===0?'🧘 VAI AL RECUPERO ATTIVO →':'VAI ALL’ALLENAMENTO →';
+}
+
+/* workout preview */
+let seq=[],seqMeta={};
+function openWorkout(){
+  const day=new Date().getDay(),w=weekNum(),ph=phaseOf(w),lv=levelOf(w),sc=SCHED[day];
+  document.getElementById('wTitle').textContent=sc.ic+' '+sc.t;
+  const list=document.getElementById('wList');
+  if(day===0){
+    document.getElementById('wSub').textContent='2 giri × 8 posizioni da 60". Respira, allunga, non forzare mai.';
+    document.getElementById('wTags').innerHTML='<span class="tag hot">Recupero attivo</span> <span class="tag">~18 min</span>';
+    list.innerHTML=RECOV.map(x=>'<div class="exli"><div class="nm">🧘 '+x.n+'</div><div class="mut">'+x.d+'" per posizione</div></div>').join('');
+    seq=[];RECOV.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'MOBILITÀ'}));
+    RECOV.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'MOBILITÀ · GIRO 2'}));
+    seqMeta={type:'r'};
+  }else{
+    document.getElementById('wSub').textContent='3’ riscaldamento + 3 giri × 5 esercizi ('+ph.w+'" on / '+ph.r+'" off) + 2’ defaticamento.';
+    document.getElementById('wTags').innerHTML='<span class="tag hot">Fase '+ph.n+'</span> <span class="tag">Livello '+lv+'</span> <span class="tag">20 min</span>';
+    list.innerHTML=sc.ex.map(id=>{
+      const e=EX[id],v=e.v[lv-1];
+      return '<details><summary>'+e.ic+' '+v.n+'<span class="tag" style="margin-left:auto;margin-right:6px">'+e.m.split(',')[0]+'</span></summary>'+
+      '<ol class="steps">'+v.s.filter(Boolean).map(s=>'<li>'+s+'</li>').join('')+'</ol>'+
+      (v.c?'<div class="cue">💡 '+v.c+'</div>':'')+
+      '<div class="saf">🛡️ '+e.saf+'</div>'+
+      '<div class="vid" data-v="'+(VIDS[id]||'')+'"></div>'+
+      '<a class="ytb" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(v.yt)+'">🔎 Altri video su YouTube</a></details>';
+    }).join('');
+    /* lazy-load embedded video when the exercise is opened */
+    list.querySelectorAll('details').forEach(dt=>dt.addEventListener('toggle',()=>{
+      if(!dt.open)return;
+      const h=dt.querySelector('.vid');
+      if(h&&h.dataset.v&&!h.dataset.done){h.dataset.done=1;h.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+h.dataset.v+'?rel=0&playsinline=1" title="Video esercizio" loading="lazy" allow="fullscreen; picture-in-picture" allowfullscreen></iframe>';}
+    }));
+    seq=[];
+    WARM.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'RISCALDAMENTO'}));
+    for(let g=1;g<=3;g++)sc.ex.forEach((id,i)=>{
+      const v=EX[id].v[lv-1];
+      seq.push({n:v.n,d:ph.w,ph:'work',lab:'LAVORO · GIRO '+g+'/3'});
+      seq.push({n:'Recupero',d:ph.r,ph:'rest',lab:'RECUPERO',nx:sc.ex[i+1]?EX[sc.ex[i+1]].v[lv-1].n:(g<3?'Nuovo giro: '+EX[sc.ex[0]].v[lv-1].n:'Defaticamento')});
+    });
+    COOL.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'DEFATICAMENTO'}));
+    seqMeta={type:'w'};
+  }
+  show('work');
+}
+
+/* ============ TIMER ============ */
+let ti=0,tLeft=0,tH=null,paused=false,wl=null,AC=null;
+function beep(f,dur,vol){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type='sine';g.gain.value=vol||.4;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+(dur||.15));o.stop(AC.currentTime+(dur||.15));}catch(e){}}
+async function startTimer(){
+  if(!seq.length)return;
+  ti=0;paused=false;
+  document.getElementById('tmr').classList.add('on');
+  try{wl=await navigator.wakeLock.request('screen');}catch(e){}
+  beep(880,.2);setStep();tick();
+}
+function setStep(){
+  const s=seq[ti];tLeft=s.d;
+  const b=document.getElementById('tBody');b.className='grow '+s.ph;b.style.display='flex';b.style.flexDirection='column';b.style.justifyContent='center';
+  document.getElementById('tPhase').textContent=s.lab;
+  document.getElementById('tName').textContent=s.ph==='rest'?'😮‍💨 Respira':s.n;
+  document.getElementById('tNext').textContent=s.ph==='rest'?('Prossimo: '+(s.nx||'')):(seq[ti+1]?'Dopo: '+(seq[ti+1].ph==='rest'?'recupero':seq[ti+1].n):'Ultimo esercizio!');
+  document.getElementById('tProg').textContent=(ti+1)+' / '+seq.length;
+  drawT();
+}
+function drawT(){
+  const s=seq[ti];
+  document.getElementById('tClock').textContent=Math.floor(tLeft/60)+':'+String(tLeft%60).padStart(2,'0');
+  document.getElementById('tRing').style.width=(tLeft/s.d*100)+'%';
+}
+function tick(){
+  clearInterval(tH);
+  tH=setInterval(()=>{
+    if(paused)return;
+    tLeft--;
+    if(tLeft<=3&&tLeft>0)beep(660,.1,.3);
+    if(tLeft<=0){
+      ti++;
+      if(ti>=seq.length){finishT();return;}
+      beep(seq[ti].ph==='work'?880:520,.25);
+      if(navigator.vibrate)navigator.vibrate(200);
+      setStep();return;
+    }
+    drawT();
+  },1000);
+}
+function pauseT(){paused=!paused;document.getElementById('tPause').textContent=paused?'▶ Riprendi':'⏸ Pausa';}
+function skipT(){ti++;if(ti>=seq.length){finishT();return;}beep(700,.15);setStep();}
+function quitTimer(){if(!confirm('Uscire? L’allenamento non verrà contato.'))return;endT();}
+function endT(){clearInterval(tH);document.getElementById('tmr').classList.remove('on');try{wl&&wl.release();}catch(e){}wl=null;}
+function finishT(){
+  endT();
+  const t=today(),first=!S.log[t];
+  if(first){
+    const isW=seqMeta.type==='w';
+    S.log[t]={t:seqMeta.type};
+    const st=calcStreak();
+    const gain=(isW?50:30)+Math.min(30,st);
+    S.xp+=gain;
+    if(st>S.best)S.best=st;
+    save();
+    confetti();
+    beep(880,.3);setTimeout(()=>beep(1100,.3),200);setTimeout(()=>beep(1320,.45),400);
+    toast('🎉 GIORNO '+st+' COMPLETATO! +'+gain+' XP'+(st>1?' · Streak: '+st+' 🔥':''),5000);
+  }else{toast('💪 Doppia razione! Già contato per oggi.');}
+  render();show('home');
+}
+
+/* confetti */
+function confetti(){
+  const c=document.getElementById('conf'),x=c.getContext('2d');
+  c.width=innerWidth;c.height=innerHeight;
+  const P=[];for(let i=0;i<120;i++)P.push({x:Math.random()*c.width,y:-20-Math.random()*c.height*.5,v:2+Math.random()*4,r:4+Math.random()*6,a:Math.random()*6.28,col:['#ff7a1a','#ffb347','#3ddc84','#4da3ff','#ff5c5c','#ffcf3f'][i%6]});
+  let n=0;
+  (function f(){x.clearRect(0,0,c.width,c.height);P.forEach(p=>{p.y+=p.v;p.a+=.1;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.col;x.fillRect(-p.r/2,-p.r/2,p.r,p.r);x.restore();});if(++n<130)requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height);})();
+}
+
+/* ============ PLAN screen ============ */
+function renderPlan(){
+  const w=weekNum(),ph=phaseOf(w),lv=levelOf(w);
+  document.getElementById('phaseCard').innerHTML='<div class="row"><h3 class="grow">Settimana '+Math.min(w,52)+' di 52</h3><span class="tag hot">Livello '+lv+'</span></div>'+
+   '<div style="margin-top:8px;font-size:15px">Fase <b style="color:'+ph.col+'">'+ph.n+'</b>: <b>'+ph.w+'"</b> lavoro / <b>'+ph.r+'"</b> recupero</div>'+
+   '<div class="xpbar" style="margin-top:10px"><i style="width:'+Math.min(100,w/52*100)+'%"></i></div><div class="mut">'+Math.min(100,Math.round(w/52*100))+'% dell’anno di sfida</div>';
+  const names=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+  const td=new Date().getDay();
+  document.getElementById('weekPlan').innerHTML=[1,2,3,4,5,6,0].map(d=>{
+    const s=SCHED[d];return '<div class="wkrow"'+(d===td?' style="color:var(--acc2)"':'')+'><span class="dd">'+names[d]+'</span><span>'+s.ic+' '+s.t+'</span>'+(d===td?'<span class="tag hot" style="margin-left:auto">oggi</span>':'')+'</div>';
+  }).join('');
+}
+
+/* ============ MEALS screen ============ */
+function renderMeal(){
+  const d=new Date().getDay(),m=MEALS[(d+6)%7];
+  const names=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
+  document.getElementById('mealToday').innerHTML='<h3>'+names[d]+'</h3><div style="margin-top:10px">'+
+   '<div class="meal"><b>Colazione</b><p>'+m.c+'</p></div>'+
+   '<div class="meal"><b>Spuntino</b><p>'+m.s+'</p></div>'+
+   '<div class="meal"><b>Pranzo</b><p>'+m.p+'</p></div>'+
+   '<div class="meal"><b>Cena</b><p>'+m.ce+'</p></div></div>'+
+   '<div class="mut" style="margin-top:6px">Nei giorni di allenamento: proteine entro 1-2 ore dalla fine (bastano yogurt, uova o il pasto normale).</div>';
+  document.getElementById('mealWeek').innerHTML='<h3>Tutta la settimana</h3>'+[1,2,3,4,5,6,0].map(d2=>{
+    const mm=MEALS[(d2+6)%7];
+    return '<details'+(d2===d?' open':'')+'><summary>'+names[d2]+'</summary><div style="padding-bottom:12px;font-size:14px;color:#c6d2e0">🌅 '+mm.c+'<br>🍎 '+mm.s+'<br>☀️ '+mm.p+'<br>🌙 '+mm.ce+'</div></details>';
+  }).join('');
+}
+
+/* ============ PROGRESS screen ============ */
+function renderProg(){
+  /* heatmap: 13 weeks x 7 days, ending this week */
+  const t=new Date(today()+'T12:00:00');
+  const dow=(t.getDay()+6)%7; /* mon=0 */
+  const end=addD(today(),6-((t.getDay()+6)%7)); /* end of current week (sun) */
+  let html='';
+  for(let r=0;r<7;r++){for(let c=0;c<13;c++){
+    const ds=addD(end,-( (12-c)*7 + (6-r) ));
+    const l=S.log[ds],fz=S.frozen[ds];
+    const fut=ds>today();
+    html+='<i class="'+(fz?'fz':l?'d2':'')+'"'+(fut?' style="opacity:.15"':'')+' title="'+ds+'"></i>';
+  }}
+  document.getElementById('heat').innerHTML=html;
+  /* freeze tag */
+  const mon=today().slice(0,7);
+  document.getElementById('fzTag').textContent=S.fz[mon]?'usato questo mese':'disponibile ✓';
+  /* badges */
+  const ctx={best:S.best,tot:Object.keys(S.log).length};
+  document.getElementById('badges').innerHTML=BADGES.map(b=>'<div class="bdg'+(b.f(ctx)?'':' off')+'"><div class="bi">'+b.ic+'</div><b>'+b.n+'</b><span>'+b.d+'</span></div>').join('');
+  document.getElementById('setStart').value=S.start;
+}
+function doExport(){document.getElementById('bak').value=JSON.stringify(S);toast('Copiato nel riquadro: selezionalo tutto e copialo.');}
+function doImport(){
+  try{const v=JSON.parse(document.getElementById('bak').value);if(!v.log)throw 0;S=Object.assign({},DEF,v);save();render();toast('✅ Dati importati!');}
+  catch(e){toast('❌ Backup non valido.');}
+}
+function setStart(v){if(v){S.start=v;save();render();toast('Data di inizio aggiornata.');}}
+
+/* init */
+load();render();
+</script>
+<script>if('serviceWorker' in navigator && location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(function(){});}</script>
+</html>
