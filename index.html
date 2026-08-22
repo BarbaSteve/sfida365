@@ -68,6 +68,7 @@ h1,h2,h3{margin:0}
 .ytb{display:inline-block;margin-top:9px;background:#2a1215;border:1px solid #6b2530;color:#ff9aa5;border-radius:10px;padding:7px 12px;font-size:13px;text-decoration:none;font-weight:600}
 .vid{margin-top:10px}
 .vid iframe{width:100%;aspect-ratio:16/9;border:0;border-radius:12px;background:#000;display:block}
+#tVid iframe{max-height:30vh;margin:0 auto}
 /* timer */
 #tmr{position:fixed;inset:0;background:var(--bg);z-index:100;display:none;flex-direction:column;padding:20px;max-width:560px;margin:0 auto}
 #tmr.on{display:flex}
@@ -174,6 +175,7 @@ details[open] summary::after{content:"▴"}
     <div class="tclock" id="tClock">0:30</div>
     <div class="ring"><i id="tRing" style="width:100%"></i></div>
     <div class="tnext" id="tNext"></div>
+    <div class="vid" id="tVid" style="display:none;margin-top:14px"></div>
   </div>
   <div class="row">
     <button class="btn sec" id="tPause" onclick="pauseT()">⏸ Pausa</button>
@@ -494,6 +496,16 @@ function render(){
   document.getElementById('todaySub').innerHTML=day===0?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':'Fase <b style="color:'+ph.col+'">'+ph.n+'</b> · '+ph.w+'" lavoro / '+ph.r+'" recupero · Livello esercizi '+lv;
   document.getElementById('todayDoneBox').innerHTML=doneToday?'<div class="cue" style="margin-top:10px">✅ Completato oggi! Puoi rifarlo per piacere, ma lo streak è già al sicuro.</div>':'';
   document.getElementById('goBtn').textContent=day===0?'🧘 VAI AL RECUPERO ATTIVO →':'VAI ALL’ALLENAMENTO →';
+  /* before the start date: countdown + preview mode */
+  if(today()<S.start){
+    const dd=Math.round((new Date(S.start+'T12:00:00')-new Date(today()+'T12:00:00'))/864e5);
+    document.getElementById('weekTag').textContent='Si parte il '+S.start.split('-').reverse().join('/');
+    document.getElementById('todayTitle').textContent='⏳ '+(dd===1?'Manca 1 giorno':'Mancano '+dd+' giorni');
+    document.getElementById('todaySub').innerHTML='La sfida non è ancora iniziata. Esplora il piano e prova gli esercizi in anteprima: non conta per lo streak.';
+    document.getElementById('goBtn').textContent='👀 PROVA IN ANTEPRIMA';
+    hero.classList.remove('danger');fl.classList.remove('pulse');
+    if(!doneToday&&st===0)msg.innerHTML='⏳ Tutto pronto. Il giorno 1 ti aspetta.';
+  }
 }
 
 /* workout preview */
@@ -531,8 +543,9 @@ function openWorkout(){
     WARM.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'RISCALDAMENTO'}));
     for(let g=1;g<=3;g++)sc.ex.forEach((id,i)=>{
       const v=EX[id].v[lv-1];
+      const nid=sc.ex[i+1]||(g<3?sc.ex[0]:null);
       seq.push({n:v.n,d:ph.w,ph:'work',lab:'LAVORO · GIRO '+g+'/3'});
-      seq.push({n:'Recupero',d:ph.r,ph:'rest',lab:'RECUPERO',nx:sc.ex[i+1]?EX[sc.ex[i+1]].v[lv-1].n:(g<3?'Nuovo giro: '+EX[sc.ex[0]].v[lv-1].n:'Defaticamento')});
+      seq.push({n:'Recupero',d:ph.r,ph:'rest',lab:'RECUPERO',vid:nid?VIDS[nid]:null,nx:sc.ex[i+1]?EX[sc.ex[i+1]].v[lv-1].n:(g<3?'Nuovo giro: '+EX[sc.ex[0]].v[lv-1].n:'Defaticamento')});
     });
     COOL.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'DEFATICAMENTO'}));
     seqMeta={type:'w'};
@@ -557,6 +570,12 @@ function setStep(){
   document.getElementById('tName').textContent=s.ph==='rest'?'😮‍💨 Respira':s.n;
   document.getElementById('tNext').textContent=s.ph==='rest'?('Prossimo: '+(s.nx||'')):(seq[ti+1]?'Dopo: '+(seq[ti+1].ph==='rest'?'recupero':seq[ti+1].n):'Ultimo esercizio!');
   document.getElementById('tProg').textContent=(ti+1)+' / '+seq.length;
+  /* autoplay (muted) video of the NEXT exercise during rest */
+  const tv=document.getElementById('tVid');
+  if(s.ph==='rest'&&s.vid){
+    tv.style.display='block';
+    tv.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+s.vid+'?autoplay=1&mute=1&playsinline=1&rel=0" title="Prossimo esercizio" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+  }else{tv.style.display='none';tv.innerHTML='';}
   drawT();
 }
 function drawT(){
@@ -586,6 +605,11 @@ function quitTimer(){if(!confirm('Uscire? L’allenamento non verrà contato.'))
 function endT(){clearInterval(tH);document.getElementById('tmr').classList.remove('on');try{wl&&wl.release();}catch(e){}wl=null;}
 function finishT(){
   endT();
+  if(today()<S.start){
+    confetti();
+    toast('👏 Anteprima completata! La sfida ufficiale parte il '+S.start.split('-').reverse().join('/')+'.',5000);
+    render();show('home');return;
+  }
   const t=today(),first=!S.log[t];
   if(first){
     const isW=seqMeta.type==='w';
