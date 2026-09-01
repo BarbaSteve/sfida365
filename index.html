@@ -255,12 +255,18 @@ select{width:100%;background:var(--card2);border:1px solid var(--line);border-ra
   <div class="bgrid" id="badges"></div>
   <div class="card" style="margin-top:16px">
     <h3>💾 Backup dati</h3>
-    <div class="mut" style="margin:6px 0 10px">I dati vivono in questo browser. Ogni tanto copia il backup e salvalo (note, email a te stesso).</div>
+    <div class="mut" style="margin:6px 0 10px">Salvataggio doppio automatico (localStorage + IndexedDB) con ripristino incrociato e snapshot degli ultimi 30 giorni. In più, ogni tanto mandati un backup con Condividi.</div>
     <div class="row">
+      <button class="btn sec small" onclick="doShare()">📤 Condividi backup</button>
       <button class="btn sec small" onclick="doExport()">Esporta</button>
       <button class="btn sec small" onclick="doImport()">Importa</button>
     </div>
     <textarea id="bak" placeholder="Il backup apparirà qui / incolla qui per importare" style="margin-top:10px"></textarea>
+    <div class="mut" style="margin:12px 0 4px">Ripristina uno snapshot automatico</div>
+    <div class="row">
+      <select id="snapSel" class="grow"></select>
+      <button class="btn sec small" onclick="doRestoreSnap()">Ripristina</button>
+    </div>
   </div>
   <div class="card">
     <h3>⚙️ Impostazioni</h3>
@@ -369,8 +375,29 @@ mtclimb:{ic:'⛰️',m:'Cardio, core',saf:'Se le spalle si affaticano in appoggi
  {n:'Mountain climber veloce',s:['Come livello 2 ma a ritmo di corsa','Core sempre contratto','Fino al bip senza fermarti'],c:'Respira! Non trattenere il fiato',yt:'mountain climbers fast'}]}
 };
 
-/* verified YouTube video per exercise */
-const VIDS={pushup:'IODxDxX7oi4',floorpress:'Lp1O5CnuOiU',triext:'bTzJTIM0NpI',plankcore:'A2b2EmIg0dA',hollow:'JrcoGEZn6L4',gobsquat:'0eW8av1WC4g',lunge:'ALl174GTuoY',rdl:'TVHt4Mo4KWw',bridge:'L9KZfxT654Y',calf:'4HQ8Am9IuME',scap:'uN3HsCkcbSA',ytw:'R6hm0NI_e58',carry:'SXf6ePnQMJ8',sideplank:'0M-erHBl48U',birddog:'wiFNA3sqjCA',row:'8gg400ddt-g',curl:'40t3Dld3YCA',deadlift:'MJPGkNqAXzg',superman:'z6PJMT2y8GQ',swing:'Y2HTBalOeBY',mtclimb:'K3Xt4QH4b-U'};
+/* verified YouTube video per exercise VARIANT [level1,level2,level3] */
+const VIDS={
+pushup:['lWuHbFQ1Om8','-m9buxRuWEc','YqsuJcr5kVc'],
+floorpress:['AVVuvSvaPDc','GEY6kc26kZY','B340QckIfJM'],
+triext:['bTzJTIM0NpI','EEF2IcxW20k','Q09iNPS4LSc'],
+plankcore:['iDSHokfXqyA','6xWUlLvltvQ','eyeuugrpLYA'],
+hollow:['lX--crZaY_c','XcYtWYMz39w','Xk-JcNj6lfY'],
+gobsquat:['wjkoL-CagYE','AeEXbJ3U8cM','A-cFYWvaHr0'],
+lunge:['X0ebejGKd68','gWN9epxFqX8','IRq5o3ntLIE'],
+rdl:['prDydG0Qpfw','4XB6Z6_DSbI','s32cCgmRV3I'],
+bridge:['X_IGw8U_e38','PPDwNOjqD1Q','2sg3vqnE8qE'],
+calf:['4HQ8Am9IuME','8sT7Ne3Kzwc','S3jZdTw08ts'],
+scap:['79Y24xdSJJk','QYwCqzhvxWQ','uTOKRtzvRtE'],
+ytw:['oIQwKPKn3bQ','TMnRKdNOrrA','5TBjG5xuPa4'],
+carry:['dRbHULlxBLI','fYgi9mk8t40','Q1GjhRDAil0'],
+sideplank:['ribtncUfriU','sH5PiIUjDW8','4yylMqlnjwU'],
+birddog:['-f8OZr1IdTM','basK_ClelP0','lUW37OUb_QY'],
+row:['DM-prGmTK2I','9LI7dP7Ct9o','xi4QToNZkkw'],
+curl:['XfwEuk8I33k','ELV4xKT9oAE','KCiBkJEGZ9c'],
+deadlift:['foy5yzE4_DA','J-KZ3ypuMtY','RVK5e5C-XZU'],
+superman:['uexOGyxLr7E','z6PJMT2y8GQ','Gui5TqiKjZI'],
+swing:['5qhy8-pX8Yw','WWRTt4t2E_o','rb7wyQCe3-Q'],
+mtclimb:['-tfnUAl4oQA','uymhliNG0I4','nOl72cp3z1Y']};
 
 /* warmup & cooldown (fixed) */
 const WARM=[{n:'Marcia sul posto veloce',d:45},{n:'Circonduzioni scapole + braccia (piccole)',d:45},{n:'Cat-cow (gatto-mucca)',d:45},{n:'Squat a corpo libero lenti',d:45}];
@@ -428,8 +455,37 @@ const LVLS=['Novizio','Costante','Determinato','Disciplinato','Guerriero','Atlet
 /* ============ STATE ============ */
 const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null};
 let S=DEF;
+/* ---- storage hardening: localStorage + IndexedDB mirror + 30-day snapshots ---- */
+function idb(){return new Promise((res,rej)=>{const q=indexedDB.open('sfida365',1);q.onupgradeneeded=()=>{const d=q.result;if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');if(!d.objectStoreNames.contains('snap'))d.createObjectStore('snap');};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
+function idbPut(st,k,v){return idb().then(d=>new Promise((res,rej)=>{const t=d.transaction(st,'readwrite');t.objectStore(st).put(v,k);t.oncomplete=res;t.onerror=()=>rej(t.error);}));}
+function idbGet(st,k){return idb().then(d=>new Promise((res,rej)=>{const r=d.transaction(st).objectStore(st).get(k);r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}));}
+function idbKeys(st){return idb().then(d=>new Promise((res,rej)=>{const r=d.transaction(st).objectStore(st).getAllKeys();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);}));}
+function idbDel(st,k){return idb().then(d=>new Promise(res=>{const t=d.transaction(st,'readwrite');t.objectStore(st).delete(k);t.oncomplete=res;t.onerror=res;}));}
 function load(){try{const r=localStorage.getItem('sfida365');if(r)S=Object.assign({},DEF,JSON.parse(r));}catch(e){}}
-function save(){try{localStorage.setItem('sfida365',JSON.stringify(S));}catch(e){}}
+function save(){
+  S.ts=Date.now();
+  const j=JSON.stringify(S);
+  try{localStorage.setItem('sfida365',j);}catch(e){}
+  try{
+    idbPut('kv','current',j).catch(()=>{});
+    idbPut('snap',today(),j).then(()=>idbKeys('snap')).then(ks=>{ks.sort();while(ks.length>30)idbDel('snap',ks.shift());}).catch(()=>{});
+  }catch(e){}
+}
+/* if localStorage was wiped but the IndexedDB copy is richer, auto-restore it */
+function reconcile(){
+  try{idbGet('kv','current').then(j=>{
+    if(!j)return;
+    let v;try{v=JSON.parse(j);}catch(e){return;}
+    const mine=Object.keys(S.log||{}).length, theirs=Object.keys(v.log||{}).length;
+    if(theirs>mine){
+      S=Object.assign({},DEF,v);
+      try{localStorage.setItem('sfida365',JSON.stringify(S));}catch(e){}
+      if(S.shift!==null&&S.shift!==undefined)document.getElementById('chooser').classList.remove('on');
+      render();
+      toast('🛟 Dati ripristinati automaticamente dalla copia di sicurezza ('+theirs+' giorni recuperati).',6000);
+    }
+  }).catch(()=>{});}catch(e){}
+}
 function dstr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function today(){return dstr(new Date());}
 function addD(ds,n){const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()+n);return dstr(d);}
@@ -550,7 +606,7 @@ function openWorkout(){
       '<ol class="steps">'+v.s.filter(Boolean).map(s=>'<li>'+s+'</li>').join('')+'</ol>'+
       (v.c?'<div class="cue">💡 '+v.c+'</div>':'')+
       '<div class="saf">🛡️ '+e.saf+'</div>'+
-      '<div class="vid" data-v="'+(VIDS[id]||'')+'"></div>'+
+      '<div class="vid" data-v="'+((VIDS[id]||[])[lv-1]||'')+'"></div>'+
       '<a class="ytb" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(v.yt)+'">🔎 Altri video su YouTube</a></details>';
     }).join('');
     /* lazy-load embedded video when the exercise is opened */
@@ -565,7 +621,7 @@ function openWorkout(){
       const v=EX[id].v[lv-1];
       const nid=sc.ex[i+1]||(g<3?sc.ex[0]:null);
       seq.push({n:v.n,d:ph.w,ph:'work',lab:'LAVORO · GIRO '+g+'/3'});
-      seq.push({n:'Recupero',d:ph.r,ph:'rest',lab:'RECUPERO',vid:nid?VIDS[nid]:null,nx:sc.ex[i+1]?EX[sc.ex[i+1]].v[lv-1].n:(g<3?'Nuovo giro: '+EX[sc.ex[0]].v[lv-1].n:'Defaticamento')});
+      seq.push({n:'Recupero',d:ph.r,ph:'rest',lab:'RECUPERO',vid:nid?(VIDS[nid]||[])[lv-1]:null,nx:sc.ex[i+1]?EX[sc.ex[i+1]].v[lv-1].n:(g<3?'Nuovo giro: '+EX[sc.ex[0]].v[lv-1].n:'Defaticamento')});
     });
     COOL.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'DEFATICAMENTO'}));
     seqMeta={type:'w'};
@@ -710,8 +766,24 @@ function renderProg(){
   document.getElementById('badges').innerHTML=BADGES.map(b=>'<div class="bdg'+(b.f(ctx)?'':' off')+'"><div class="bi">'+b.ic+'</div><b>'+b.n+'</b><span>'+b.d+'</span></div>').join('');
   document.getElementById('setStart').value=S.start;
   document.getElementById('setShift').innerHTML=ROT.map((k,i)=>'<option value="'+i+'"'+((S.shift||0)===i?' selected':'')+'>'+SCHED[k].ic+' '+SCHED[k].t+'</option>').join('');
+  try{idbKeys('snap').then(ks=>{ks.sort().reverse();document.getElementById('snapSel').innerHTML=ks.length?ks.map(k=>'<option value="'+k+'">'+k+'</option>').join(''):'<option value="">nessuno snapshot ancora</option>';}).catch(()=>{});}catch(e){}
 }
-function doExport(){document.getElementById('bak').value=JSON.stringify(S);toast('Copiato nel riquadro: selezionalo tutto e copialo.');}
+function doExport(){document.getElementById('bak').value=JSON.stringify(S);S.lastBk=Date.now();save();toast('Copiato nel riquadro: selezionalo tutto e copialo.');}
+function doShare(){
+  const txt='Backup Sfida 365 del '+today()+'\n'+JSON.stringify(S);
+  S.lastBk=Date.now();save();
+  if(navigator.share){navigator.share({title:'Backup Sfida 365',text:txt}).catch(()=>{});}
+  else{document.getElementById('bak').value=JSON.stringify(S);toast('Condivisione non disponibile qui: copia dal riquadro.');}
+}
+function doRestoreSnap(){
+  const k=document.getElementById('snapSel').value;if(!k)return;
+  if(!confirm('Ripristinare lo snapshot del '+k+'? Sovrascrive i dati attuali.'))return;
+  idbGet('snap',k).then(j=>{
+    if(!j){toast('❌ Snapshot non trovato.');return;}
+    S=Object.assign({},DEF,JSON.parse(j));save();render();renderProg();
+    toast('✅ Snapshot del '+k+' ripristinato.');
+  }).catch(()=>toast('❌ Errore nel ripristino.'));
+}
 function doImport(){
   try{const v=JSON.parse(document.getElementById('bak').value);if(!v.log)throw 0;S=Object.assign({},DEF,v);save();render();toast('✅ Dati importati!');}
   catch(e){toast('❌ Backup non valido.');}
@@ -738,6 +810,8 @@ function chooseStart(i){
 load();
 if(S.shift===null||S.shift===undefined)renderChooser();
 render();
+reconcile();
+if(Object.keys(S.log).length>=5&&Date.now()-(S.lastBk||0)>7*864e5)setTimeout(()=>toast('💾 Da più di 7 giorni senza backup: Progressi → 📤 Condividi backup (10 secondi).',6000),1500);
 </script>
 <script>if('serviceWorker' in navigator && location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(function(){});}</script>
 </html>
