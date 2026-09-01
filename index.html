@@ -82,9 +82,11 @@ h1,h2,h3{margin:0}
 .rest .tphase,.rest .tclock{color:var(--blu)} .rest .ring i{background:var(--blu)}
 .warm .tphase,.warm .tclock{color:var(--ok)} .warm .ring i{background:var(--ok)}
 /* heatmap */
-.hm{display:grid;grid-template-columns:repeat(13,1fr);gap:4px}
+.hm{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
 .hm i{aspect-ratio:1;border-radius:4px;background:var(--card2)}
 .hm i.d1{background:#6b3a10}.hm i.d2{background:var(--acc)}.hm i.fz{background:var(--blu)}
+.hm .hd{font-size:10px;color:var(--mut);text-align:center;font-weight:700}
+.hm i.tdy{outline:2px solid var(--acc2)}
 /* badges */
 .bgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .bdg{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
@@ -174,7 +176,7 @@ select{width:100%;background:var(--card2);border:1px solid var(--line);border-ra
     <div class="mut" style="margin-bottom:6px">Apri ogni esercizio per la guida. Se è la prima volta, guarda il video prima di iniziare.</div>
     <div id="wList"></div>
   </div>
-  <button class="btn" onclick="startTimer()">▶ START — 20 MINUTI</button>
+  <button class="btn" onclick="startTimer()">▶ START — 20’ DI LAVORO</button>
   <div style="height:10px"></div>
   <div class="mut" style="text-align:center">Il timer gestisce lavoro e recupero: tu pensa solo a muoverti.</div>
 </div>
@@ -207,7 +209,7 @@ select{width:100%;background:var(--card2);border:1px solid var(--line);border-ra
   <div class="card">
     <h3>Come progredisce</h3>
     <div class="mut" style="margin-top:8px;font-size:14px;line-height:1.55">
-      Ogni allenamento dura sempre 20 minuti: 3' riscaldamento + 15' circuito (3 giri da 5 esercizi) + 2' defaticamento. A cambiare è il rapporto lavoro/recupero, che cresce ogni 4 settimane:<br><br>
+      Il lavoro vero dura sempre 20 minuti netti: 4 giri da 5 esercizi. Riscaldamento (3') e defaticamento (2') sono in più, per un totale di ~25'. A cambiare è il rapporto lavoro/recupero, che cresce ogni 4 settimane:<br><br>
       <b style="color:var(--ok)">Fase Fondamenta</b> (sett. 1–4): 30" lavoro / 30" recupero — impara la tecnica.<br>
       <b style="color:var(--blu)">Fase Resistenza</b> (sett. 5–8): 35" / 25".<br>
       <b style="color:var(--acc2)">Fase Forza</b> (sett. 9–12): 40" / 20" — movimenti lenti e controllati.<br>
@@ -245,7 +247,7 @@ select{width:100%;background:var(--card2);border:1px solid var(--line);border-ra
   <div class="card">
     <h3>Ultime 13 settimane</h3>
     <div class="hm" id="heat" style="margin-top:10px"></div>
-    <div class="mut" style="margin-top:8px">🟧 allenamento · 🟦 streak congelato · grigio = perso</div>
+    <div class="mut" style="margin-top:8px">Colonne = giorni (Lun→Dom), righe = settimane, l'ultima in basso è quella corrente. 🟧 allenamento · 🟦 streak congelato · bordo giallo = oggi</div>
   </div>
   <div class="card">
     <div class="row"><h3 class="grow">🧊 Gettone salva-streak</h3><span class="tag hot" id="fzTag"></span></div>
@@ -274,6 +276,8 @@ select{width:100%;background:var(--card2);border:1px solid var(--line);border-ra
     <input type="date" id="setStart" onchange="setStart(this.value)">
     <div class="mut" style="margin:12px 0 4px">Allenamento del giorno 1 (ruota il ciclo)</div>
     <select id="setShift" onchange="setShift(this.value)"></select>
+    <div class="mut" style="margin:12px 0 4px">Livello addominali/core</div>
+    <select id="setCore" onchange="setCore(this.value)"></select>
   </div>
 </div>
 
@@ -379,10 +383,10 @@ mtclimb:{ic:'⛰️',m:'Cardio, core',saf:'Se le spalle si affaticano in appoggi
 const VIDS={
 pushup:['lWuHbFQ1Om8','-m9buxRuWEc','YqsuJcr5kVc'],
 floorpress:['AVVuvSvaPDc','GEY6kc26kZY','B340QckIfJM'],
-triext:['bTzJTIM0NpI','EEF2IcxW20k','Q09iNPS4LSc'],
+triext:['JQqcAQ7y3MU','EEF2IcxW20k','Q09iNPS4LSc'],
 plankcore:['iDSHokfXqyA','6xWUlLvltvQ','eyeuugrpLYA'],
 hollow:['lX--crZaY_c','XcYtWYMz39w','Xk-JcNj6lfY'],
-gobsquat:['wjkoL-CagYE','AeEXbJ3U8cM','A-cFYWvaHr0'],
+gobsquat:['wjkoL-CagYE','AeEXbJ3U8cM','bKZULB5Ssjw'],
 lunge:['X0ebejGKd68','gWN9epxFqX8','IRq5o3ntLIE'],
 rdl:['prDydG0Qpfw','4XB6Z6_DSbI','s32cCgmRV3I'],
 bridge:['X_IGw8U_e38','PPDwNOjqD1Q','2sg3vqnE8qE'],
@@ -405,10 +409,10 @@ const COOL=[{n:'Allungamento pettorale al muro (dolce)',d:30},{n:'Allungamento q
 
 /* recovery day sequence (Sunday) */
 const RECOV=[
- {n:'Pendolo di Codman (braccio rilassato che oscilla)',d:60},{n:'Cat-cow lento',d:60},
- {n:'Apertura pettorale sullo stipite (DOLCE, sotto la soglia)',d:60},{n:'Rotazioni toraciche a terra',d:60},
- {n:'Allungamento flessori dell’anca',d:60},{n:'Allungamento femorali',d:60},
- {n:'Figura 4 (glutei)',d:60},{n:'Posizione del bambino + respirazione',d:60}];
+ {n:'Pendolo di Codman (braccio rilassato che oscilla)',d:75},{n:'Cat-cow lento',d:75},
+ {n:'Apertura pettorale sullo stipite (DOLCE, sotto la soglia)',d:75},{n:'Rotazioni toraciche a terra',d:75},
+ {n:'Allungamento flessori dell’anca',d:75},{n:'Allungamento femorali',d:75},
+ {n:'Figura 4 (glutei)',d:75},{n:'Posizione del bambino + respirazione',d:75}];
 
 /* weekly schedule: getDay() -> workout */
 const SCHED={
@@ -426,6 +430,9 @@ const ROT=[1,2,3,4,5,6];
 function dsDiff(ds){return Math.round((new Date(ds+'T12:00:00')-new Date(S.start+'T12:00:00'))/864e5);}
 function cycDay(ds){const d=dsDiff(ds);return ((d%7)+7)%7;}
 function schedFor(ds){const dc=cycDay(ds);if(dc===6)return SCHED[0];return SCHED[ROT[(dc+(S.shift||0))%6]];}
+/* core exercises start one level up when coreUp is on (default on) */
+const CORE=['plankcore','hollow','sideplank','birddog'];
+function lvFor(id,lv){return Math.min(3,lv+((S.coreUp!==0&&CORE.indexOf(id)>-1)?1:0));}
 
 /* meals: 7 days */
 const MEALS=[
@@ -453,7 +460,7 @@ const BADGES=[
 const LVLS=['Novizio','Costante','Determinato','Disciplinato','Guerriero','Atleta','Macchina','Titano','Leggenda'];
 
 /* ============ STATE ============ */
-const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null};
+const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null,coreUp:1};
 let S=DEF;
 /* ---- storage hardening: localStorage + IndexedDB mirror + 30-day snapshots ---- */
 function idb(){return new Promise((res,rej)=>{const q=indexedDB.open('sfida365',1);q.onupgradeneeded=()=>{const d=q.result;if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');if(!d.objectStoreNames.contains('snap'))d.createObjectStore('snap');};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
@@ -591,22 +598,22 @@ function openWorkout(){
   document.getElementById('wTitle').textContent=sc.ic+' '+sc.t;
   const list=document.getElementById('wList');
   if(isRec){
-    document.getElementById('wSub').textContent='2 giri × 8 posizioni da 60". Respira, allunga, non forzare mai.';
-    document.getElementById('wTags').innerHTML='<span class="tag hot">Recupero attivo</span> <span class="tag">~18 min</span>';
+    document.getElementById('wSub').textContent='2 giri × 8 posizioni da 75". Respira, allunga, non forzare mai.';
+    document.getElementById('wTags').innerHTML='<span class="tag hot">Recupero attivo</span> <span class="tag">20 min</span>';
     list.innerHTML=RECOV.map(x=>'<div class="exli"><div class="nm">🧘 '+x.n+'</div><div class="mut">'+x.d+'" per posizione</div></div>').join('');
     seq=[];RECOV.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'MOBILITÀ'}));
     RECOV.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'MOBILITÀ · GIRO 2'}));
     seqMeta={type:'r'};
   }else{
-    document.getElementById('wSub').textContent='3’ riscaldamento + 3 giri × 5 esercizi ('+ph.w+'" on / '+ph.r+'" off) + 2’ defaticamento.';
-    document.getElementById('wTags').innerHTML='<span class="tag hot">Fase '+ph.n+'</span> <span class="tag">Livello '+lv+'</span> <span class="tag">20 min</span>';
+    document.getElementById('wSub').textContent='20 minuti netti di lavoro: 4 giri × 5 esercizi ('+ph.w+'" on / '+ph.r+'" off). In più: 3’ riscaldamento + 2’ defaticamento.';
+    document.getElementById('wTags').innerHTML='<span class="tag hot">Fase '+ph.n+'</span> <span class="tag">Livello '+lv+'</span> <span class="tag">20’ lavoro · ~25’ totali</span>';
     list.innerHTML=sc.ex.map(id=>{
-      const e=EX[id],v=e.v[lv-1];
+      const e=EX[id],v=e.v[lvFor(id,lv)-1];
       return '<details><summary>'+e.ic+' '+v.n+'<span class="tag" style="margin-left:auto;margin-right:6px">'+e.m.split(',')[0]+'</span></summary>'+
       '<ol class="steps">'+v.s.filter(Boolean).map(s=>'<li>'+s+'</li>').join('')+'</ol>'+
       (v.c?'<div class="cue">💡 '+v.c+'</div>':'')+
       '<div class="saf">🛡️ '+e.saf+'</div>'+
-      '<div class="vid" data-v="'+((VIDS[id]||[])[lv-1]||'')+'"></div>'+
+      '<div class="vid" data-v="'+((VIDS[id]||[])[lvFor(id,lv)-1]||'')+'"></div>'+
       '<a class="ytb" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(v.yt)+'">🔎 Altri video su YouTube</a></details>';
     }).join('');
     /* lazy-load embedded video when the exercise is opened */
@@ -617,11 +624,11 @@ function openWorkout(){
     }));
     seq=[];
     WARM.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'RISCALDAMENTO'}));
-    for(let g=1;g<=3;g++)sc.ex.forEach((id,i)=>{
-      const v=EX[id].v[lv-1];
-      const nid=sc.ex[i+1]||(g<3?sc.ex[0]:null);
-      seq.push({n:v.n,d:ph.w,ph:'work',lab:'LAVORO · GIRO '+g+'/3'});
-      seq.push({n:'Recupero',d:ph.r,ph:'rest',lab:'RECUPERO',vid:nid?(VIDS[nid]||[])[lv-1]:null,nx:sc.ex[i+1]?EX[sc.ex[i+1]].v[lv-1].n:(g<3?'Nuovo giro: '+EX[sc.ex[0]].v[lv-1].n:'Defaticamento')});
+    for(let g=1;g<=4;g++)sc.ex.forEach((id,i)=>{
+      const v=EX[id].v[lvFor(id,lv)-1];
+      const nid=sc.ex[i+1]||(g<4?sc.ex[0]:null);
+      seq.push({n:v.n,d:ph.w,ph:'work',lab:'LAVORO · GIRO '+g+'/4'});
+      seq.push({n:'Recupero',d:ph.r,ph:'rest',lab:'RECUPERO',vid:nid?(VIDS[nid]||[])[lvFor(nid,lv)-1]:null,nx:sc.ex[i+1]?EX[sc.ex[i+1]].v[lvFor(sc.ex[i+1],lv)-1].n:(g<4?'Nuovo giro: '+EX[sc.ex[0]].v[lvFor(sc.ex[0],lv)-1].n:'Defaticamento')});
     });
     COOL.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'DEFATICAMENTO'}));
     seqMeta={type:'w'};
@@ -642,9 +649,9 @@ async function startTimer(){
 function setStep(){
   const s=seq[ti];tLeft=s.d;
   const b=document.getElementById('tBody');b.className='grow '+s.ph;b.style.display='flex';b.style.flexDirection='column';b.style.justifyContent='center';
-  document.getElementById('tPhase').textContent=s.lab;
-  document.getElementById('tName').textContent=s.ph==='rest'?'😮‍💨 Respira':s.n;
-  document.getElementById('tNext').textContent=s.ph==='rest'?('Prossimo: '+(s.nx||'')):(seq[ti+1]?'Dopo: '+(seq[ti+1].ph==='rest'?'recupero':seq[ti+1].n):'Ultimo esercizio!');
+  document.getElementById('tPhase').textContent=s.ph==='rest'?'RECUPERO · PROSSIMO ESERCIZIO':s.lab;
+  document.getElementById('tName').textContent=s.ph==='rest'?(s.nx?'➡️ '+s.nx:'😮‍💨 Respira'):s.n;
+  document.getElementById('tNext').textContent=s.ph==='rest'?'😮‍💨 Respira · sotto trovi il video di come si fa':(seq[ti+1]?'Dopo: '+(seq[ti+1].ph==='rest'?'recupero':seq[ti+1].n):'Ultimo esercizio!');
   document.getElementById('tProg').textContent=(ti+1)+' / '+seq.length;
   /* autoplay (muted) video of the NEXT exercise during rest */
   const tv=document.getElementById('tVid');
@@ -664,11 +671,11 @@ function tick(){
   tH=setInterval(()=>{
     if(paused)return;
     tLeft--;
-    if(tLeft<=3&&tLeft>0)beep(660,.1,.3);
+    if(tLeft<=3&&tLeft>0){const nw=seq[ti+1]&&seq[ti+1].ph==='work';beep(nw?880:660,.12,nw?.95:.3);}
     if(tLeft<=0){
       ti++;
       if(ti>=seq.length){finishT();return;}
-      beep(seq[ti].ph==='work'?880:520,.25);
+      beep(seq[ti].ph==='work'?990:520,.3,seq[ti].ph==='work'?.95:.5);
       if(navigator.vibrate)navigator.vibrate(200);
       setStep();return;
     }
@@ -748,14 +755,13 @@ function renderMeal(){
 function renderProg(){
   /* heatmap: 13 weeks x 7 days, ending this week */
   const t=new Date(today()+'T12:00:00');
-  const dow=(t.getDay()+6)%7; /* mon=0 */
-  const end=addD(today(),6-((t.getDay()+6)%7)); /* end of current week (sun) */
-  let html='';
-  for(let r=0;r<7;r++){for(let c=0;c<13;c++){
-    const ds=addD(end,-( (12-c)*7 + (6-r) ));
+  const mon0=addD(today(),-((t.getDay()+6)%7)-12*7); /* monday, 12 weeks ago */
+  let html=['L','M','M','G','V','S','D'].map(x=>'<span class="hd">'+x+'</span>').join('');
+  for(let w=0;w<13;w++){for(let d=0;d<7;d++){
+    const ds=addD(mon0,w*7+d);
     const l=S.log[ds],fz=S.frozen[ds];
     const fut=ds>today();
-    html+='<i class="'+(fz?'fz':l?'d2':'')+'"'+(fut?' style="opacity:.15"':'')+' title="'+ds+'"></i>';
+    html+='<i class="'+(fz?'fz':l?'d2':'')+(ds===today()?' tdy':'')+'"'+(fut?' style="opacity:.15"':'')+' title="'+ds+'"></i>';
   }}
   document.getElementById('heat').innerHTML=html;
   /* freeze tag */
@@ -766,6 +772,8 @@ function renderProg(){
   document.getElementById('badges').innerHTML=BADGES.map(b=>'<div class="bdg'+(b.f(ctx)?'':' off')+'"><div class="bi">'+b.ic+'</div><b>'+b.n+'</b><span>'+b.d+'</span></div>').join('');
   document.getElementById('setStart').value=S.start;
   document.getElementById('setShift').innerHTML=ROT.map((k,i)=>'<option value="'+i+'"'+((S.shift||0)===i?' selected':'')+'>'+SCHED[k].ic+' '+SCHED[k].t+'</option>').join('');
+  const cu=S.coreUp!==0?1:0;
+  document.getElementById('setCore').innerHTML='<option value="1"'+(cu===1?' selected':'')+'>💪 +1 livello (partenza avanzata)</option><option value="0"'+(cu===0?' selected':'')+'>Normale (segue il piano)</option>';
   try{idbKeys('snap').then(ks=>{ks.sort().reverse();document.getElementById('snapSel').innerHTML=ks.length?ks.map(k=>'<option value="'+k+'">'+k+'</option>').join(''):'<option value="">nessuno snapshot ancora</option>';}).catch(()=>{});}catch(e){}
 }
 function doExport(){document.getElementById('bak').value=JSON.stringify(S);S.lastBk=Date.now();save();toast('Copiato nel riquadro: selezionalo tutto e copialo.');}
@@ -790,6 +798,7 @@ function doImport(){
 }
 function setStart(v){if(v){S.start=v;save();render();toast('Data di inizio aggiornata.');}}
 function setShift(v){S.shift=parseInt(v)||0;save();render();toast('🔄 Piano ruotato: giorno 1 = '+SCHED[ROT[S.shift]].t);}
+function setCore(v){S.coreUp=parseInt(v)||0;save();toast(S.coreUp?'💪 Addominali a +1 livello.':'Addominali a livello normale.');}
 
 /* first-run chooser */
 function renderChooser(){
