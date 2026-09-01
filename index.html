@@ -301,6 +301,8 @@ select{width:100%;background:var(--card2);border:1px solid var(--line);border-ra
     <select id="setShift" onchange="setShift(this.value)"></select>
     <div class="mut" style="margin:12px 0 4px">Livello addominali/core</div>
     <select id="setCore" onchange="setCore(this.value)"></select>
+    <div class="mut" style="margin:12px 0 4px">Livello gambe/glutei</div>
+    <select id="setLegs" onchange="setLegs(this.value)"></select>
   </div>
 </div>
 
@@ -453,9 +455,11 @@ const ROT=[1,2,3,4,5,6];
 function dsDiff(ds){return Math.round((new Date(ds+'T12:00:00')-new Date(S.start+'T12:00:00'))/864e5);}
 function cycDay(ds){const d=dsDiff(ds);return ((d%7)+7)%7;}
 function schedFor(ds){const dc=cycDay(ds);if(dc===6)return SCHED[0];return SCHED[ROT[(dc+(S.shift||0))%6]];}
-/* core exercises start one level up when coreUp is on (default on) */
+/* core & leg exercises start one level up when the boost is on (default on).
+   swing excluded on purpose: its levels are a shoulder-safety progression, not leg strength */
 const CORE=['plankcore','hollow','sideplank','birddog'];
-function lvFor(id,lv){return Math.min(3,lv+((S.coreUp!==0&&CORE.indexOf(id)>-1)?1:0));}
+const LEGS=['gobsquat','lunge','rdl','bridge','calf','deadlift'];
+function lvFor(id,lv){return Math.min(3,lv+(((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1))?1:0));}
 
 /* meals: 7 days */
 const MEALS=[
@@ -483,7 +487,7 @@ const BADGES=[
 const LVLS=['Novizio','Costante','Determinato','Disciplinato','Guerriero','Atleta','Macchina','Titano','Leggenda'];
 
 /* ============ STATE ============ */
-const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null,coreUp:1};
+const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null,coreUp:1,legsUp:1};
 let S=DEF;
 /* ---- storage hardening: localStorage + IndexedDB mirror + 30-day snapshots ---- */
 function idb(){return new Promise((res,rej)=>{const q=indexedDB.open('sfida365',2);q.onupgradeneeded=()=>{const d=q.result;if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');if(!d.objectStoreNames.contains('snap'))d.createObjectStore('snap');if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos');};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
@@ -805,6 +809,8 @@ function renderProg(){
   document.getElementById('setShift').innerHTML=ROT.map((k,i)=>'<option value="'+i+'"'+((S.shift||0)===i?' selected':'')+'>'+SCHED[k].ic+' '+SCHED[k].t+'</option>').join('');
   const cu=S.coreUp!==0?1:0;
   document.getElementById('setCore').innerHTML='<option value="1"'+(cu===1?' selected':'')+'>💪 +1 livello (partenza avanzata)</option><option value="0"'+(cu===0?' selected':'')+'>Normale (segue il piano)</option>';
+  const lu=S.legsUp!==0?1:0;
+  document.getElementById('setLegs').innerHTML='<option value="1"'+(lu===1?' selected':'')+'>🦵 +1 livello (partenza avanzata)</option><option value="0"'+(lu===0?' selected':'')+'>Normale (segue il piano)</option>';
   try{idbKeys('snap').then(ks=>{ks.sort().reverse();document.getElementById('snapSel').innerHTML=ks.length?ks.map(k=>'<option value="'+k+'">'+k+'</option>').join(''):'<option value="">nessuno snapshot ancora</option>';}).catch(()=>{});}catch(e){}
   renderPhotos();
 }
@@ -831,6 +837,7 @@ function doImport(){
 function setStart(v){if(v){S.start=v;save();render();toast('Data di inizio aggiornata.');}}
 function setShift(v){S.shift=parseInt(v)||0;save();render();toast('🔄 Piano ruotato: giorno 1 = '+SCHED[ROT[S.shift]].t);}
 function setCore(v){S.coreUp=parseInt(v)||0;save();toast(S.coreUp?'💪 Addominali a +1 livello.':'Addominali a livello normale.');}
+function setLegs(v){S.legsUp=parseInt(v)||0;save();toast(S.legsUp?'🦵 Gambe a +1 livello.':'Gambe a livello normale.');}
 
 /* ---- progress photos (stored on-device in IndexedDB, resized) ---- */
 function pickPhoto(){document.getElementById('photoIn').click();}
