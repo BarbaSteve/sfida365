@@ -107,6 +107,12 @@ details summary{padding:12px 0;cursor:pointer;font-weight:700;font-size:15px;lis
 details summary::after{content:"▾";margin-left:auto;color:var(--mut)}
 details[open] summary::after{content:"▴"}
 #toast{position:fixed;top:14px;left:16px;right:16px;max-width:520px;margin:0 auto;background:var(--card2);border:1px solid var(--acc);color:var(--txt);padding:13px 16px;border-radius:12px;z-index:200;display:none;font-size:14px;font-weight:600}
+#chooser{position:fixed;inset:0;background:rgba(8,11,16,.97);z-index:150;display:none;padding:20px;overflow:auto;max-width:560px;margin:0 auto}
+#chooser.on{display:block}
+.chbtn{display:flex;align-items:center;gap:12px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;color:var(--txt);font-size:16px;font-weight:700;cursor:pointer;text-align:left}
+.chbtn:active{transform:scale(.98);border-color:var(--acc)}
+.chbtn .ci{font-size:26px}
+select{width:100%;background:var(--card2);border:1px solid var(--line);border-radius:10px;color:var(--txt);padding:12px;font-size:15px;font-family:inherit}
 #conf{position:fixed;inset:0;pointer-events:none;z-index:300}
 .wkrow{display:flex;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px;align-items:center}
 .wkrow:last-child{border:none}
@@ -116,6 +122,13 @@ details[open] summary::after{content:"▴"}
 
 <div id="toast"></div>
 <canvas id="conf"></canvas>
+
+<!-- ===================== FIRST-RUN CHOOSER ===================== -->
+<div id="chooser">
+  <h2 style="margin:18px 0 6px">🔥 Benvenuto nella Sfida 365</h2>
+  <div class="mut" style="margin-bottom:16px;font-size:14px;line-height:1.5">Con quale allenamento vuoi iniziare il <b>giorno 1</b>? Gli altri ruoteranno di conseguenza. Il 7° giorno di ogni settimana resta sempre il recupero attivo. Potrai cambiare in Progressi → Impostazioni.</div>
+  <div id="chList"></div>
+</div>
 
 <!-- ===================== HOME ===================== -->
 <div class="screen on" id="s-home">
@@ -253,6 +266,8 @@ details[open] summary::after{content:"▴"}
     <h3>⚙️ Impostazioni</h3>
     <div class="mut" style="margin:8px 0 4px">Data di inizio sfida</div>
     <input type="date" id="setStart" onchange="setStart(this.value)">
+    <div class="mut" style="margin:12px 0 4px">Allenamento del giorno 1 (ruota il ciclo)</div>
+    <select id="setShift" onchange="setShift(this.value)"></select>
   </div>
 </div>
 
@@ -379,6 +394,11 @@ const SCHED={
  0:{t:'Recupero Attivo & Mobilità',ic:'🧘',ex:null}
 };
 const PHASES=[{n:'Fondamenta',w:30,r:30,col:'var(--ok)'},{n:'Resistenza',w:35,r:25,col:'var(--blu)'},{n:'Forza',w:40,r:20,col:'var(--acc2)'},{n:'Potenza',w:45,r:15,col:'var(--bad)'}];
+/* rotation: 6 training days (keys into SCHED) + recovery on cycle day 7 */
+const ROT=[1,2,3,4,5,6];
+function dsDiff(ds){return Math.round((new Date(ds+'T12:00:00')-new Date(S.start+'T12:00:00'))/864e5);}
+function cycDay(ds){const d=dsDiff(ds);return ((d%7)+7)%7;}
+function schedFor(ds){const dc=cycDay(ds);if(dc===6)return SCHED[0];return SCHED[ROT[(dc+(S.shift||0))%6]];}
 
 /* meals: 7 days */
 const MEALS=[
@@ -406,7 +426,7 @@ const BADGES=[
 const LVLS=['Novizio','Costante','Determinato','Disciplinato','Guerriero','Atleta','Macchina','Titano','Leggenda'];
 
 /* ============ STATE ============ */
-const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0};
+const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null};
 let S=DEF;
 function load(){try{const r=localStorage.getItem('sfida365');if(r)S=Object.assign({},DEF,JSON.parse(r));}catch(e){}}
 function save(){try{localStorage.setItem('sfida365',JSON.stringify(S));}catch(e){}}
@@ -490,12 +510,12 @@ function render(){
   document.getElementById('xpFill').style.width=Math.min(100,into/6)+'%';
   document.getElementById('xpTxt').textContent=li>=LVLS.length-1?S.xp+' XP — livello massimo!':into+' / 600 XP per diventare '+LVLS[li+1];
   /* today card */
-  const w=weekNum(),ph=phaseOf(w),lv=levelOf(w),day=new Date().getDay(),sc=SCHED[day];
+  const w=weekNum(),ph=phaseOf(w),lv=levelOf(w),sc=schedFor(today()),isRec=!sc.ex;
   document.getElementById('weekTag').textContent='Settimana '+Math.min(w,52)+'/52';
   document.getElementById('todayTitle').textContent=sc.ic+' '+sc.t;
-  document.getElementById('todaySub').innerHTML=day===0?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':'Fase <b style="color:'+ph.col+'">'+ph.n+'</b> · '+ph.w+'" lavoro / '+ph.r+'" recupero · Livello esercizi '+lv;
+  document.getElementById('todaySub').innerHTML=isRec?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':'Fase <b style="color:'+ph.col+'">'+ph.n+'</b> · '+ph.w+'" lavoro / '+ph.r+'" recupero · Livello esercizi '+lv;
   document.getElementById('todayDoneBox').innerHTML=doneToday?'<div class="cue" style="margin-top:10px">✅ Completato oggi! Puoi rifarlo per piacere, ma lo streak è già al sicuro.</div>':'';
-  document.getElementById('goBtn').textContent=day===0?'🧘 VAI AL RECUPERO ATTIVO →':'VAI ALL’ALLENAMENTO →';
+  document.getElementById('goBtn').textContent=isRec?'🧘 VAI AL RECUPERO ATTIVO →':'VAI ALL’ALLENAMENTO →';
   /* before the start date: countdown + preview mode */
   if(today()<S.start){
     const dd=Math.round((new Date(S.start+'T12:00:00')-new Date(today()+'T12:00:00'))/864e5);
@@ -511,10 +531,10 @@ function render(){
 /* workout preview */
 let seq=[],seqMeta={};
 function openWorkout(){
-  const day=new Date().getDay(),w=weekNum(),ph=phaseOf(w),lv=levelOf(w),sc=SCHED[day];
+  const w=weekNum(),ph=phaseOf(w),lv=levelOf(w),sc=schedFor(today()),isRec=!sc.ex;
   document.getElementById('wTitle').textContent=sc.ic+' '+sc.t;
   const list=document.getElementById('wList');
-  if(day===0){
+  if(isRec){
     document.getElementById('wSub').textContent='2 giri × 8 posizioni da 60". Respira, allunga, non forzare mai.';
     document.getElementById('wTags').innerHTML='<span class="tag hot">Recupero attivo</span> <span class="tag">~18 min</span>';
     list.innerHTML=RECOV.map(x=>'<div class="exli"><div class="nm">🧘 '+x.n+'</div><div class="mut">'+x.d+'" per posizione</div></div>').join('');
@@ -642,9 +662,13 @@ function renderPlan(){
    '<div style="margin-top:8px;font-size:15px">Fase <b style="color:'+ph.col+'">'+ph.n+'</b>: <b>'+ph.w+'"</b> lavoro / <b>'+ph.r+'"</b> recupero</div>'+
    '<div class="xpbar" style="margin-top:10px"><i style="width:'+Math.min(100,w/52*100)+'%"></i></div><div class="mut">'+Math.min(100,Math.round(w/52*100))+'% dell’anno di sfida</div>';
   const names=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
-  const td=new Date().getDay();
-  document.getElementById('weekPlan').innerHTML=[1,2,3,4,5,6,0].map(d=>{
-    const s=SCHED[d];return '<div class="wkrow"'+(d===td?' style="color:var(--acc2)"':'')+'><span class="dd">'+names[d]+'</span><span>'+s.ic+' '+s.t+'</span>'+(d===td?'<span class="tag hot" style="margin-left:auto">oggi</span>':'')+'</div>';
+  const wk=Math.floor(Math.max(0,dsDiff(today()))/7);
+  document.getElementById('weekPlan').innerHTML=[0,1,2,3,4,5,6].map(i=>{
+    const ds=addD(S.start,wk*7+i);
+    const dt=new Date(ds+'T12:00:00');
+    const s=schedFor(ds);
+    const isT=ds===today();
+    return '<div class="wkrow"'+(isT?' style="color:var(--acc2)"':'')+'><span class="dd">'+names[dt.getDay()]+'</span><span>'+s.ic+' '+s.t+'</span>'+(isT?'<span class="tag hot" style="margin-left:auto">oggi</span>':'')+'</div>';
   }).join('');
 }
 
@@ -685,6 +709,7 @@ function renderProg(){
   const ctx={best:S.best,tot:Object.keys(S.log).length};
   document.getElementById('badges').innerHTML=BADGES.map(b=>'<div class="bdg'+(b.f(ctx)?'':' off')+'"><div class="bi">'+b.ic+'</div><b>'+b.n+'</b><span>'+b.d+'</span></div>').join('');
   document.getElementById('setStart').value=S.start;
+  document.getElementById('setShift').innerHTML=ROT.map((k,i)=>'<option value="'+i+'"'+((S.shift||0)===i?' selected':'')+'>'+SCHED[k].ic+' '+SCHED[k].t+'</option>').join('');
 }
 function doExport(){document.getElementById('bak').value=JSON.stringify(S);toast('Copiato nel riquadro: selezionalo tutto e copialo.');}
 function doImport(){
@@ -692,9 +717,27 @@ function doImport(){
   catch(e){toast('❌ Backup non valido.');}
 }
 function setStart(v){if(v){S.start=v;save();render();toast('Data di inizio aggiornata.');}}
+function setShift(v){S.shift=parseInt(v)||0;save();render();toast('🔄 Piano ruotato: giorno 1 = '+SCHED[ROT[S.shift]].t);}
+
+/* first-run chooser */
+function renderChooser(){
+  document.getElementById('chList').innerHTML=ROT.map((k,i)=>{
+    const s=SCHED[k];
+    return '<button class="chbtn" onclick="chooseStart('+i+')"><span class="ci">'+s.ic+'</span>'+s.t+'</button>';
+  }).join('');
+  document.getElementById('chooser').classList.add('on');
+}
+function chooseStart(i){
+  S.shift=i;save();
+  document.getElementById('chooser').classList.remove('on');
+  toast('✅ Giorno 1: '+SCHED[ROT[i]].t+'. Il piano è pronto!');
+  render();
+}
 
 /* init */
-load();render();
+load();
+if(S.shift===null||S.shift===undefined)renderChooser();
+render();
 </script>
 <script>if('serviceWorker' in navigator && location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(function(){});}</script>
 </html>
