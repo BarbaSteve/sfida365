@@ -303,6 +303,10 @@ select{width:100%;background:var(--card2);border:1px solid var(--line);border-ra
     <select id="setCore" onchange="setCore(this.value)"></select>
     <div class="mut" style="margin:12px 0 4px">Livello gambe/glutei</div>
     <select id="setLegs" onchange="setLegs(this.value)"></select>
+    <div class="mut" style="margin:12px 0 4px">Livello petto/braccia</div>
+    <select id="setUpper" onchange="setUpper(this.value)"></select>
+    <div class="mut" style="margin:12px 0 4px">Ritmo lavoro/recupero</div>
+    <select id="setHard" onchange="setHard(this.value)"></select>
   </div>
 </div>
 
@@ -459,7 +463,8 @@ function schedFor(ds){const dc=cycDay(ds);if(dc===6)return SCHED[0];return SCHED
    swing excluded on purpose: its levels are a shoulder-safety progression, not leg strength */
 const CORE=['plankcore','hollow','sideplank','birddog'];
 const LEGS=['gobsquat','lunge','rdl','bridge','calf','deadlift'];
-function lvFor(id,lv){return Math.min(3,lv+(((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1))?1:0));}
+const UPPER=['pushup','floorpress','triext','row','curl'];
+function lvFor(id,lv){return Math.min(3,lv+(((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1)||(S.upperUp!==0&&UPPER.indexOf(id)>-1))?1:0));}
 
 /* meals: 7 days */
 const MEALS=[
@@ -487,7 +492,7 @@ const BADGES=[
 const LVLS=['Novizio','Costante','Determinato','Disciplinato','Guerriero','Atleta','Macchina','Titano','Leggenda'];
 
 /* ============ STATE ============ */
-const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null,coreUp:1,legsUp:1};
+const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null,coreUp:1,legsUp:1,upperUp:1,hardMode:1};
 let S=DEF;
 /* ---- storage hardening: localStorage + IndexedDB mirror + 30-day snapshots ---- */
 function idb(){return new Promise((res,rej)=>{const q=indexedDB.open('sfida365',2);q.onupgradeneeded=()=>{const d=q.result;if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');if(!d.objectStoreNames.contains('snap'))d.createObjectStore('snap');if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos');};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
@@ -554,7 +559,7 @@ function weekNum(){
   const s=new Date(S.start+'T12:00:00'),n=new Date(today()+'T12:00:00');
   return Math.max(1,Math.floor((n-s)/(864e5*7))+1);
 }
-function phaseOf(w){return PHASES[Math.floor((w-1)/4)%4];}
+function phaseOf(w){const i=Math.floor((w-1)/4)%4;return PHASES[Math.min(3,i+(S.hardMode!==0?1:0))];}
 function levelOf(w){return Math.min(3,Math.floor((w-1)/16)+1);}
 
 /* xp */
@@ -653,6 +658,9 @@ function openWorkout(){
     }));
     seq=[];
     WARM.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'RISCALDAMENTO'}));
+    /* last warmup step announces the first work exercise, with its video */
+    const f0=sc.ex[0],fL=lvFor(f0,lv),lw=seq[seq.length-1];
+    lw.nx=EX[f0].v[fL-1].n;lw.vid=(VIDS[f0]||[])[fL-1];
     for(let g=1;g<=4;g++)sc.ex.forEach((id,i)=>{
       const v=EX[id].v[lvFor(id,lv)-1];
       const nid=sc.ex[i+1]||(g<4?sc.ex[0]:null);
@@ -667,7 +675,26 @@ function openWorkout(){
 
 /* ============ TIMER ============ */
 let ti=0,tLeft=0,tH=null,paused=false,wl=null,AC=null;
-function beep(f,dur,vol){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type='sine';g.gain.value=vol||.4;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+(dur||.15));o.stop(AC.currentTime+(dur||.15));}catch(e){}}
+/* beeps as real audio files (WAV generated on the fly): on iOS they play as MEDIA,
+   so they are audible over Spotify and with the silent switch on */
+const TONES={};
+function makeWav(f,dur,vol){
+  const sr=22050,n=Math.floor(sr*dur),data=new Uint8Array(44+n*2),v=new DataView(data.buffer);
+  const ws=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i));};
+  ws(0,'RIFF');v.setUint32(4,36+n*2,true);ws(8,'WAVEfmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);ws(36,'data');v.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++){const env=Math.min(1,(n-i)/(n*.3));v.setInt16(44+i*2,Math.sin(2*Math.PI*f*i/sr)*32767*Math.min(1,vol)*env,true);}
+  return URL.createObjectURL(new Blob([data],{type:'audio/wav'}));
+}
+function beep(f,dur,vol){
+  dur=dur||.15;vol=vol||.4;
+  try{
+    const k=f+'_'+Math.round(dur*100)+'_'+Math.round(vol*100);
+    if(!TONES[k])TONES[k]=makeWav(f,dur,vol);
+    const a=new Audio(TONES[k]);a.volume=1;
+    const p=a.play();if(p&&p.catch)p.catch(()=>oscBeep(f,dur,vol));
+  }catch(e){oscBeep(f,dur,vol);}
+}
+function oscBeep(f,dur,vol){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type='sine';g.gain.value=vol;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+dur);o.stop(AC.currentTime+dur);}catch(e){}}
 async function startTimer(){
   if(!seq.length)return;
   ti=0;paused=false;
@@ -680,11 +707,11 @@ function setStep(){
   const b=document.getElementById('tBody');b.className='grow '+s.ph;b.style.display='flex';b.style.flexDirection='column';b.style.justifyContent='center';
   document.getElementById('tPhase').textContent=s.ph==='rest'?'RECUPERO · PROSSIMO ESERCIZIO':s.lab;
   document.getElementById('tName').textContent=s.ph==='rest'?(s.nx?'➡️ '+s.nx:'😮‍💨 Respira'):s.n;
-  document.getElementById('tNext').textContent=s.ph==='rest'?'😮‍💨 Respira · sotto trovi il video di come si fa':(seq[ti+1]?'Dopo: '+(seq[ti+1].ph==='rest'?'recupero':seq[ti+1].n):'Ultimo esercizio!');
+  document.getElementById('tNext').textContent=s.ph==='rest'?'😮‍💨 Respira · sotto trovi il video di come si fa':(s.nx?'🏁 Prossima: 1ª ripetuta — '+s.nx+' (video sotto)':(seq[ti+1]?'Dopo: '+(seq[ti+1].ph==='rest'?'recupero':seq[ti+1].n):'Ultimo esercizio!'));
   document.getElementById('tProg').textContent=(ti+1)+' / '+seq.length;
   /* autoplay (muted) video of the NEXT exercise during rest */
   const tv=document.getElementById('tVid');
-  if(s.ph==='rest'&&s.vid){
+  if(s.vid){
     tv.style.display='block';
     tv.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+s.vid+'?autoplay=1&mute=1&playsinline=1&rel=0" title="Prossimo esercizio" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>';
   }else{tv.style.display='none';tv.innerHTML='';}
@@ -811,6 +838,10 @@ function renderProg(){
   document.getElementById('setCore').innerHTML='<option value="1"'+(cu===1?' selected':'')+'>💪 +1 livello (partenza avanzata)</option><option value="0"'+(cu===0?' selected':'')+'>Normale (segue il piano)</option>';
   const lu=S.legsUp!==0?1:0;
   document.getElementById('setLegs').innerHTML='<option value="1"'+(lu===1?' selected':'')+'>🦵 +1 livello (partenza avanzata)</option><option value="0"'+(lu===0?' selected':'')+'>Normale (segue il piano)</option>';
+  const uu=S.upperUp!==0?1:0;
+  document.getElementById('setUpper').innerHTML='<option value="1"'+(uu===1?' selected':'')+'>🔥 +1 livello (partenza avanzata)</option><option value="0"'+(uu===0?' selected':'')+'>Normale (segue il piano)</option>';
+  const hm=S.hardMode!==0?1:0;
+  document.getElementById('setHard').innerHTML='<option value="1"'+(hm===1?' selected':'')+'>⚡ Intenso (+1 fase, parti da 35s/25s)</option><option value="0"'+(hm===0?' selected':'')+'>Standard (parti da 30s/30s)</option>';
   try{idbKeys('snap').then(ks=>{ks.sort().reverse();document.getElementById('snapSel').innerHTML=ks.length?ks.map(k=>'<option value="'+k+'">'+k+'</option>').join(''):'<option value="">nessuno snapshot ancora</option>';}).catch(()=>{});}catch(e){}
   renderPhotos();
 }
@@ -838,6 +869,8 @@ function setStart(v){if(v){S.start=v;save();render();toast('Data di inizio aggio
 function setShift(v){S.shift=parseInt(v)||0;save();render();toast('🔄 Piano ruotato: giorno 1 = '+SCHED[ROT[S.shift]].t);}
 function setCore(v){S.coreUp=parseInt(v)||0;save();toast(S.coreUp?'💪 Addominali a +1 livello.':'Addominali a livello normale.');}
 function setLegs(v){S.legsUp=parseInt(v)||0;save();toast(S.legsUp?'🦵 Gambe a +1 livello.':'Gambe a livello normale.');}
+function setUpper(v){S.upperUp=parseInt(v)||0;save();toast(S.upperUp?'🔥 Petto/braccia a +1 livello.':'Petto/braccia a livello normale.');}
+function setHard(v){S.hardMode=parseInt(v)||0;save();render();toast(S.hardMode?'⚡ Ritmo intenso attivo.':'Ritmo standard.');}
 
 /* ---- progress photos (stored on-device in IndexedDB, resized) ---- */
 function pickPhoto(){document.getElementById('photoIn').click();}
