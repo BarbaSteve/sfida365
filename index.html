@@ -451,7 +451,7 @@ const SCHED={
 };
 const PHASES=[{n:'Fondamenta',w:30,r:30,col:'var(--ok)'},{n:'Resistenza',w:35,r:25,col:'var(--blu)'},{n:'Forza',w:40,r:20,col:'var(--acc2)'},{n:'Potenza',w:45,r:15,col:'var(--bad)'}];
 /* rotation: 6 training days (keys into SCHED) + recovery on cycle day 7 */
-const ROT=[1,2,3,4,5,6];
+const ROT=[1,4,2,3,5,6];
 function dsDiff(ds){return Math.round((new Date(ds+'T12:00:00')-new Date(S.start+'T12:00:00'))/864e5);}
 function cycDay(ds){const d=dsDiff(ds);return ((d%7)+7)%7;}
 function schedFor(ds){const dc=cycDay(ds);if(dc===6)return SCHED[0];return SCHED[ROT[(dc+(S.shift||0))%6]];}
