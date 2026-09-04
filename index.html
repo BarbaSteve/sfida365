@@ -180,7 +180,13 @@ select{width:100%;background:var(--card2);border:1px solid var(--line);border-ra
 
 <!-- ===================== WORKOUT PREVIEW ===================== -->
 <div class="screen" id="s-work">
-  <button class="btn sec small" onclick="show('home')">← Indietro</button>
+  <div class="row">
+    <button class="btn sec small" onclick="show('home')">← Indietro</button>
+    <div class="grow"></div>
+    <button class="btn sec small" onclick="browseDay(-1)">‹</button>
+    <span class="tag hot" id="wDate"></span>
+    <button class="btn sec small" onclick="browseDay(1)">›</button>
+  </div>
   <div style="height:12px"></div>
   <div class="card">
     <h2 id="wTitle"></h2>
@@ -192,7 +198,8 @@ select{width:100%;background:var(--card2);border:1px solid var(--line);border-ra
     <div class="mut" style="margin-bottom:6px">Apri ogni esercizio per la guida. Se è la prima volta, guarda il video prima di iniziare.</div>
     <div id="wList"></div>
   </div>
-  <button class="btn" onclick="startTimer()">▶ START — 20’ DI LAVORO</button>
+  <button class="btn" id="startBtn" onclick="startTimer()">▶ START — 20’ DI LAVORO</button>
+  <div class="cue" id="previewNote" style="display:none;margin-top:10px"></div>
   <div style="height:10px"></div>
   <div class="mut" style="text-align:center">Il timer gestisce lavoro e recupero: tu pensa solo a muoverti.</div>
 </div>
@@ -627,8 +634,9 @@ function render(){
 
 /* workout preview */
 let seq=[],seqMeta={};
-function openWorkout(){
-  const w=weekNum(),ph=phaseOf(w),lv=levelOf(w),sc=schedFor(today()),isRec=!sc.ex;
+function openWorkout(ds){
+  ds=ds||today();window.__wds=ds;
+  const w=Math.max(1,Math.floor(dsDiff(ds)/7)+1),ph=phaseOf(w),lv=levelOf(w),sc=schedFor(ds),isRec=!sc.ex;
   document.getElementById('wTitle').textContent=sc.ic+' '+sc.t;
   const list=document.getElementById('wList');
   if(isRec){
@@ -670,8 +678,17 @@ function openWorkout(){
     COOL.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'DEFATICAMENTO'}));
     seqMeta={type:'w'};
   }
+  /* browsing another day: preview only, START hidden */
+  const isToday=ds===today();
+  const dnames=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
+  document.getElementById('wDate').textContent=isToday?'Oggi':dnames[new Date(ds+'T12:00:00').getDay()]+' '+ds.slice(8,10)+'/'+ds.slice(5,7);
+  document.getElementById('startBtn').style.display=isToday?'block':'none';
+  const pn=document.getElementById('previewNote');
+  pn.style.display=isToday?'none':'block';
+  pn.textContent='👀 Anteprima · settimana '+Math.min(w,52)+', livello '+lv+'. Potrai avviarlo solo quel giorno. Sfoglia con ‹ ›';
   show('work');
 }
+function browseDay(d){openWorkout(addD(window.__wds||today(),d));}
 
 /* ============ TIMER ============ */
 let ti=0,tLeft=0,tH=null,paused=false,wl=null,AC=null;
@@ -787,7 +804,7 @@ function renderPlan(){
     const dt=new Date(ds+'T12:00:00');
     const s=schedFor(ds);
     const isT=ds===today();
-    return '<div class="wkrow"'+(isT?' style="color:var(--acc2)"':'')+'><span class="dd">'+names[dt.getDay()]+'</span><span>'+s.ic+' '+s.t+'</span>'+(isT?'<span class="tag hot" style="margin-left:auto">oggi</span>':'')+'</div>';
+    return '<div class="wkrow" onclick="openWorkout(\''+ds+'\')" style="cursor:pointer'+(isT?';color:var(--acc2)':'')+'"><span class="dd">'+names[dt.getDay()]+'</span><span>'+s.ic+' '+s.t+'</span>'+(isT?'<span class="tag hot" style="margin-left:auto">oggi</span>':'<span class="mut" style="margin-left:auto">›</span>')+'</div>';
   }).join('');
 }
 
