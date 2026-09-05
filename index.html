@@ -1059,7 +1059,7 @@ load();
 /* reschedule requested on 05/09/2026: rotation anchored to Tue 08/09 with recovery fixed on Saturday.
    Start date stays 24/08 (weeks, phases and heatmap untouched). Also reverts the earlier v18 tweak if it ran. */
 if(!S.mig2&&(S.start==='2026-08-24'||S.start==='2026-08-26')&&today()>='2026-09-05'&&today()<='2026-09-12'){
-  S.start='2026-08-24';if(S.ovr)delete S.ovr['2026-09-05'];S.rot0='2026-09-08';S.recSlot=4;S.shift=0;S.mig2=1;save();}
+  S.start='2026-08-24';if(S.ovr&&S.ovr['2026-09-05']===0)delete S.ovr['2026-09-05'];S.rot0='2026-09-08';S.recSlot=4;S.shift=0;S.mig2=1;save();}
 if(S.shift===null||S.shift===undefined)renderChooser();
 render();
 reconcile();
