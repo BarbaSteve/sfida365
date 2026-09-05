@@ -238,6 +238,8 @@ label.f{display:block;color:var(--mut);font-size:12px;font-weight:700;margin:14p
     <h2 id="wTitle"></h2>
     <div class="mut" id="wSub" style="margin-top:6px"></div>
     <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap" id="wTags"></div>
+    <label class="f" for="swapSel">Cambia l'allenamento di questo giorno</label>
+    <select id="swapSel" onchange="swapDay(this.value)"></select>
   </div>
   <div class="card">
     <h3 style="margin-bottom:2px">Esercizi</h3>
@@ -523,7 +525,9 @@ const PHASES=[{n:'Fondamenta',w:30,r:30,col:'var(--ok)'},{n:'Resistenza',w:35,r:
 const ROT=[1,4,2,3,5,6];
 function dsDiff(ds){return Math.round((new Date(ds+'T12:00:00')-new Date(S.start+'T12:00:00'))/864e5);}
 function cycDay(ds){const d=dsDiff(ds);return ((d%7)+7)%7;}
-function schedFor(ds){const dc=cycDay(ds);if(dc===6)return SCHED[0];return SCHED[ROT[(dc+(S.shift||0))%6]];}
+function schedFor(ds){
+  const o=S.ovr&&S.ovr[ds];if(o!==undefined&&o!==null&&SCHED[o])return SCHED[o]; /* per-day override (swap) */
+  const dc=cycDay(ds);if(dc===6)return SCHED[0];return SCHED[ROT[(dc+(S.shift||0))%6]];}
 /* core & leg exercises start one level up when the boost is on (default on).
    swing excluded on purpose: its levels are a shoulder-safety progression, not leg strength */
 const CORE=['plankcore','hollow','sideplank','birddog'];
@@ -557,7 +561,7 @@ const BADGES=[
 const LVLS=['Novizio','Costante','Determinato','Disciplinato','Guerriero','Atleta','Macchina','Titano','Leggenda'];
 
 /* ============ STATE ============ */
-const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null,coreUp:1,legsUp:1,upperUp:1,hardMode:1};
+const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null,coreUp:1,legsUp:1,upperUp:1,hardMode:1,ovr:{}};
 let S=DEF;
 /* ---- storage hardening: localStorage + IndexedDB mirror + 30-day snapshots ---- */
 function idb(){return new Promise((res,rej)=>{const q=indexedDB.open('sfida365',2);q.onupgradeneeded=()=>{const d=q.result;if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');if(!d.objectStoreNames.contains('snap'))d.createObjectStore('snap');if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos');};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
@@ -740,6 +744,10 @@ function openWorkout(ds){
     COOL.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'DEFATICAMENTO'}));
     seqMeta={type:'w'};
   }
+  /* swap menu: which session is assigned to this day */
+  const curKey=Object.keys(SCHED).find(k=>SCHED[k]===sc);
+  const isOvr=S.ovr&&S.ovr[ds]!==undefined;
+  document.getElementById('swapSel').innerHTML=[1,2,3,4,5,6,0].map(k=>'<option value="'+k+'"'+(String(k)===String(curKey)?' selected':'')+'>'+SCHED[k].ic+' '+SCHED[k].t+(String(k)===String(curKey)&&!isOvr?' (da piano)':'')+'</option>').join('')+(isOvr?'<option value="">↩︎ Torna al piano standard</option>':'');
   /* browsing another day: preview only, START hidden */
   const isToday=ds===today();
   const dnames=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
@@ -751,6 +759,12 @@ function openWorkout(ds){
   show('work');
 }
 function browseDay(d){openWorkout(addD(window.__wds||today(),d));}
+function swapDay(v){
+  const ds=window.__wds||today();S.ovr=S.ovr||{};
+  if(v==='')delete S.ovr[ds];else S.ovr[ds]=parseInt(v);
+  save();render();openWorkout(ds);
+  toast(v===''?'↩︎ Giorno riportato al piano standard.':'🔁 '+ds.slice(8,10)+'/'+ds.slice(5,7)+' → '+SCHED[parseInt(v)].t);
+}
 
 /* ============ TIMER ============ */
 let ti=0,tLeft=0,tH=null,paused=false,wl=null,AC=null;
@@ -1038,6 +1052,8 @@ function chooseStart(i){
 
 /* init */
 load();
+/* one-off reschedule requested on 05/09/2026: Sat = recovery, then the whole cycle slides (start +2 days) */
+if(!S.mig1&&S.start==='2026-08-24'&&today()>='2026-09-05'&&today()<='2026-09-08'){S.start='2026-08-26';S.ovr=S.ovr||{};S.ovr['2026-09-05']=0;S.mig1=1;save();}
 if(S.shift===null||S.shift===undefined)renderChooser();
 render();
 reconcile();
