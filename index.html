@@ -525,9 +525,13 @@ const PHASES=[{n:'Fondamenta',w:30,r:30,col:'var(--ok)'},{n:'Resistenza',w:35,r:
 const ROT=[1,4,2,3,5,6];
 function dsDiff(ds){return Math.round((new Date(ds+'T12:00:00')-new Date(S.start+'T12:00:00'))/864e5);}
 function cycDay(ds){const d=dsDiff(ds);return ((d%7)+7)%7;}
+/* rotation anchor (defaults to start date) and fixed recovery slot inside the 7-day cycle (default: day 7) */
+function rotDay(ds){const a=S.rot0||S.start;const d=Math.round((new Date(ds+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);return ((d%7)+7)%7;}
 function schedFor(ds){
   const o=S.ovr&&S.ovr[ds];if(o!==undefined&&o!==null&&SCHED[o])return SCHED[o]; /* per-day override (swap) */
-  const dc=cycDay(ds);if(dc===6)return SCHED[0];return SCHED[ROT[(dc+(S.shift||0))%6]];}
+  const c=rotDay(ds),rs=(S.recSlot===undefined||S.recSlot===null)?6:S.recSlot;
+  if(c===rs)return SCHED[0];
+  const t=c<rs?c:c-1;return SCHED[ROT[(t+(S.shift||0))%6]];}
 /* core & leg exercises start one level up when the boost is on (default on).
    swing excluded on purpose: its levels are a shoulder-safety progression, not leg strength */
 const CORE=['plankcore','hollow','sideplank','birddog'];
@@ -1052,8 +1056,10 @@ function chooseStart(i){
 
 /* init */
 load();
-/* one-off reschedule requested on 05/09/2026: Sat = recovery, then the whole cycle slides (start +2 days) */
-if(!S.mig1&&S.start==='2026-08-24'&&today()>='2026-09-05'&&today()<='2026-09-08'){S.start='2026-08-26';S.ovr=S.ovr||{};S.ovr['2026-09-05']=0;S.mig1=1;save();}
+/* reschedule requested on 05/09/2026: rotation anchored to Tue 08/09 with recovery fixed on Saturday.
+   Start date stays 24/08 (weeks, phases and heatmap untouched). Also reverts the earlier v18 tweak if it ran. */
+if(!S.mig2&&(S.start==='2026-08-24'||S.start==='2026-08-26')&&today()>='2026-09-05'&&today()<='2026-09-12'){
+  S.start='2026-08-24';if(S.ovr)delete S.ovr['2026-09-05'];S.rot0='2026-09-08';S.recSlot=4;S.shift=0;S.mig2=1;save();}
 if(S.shift===null||S.shift===undefined)renderChooser();
 render();
 reconcile();
