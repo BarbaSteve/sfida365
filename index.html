@@ -111,6 +111,28 @@ details>*:not(summary){margin-bottom:12px}
 .work .tphase,.work .tclock{color:var(--acc2)} .work .ring i{background:var(--acc)}
 .rest .tphase,.rest .tclock{color:var(--blu)} .rest .ring i{background:var(--blu)}
 .warm .tphase,.warm .tclock{color:var(--ok)} .warm .ring i{background:var(--ok)}
+.amrap .tphase,.amrap .tclock{color:var(--acc2)} .amrap .ring i{background:var(--acc)}
+.amrap .tclock{font-size:64px;margin:0}
+.amrap .tname{font-size:22px;min-height:0;margin:4px 0}
+.rlist{margin:6px 0 4px;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 12px}
+.rlist div{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.rlist div:last-child{border-bottom:0}
+.rlist b{margin-left:auto;font-size:15px;color:var(--acc2);white-space:nowrap}
+#tRound{margin-top:10px;font-size:20px;min-height:64px}
+.rcount{display:flex;justify-content:center;gap:10px;margin-top:8px}
+/* v23: progress per exercise */
+.rrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);min-height:56px}
+.rrow:last-child{border-bottom:0}
+.rrow .dn{flex:1;min-width:0}
+.rrow .dn b{display:block;font-size:14px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rrow .dn span{font-size:12px;color:var(--mut)}
+.rrow .tr{width:18px;text-align:center;font-size:14px;flex:none}
+.spark{display:flex;align-items:flex-end;gap:3px;height:34px;flex:none}
+.spark i{display:block;width:7px;border-radius:2px;background:var(--acc)}
+.amrec{display:flex;align-items:center;gap:12px;background:var(--accSoft);border:1px solid rgba(255,122,26,.4);border-radius:12px;padding:10px 14px;margin-bottom:8px}
+.amrec>div:first-child{flex:1}.amrec b{display:block;font-size:14px}.amrec span{font-size:12px}
+.amrec .big{font-size:30px;font-weight:900;color:var(--acc2);line-height:1;text-align:center}
+.amrec .big small{display:block;font-size:10px;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
 #tmr.paused .tclock{opacity:.35}
 #tmr.paused .tphase::before{content:"⏸ IN PAUSA · "}
 /* heatmap */
@@ -304,6 +326,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
     <div class="tclock" id="tClock">0:30</div>
     <div class="ring"><i id="tRing" style="width:100%"></i></div>
     <div class="tnext" id="tNext"></div>
+    <button class="btn" id="tRound" style="display:none" onclick="addRound()">+1 GIRO ✓</button>
     <div class="vid" id="tVid" style="display:none;margin-top:14px"></div>
   </div>
   <div class="row">
@@ -327,6 +350,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
         Il lavoro dura sempre 20 minuti netti: 4 giri da 5 esercizi, ognuno con un tetto di 45" e 15" di recupero. Riscaldamento (3') e defaticamento (2') sono in più.<br><br>
         <b style="color:var(--acc2)">Ripetizioni, non tempo.</b> Ogni esercizio ha una forchetta (es. 8–15): fai le ripetizioni fermandoti quando te ne restano 1–2, poi riposi. Le isometriche (plank, hollow, side plank, bottoms-up) si tengono per tutto l’intervallo.<br><br>
         <b style="color:var(--ok)">Regola del 15.</b> A fine allenamento segni le ripetizioni dell’ultimo giro. Se arrivi al tetto della forchetta, l’app ti propone di salire: variante più dura, oppure dal 6 al 12 kg, ripartendo dal fondo della forchetta. Se non arrivi al fondo, ti propone di scendere. Decidi sempre tu.<br><br>
+        <b style="color:var(--blu)">Domenica AMRAP.</b> Un solo cronometro da 20 minuti e un giro fisso di 5 esercizi: quanti giri riesci a completare? Il record resta in Progressi e la settimana dopo lo batti. Se la tecnica si sporca, rallenta: il record vale meno della spalla.<br><br>
         <b>Due kettlebell, ruoli chiari.</b> Il 12 fa i movimenti grandi (swing, squat, stacchi, rematore, floor press, curl); il 6 fa spalle e braccia piccole (estensioni, bottoms-up) e resta il ripiego quando il 12 è troppo. Le extrarotazioni restano sempre leggere: lì decide la spalla.
       </div>
     </details>
@@ -362,6 +386,12 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
     <div class="row"><h3 class="grow">Il tuo percorso</h3><span class="tag" id="hmTag"></span></div>
     <div class="hm" id="heat" style="margin-top:12px"></div>
     <div class="legend"><span><i style="background:var(--acc)"></i>allenamento</span><span><i style="background:var(--blu)"></i>streak congelato</span><span><i style="outline:2px solid var(--acc2);outline-offset:-2px"></i>oggi</span></div>
+  </div>
+  <div class="card" id="repCard">
+    <div class="row"><h3 class="grow">📈 Per esercizio</h3><span class="tag" id="repTag"></span></div>
+    <div class="mut" style="margin:4px 0 6px">Ripetizioni dell’ultimo giro, allenamento dopo allenamento. ▲ stai salendo, ● stabile, ▼ giornata storta.</div>
+    <div id="amrapBox"></div>
+    <div id="repRows"></div>
   </div>
   <div class="card">
     <div class="row"><h3 class="grow">🧊 Gettone salva-streak</h3><span class="tag hot" id="fzTag"></span></div>
@@ -416,7 +446,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
     <label class="f" for="snapSel">Ripristina uno snapshot automatico</label>
     <div class="row"><select id="snapSel" class="grow"></select><button class="btn sec small" onclick="doRestoreSnap()">Ripristina</button></div>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v22</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v23</div>
 </div>
 
 <div id="nav">
@@ -606,7 +636,7 @@ const SCHED={
  2:{t:'Gambe & Core',ic:'🦵',ex:['gobsquat','lunge','rdl','bridge','lowerabs']},
  3:{t:'Spalle Blindate & Core',ic:'🛡️',ex:['scap','ytw','carry','sideplank','birddog']},
  4:{t:'Schiena & Bicipiti',ic:'🚣',ex:['row','curl','deadlift','superman','hollow']},
- 5:{t:'Full Body Power',ic:'⚡',ex:['swing','pushup','curl','floorpress','mtclimb']},
+ 5:{t:'Full Body AMRAP',ic:'⚡',ex:['swing','pushup','row','floorpress','mtclimb'],amrap:{swing:10,pushup:8,row:8,floorpress:10,mtclimb:30}},
  6:{t:'Braccia & Petto Pump',ic:'🔥',ex:['curl','floorpress','triext','pushup','row']},
  0:{t:'Recupero Attivo & Mobilità',ic:'🧘',ex:null}
 };
@@ -627,7 +657,7 @@ function schedFor(ds){
 /* core & leg exercises start one level up when the boost is on (default on).
    swing excluded on purpose: its levels are a shoulder-safety progression, not leg strength */
 const CORE=['plankcore','hollow','sideplank','birddog','lowerabs','mtclimb'];
-const LEGS=['gobsquat','lunge','rdl','bridge','calf','deadlift'];
+const LEGS=['gobsquat','lunge','rdl','bridge','calf','deadlift','swing']; /* swing L2 = swing basso (ombelico): the hinge drill is only for day one */
 const UPPER=['pushup','floorpress','triext','row','curl'];
 /* variant level = week level + group boost + per-exercise delta earned with the "rule of 15" (S.rp[id].lvd) */
 function lvFor(id,lv){const d=(S.rp&&S.rp[id]&&S.rp[id].lvd)||0;return Math.max(1,Math.min(3,lv+(((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1)||(S.upperUp!==0&&UPPER.indexOf(id)>-1))?1:0)+d));}
@@ -778,7 +808,7 @@ function render(){
   const w=weekNum(),ph=phaseOf(w),lv=levelOf(w),sc=schedFor(today()),isRec=!sc.ex;
   document.getElementById('weekTag').textContent='Settimana '+Math.min(w,52)+'/52';
   document.getElementById('todayTitle').textContent=sc.ic+' '+sc.t;
-  document.getElementById('todaySub').innerHTML=isRec?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':'4 giri × 5 esercizi <b style="color:var(--acc2)">a ripetizioni</b> · '+(S.kb12?'6 + 12 kg':'6 kg')+' · fermati a 1–2 dal limite';
+  document.getElementById('todaySub').innerHTML=isRec?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':sc.amrap?'AMRAP: un cronometro da 20’, quanti giri riesci? '+(S.amrapBest?'<b style="color:var(--acc2)">Da battere: '+S.amrapBest+' giri</b>':'<b style="color:var(--acc2)">Prima volta: fai il tuo record</b>'):'4 giri × 5 esercizi <b style="color:var(--acc2)">a ripetizioni</b> · '+(S.kb12?'6 + 12 kg':'6 kg')+' · fermati a 1–2 dal limite';
   document.getElementById('todayDoneBox').innerHTML=doneToday?'<div class="cue" style="margin-top:10px">✅ Completato oggi! Puoi rifarlo per piacere, ma lo streak è già al sicuro.</div><button class="btn sec small" style="margin-top:10px" onclick="pickPhoto()">📸 Foto progresso di oggi</button>':'';
   document.getElementById('goBtn').textContent=isRec?'🧘 VAI AL RECUPERO ATTIVO →':'VAI ALL’ALLENAMENTO →';
   document.getElementById('abStreak').textContent='🔥 '+st;
@@ -810,12 +840,19 @@ function openWorkout(ds){
     RECOV.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'MOBILITÀ · GIRO 2'}));
     seqMeta={type:'r'};
   }else{
-    document.getElementById('wSub').textContent='4 giri × 5 esercizi. In ogni intervallo (max '+RW+'") fai le ripetizioni indicate fermandoti a 1–2 dal limite, poi recuperi fino al giro dopo. 3’ riscaldamento + 2’ defaticamento.';
-    document.getElementById('wTags').innerHTML='<span class="tag hot">A ripetizioni</span> <span class="tag">'+(S.kb12?'6 + 12 kg':'solo 6 kg')+'</span> <span class="tag">20’ lavoro · ~25’ totali</span>';
+    const isA=!!sc.amrap,best=S.amrapBest||0;
+    if(isA){
+      document.getElementById('wSub').textContent='AMRAP: un solo cronometro da 20 minuti. Completa il giro (5 esercizi, ripetizioni fisse), tocca +1 GIRO e riparti. Quanti giri riesci a fare? Tecnica sporca = rallenta: qui il record vale meno della spalla.';
+      document.getElementById('wTags').innerHTML='<span class="tag hot">AMRAP 20’</span> <span class="tag">'+(S.kb12?'12 kg':'6 kg')+'</span> <span class="tag">'+(best?'Da battere: '+best+' giri':'Prima volta: fai il tuo record')+'</span>';
+    }else{
+      document.getElementById('wSub').textContent='4 giri × 5 esercizi. In ogni intervallo (max '+RW+'") fai le ripetizioni indicate fermandoti a 1–2 dal limite, poi recuperi fino al giro dopo. 3’ riscaldamento + 2’ defaticamento.';
+      document.getElementById('wTags').innerHTML='<span class="tag hot">A ripetizioni</span> <span class="tag">'+(S.kb12?'6 + 12 kg':'solo 6 kg')+'</span> <span class="tag">20’ lavoro · ~25’ totali</span>';
+    }
     list.innerHTML=sc.ex.map((id,ix)=>{
-      const L=lvFor(id,lv),e=EX[id],v=e.v[L-1],sp=specFor(id,L),lr=lastRep(id,L);
-      const meta='<div class="exmeta"><span class="tag hot">🎯 '+specTxt(sp)+'</span>'+(sp.kb?'<span class="tag">🏋️ '+sp.kb+' kg</span>':'')+(lr!==null?'<span class="tag">ultima: '+(sp.t==='iso'?'✓':lr)+'</span>':'')+'<span class="tag">Liv. '+L+'</span></div>';
-      return '<details><summary><span class="exnum">'+(ix+1)+'</span><span class="grow">'+e.ic+' '+v.n+'<small class="sub">'+specTxt(sp)+(sp.kb?' · '+sp.kb+' kg':'')+(lr!==null&&sp.t!=='iso'?' · ultima '+lr:'')+'</small></span><span class="tag">'+e.m.split(',')[0]+'</span></summary>'+meta+
+      const L=lvFor(id,lv),e=EX[id],v=e.v[L-1],sp=isA?{t:'rep',lo:sc.amrap[id],hi:sc.amrap[id],side:!!(REP[id].side||(REP[id].v&&REP[id].v[L-1].side)),kb:kbFor(id)}:specFor(id,L),lr=isA?null:lastRep(id,L);
+      const st=isA?sc.amrap[id]+(sp.side?' per lato':' rip.'):specTxt(sp);
+      const meta='<div class="exmeta"><span class="tag hot">🎯 '+st+'</span>'+(sp.kb?'<span class="tag">🏋️ '+sp.kb+' kg</span>':'')+(lr!==null?'<span class="tag">ultima: '+(sp.t==='iso'?'✓':lr)+'</span>':'')+'<span class="tag">Liv. '+L+'</span></div>';
+      return '<details><summary><span class="exnum">'+(ix+1)+'</span><span class="grow">'+e.ic+' '+v.n+'<small class="sub">'+st+(sp.kb?' · '+sp.kb+' kg':'')+(lr!==null&&sp.t!=='iso'?' · ultima '+lr:'')+'</small></span><span class="tag">'+e.m.split(',')[0]+'</span></summary>'+meta+
       '<ol class="steps">'+v.s.filter(Boolean).map(s=>'<li>'+s+'</li>').join('')+'</ol>'+
       (v.c?'<div class="cue">💡 '+v.c+'</div>':'')+
       '<div class="saf">🛡️ '+e.saf+'</div>'+
@@ -833,6 +870,12 @@ function openWorkout(ds){
     /* last warmup step announces the first work exercise, with its video */
     const f0=sc.ex[0],fL=lvFor(f0,lv),lw=seq[seq.length-1];
     lw.nx=EX[f0].v[fL-1].n;lw.vid=(VIDS[f0]||[])[fL-1];
+    if(isA){
+      /* one 20' block; the round list is rendered by setStep */
+      seq.push({n:'AMRAP',d:1200,ph:'amrap',lab:'AMRAP · 20 MINUTI',ex:sc.ex.map(id=>{const L=lvFor(id,lv);return {id,n:EX[id].v[L-1].n,r:sc.amrap[id],side:!!(REP[id].side||(REP[id].v&&REP[id].v[L-1].side)),kb:kbFor(id)};})});
+      COOL.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'DEFATICAMENTO'}));
+      seqMeta={type:'w',amrap:1};
+    }else{
     for(let g=1;g<=4;g++)sc.ex.forEach((id,i)=>{
       const L=lvFor(id,lv),v=EX[id].v[L-1],sp=specFor(id,L);
       const nid=sc.ex[i+1]||(g<4?sc.ex[0]:null);
@@ -841,6 +884,7 @@ function openWorkout(ds){
     });
     COOL.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'DEFATICAMENTO'}));
     seqMeta={type:'w',ex:sc.ex.slice(),lv:lv};
+    }
   }
   /* swap menu: which session is assigned to this day */
   const curKey=Object.keys(SCHED).find(k=>SCHED[k]===sc);
@@ -865,7 +909,10 @@ function swapDay(v){
 }
 
 /* ============ TIMER ============ */
-let ti=0,tLeft=0,tH=null,paused=false,wl=null,AC=null;
+let ti=0,tLeft=0,tH=null,paused=false,wl=null,AC=null,rounds=0;
+/* AMRAP: one more full round done */
+function addRound(){rounds++;beep(990,.15,.8);if(navigator.vibrate)navigator.vibrate(80);drawRounds();}
+function drawRounds(){const best=S.amrapBest||0;const el=document.getElementById('tName');if(el)el.innerHTML='<span>Giro <b style="color:var(--acc2)">'+(rounds+1)+'</b> in corso · fatti: <b>'+rounds+'</b>'+(best?' · record '+best:'')+'</span>';}
 /* beeps as real audio files (WAV generated on the fly): on iOS they play as MEDIA,
    so they are audible over Spotify and with the silent switch on */
 const TONES={};
@@ -888,7 +935,7 @@ function beep(f,dur,vol){
 function oscBeep(f,dur,vol){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type='sine';g.gain.value=vol;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+dur);o.stop(AC.currentTime+dur);}catch(e){}}
 async function startTimer(){
   if(!seq.length)return;
-  ti=0;paused=false;
+  ti=0;paused=false;rounds=0;
   document.getElementById('tmr').classList.add('on');
   try{wl=await navigator.wakeLock.request('screen');}catch(e){}
   beep(880,.2);setStep();tick();
@@ -899,7 +946,12 @@ function setStep(){
   document.getElementById('tPhase').textContent=s.ph==='rest'?'RECUPERO · PROSSIMO ESERCIZIO':s.lab;
   document.getElementById('tName').textContent=s.ph==='rest'?(s.nx?'➡️ '+s.nx:'😮‍💨 Respira'):s.n;
   const tn=document.getElementById('tNext');
-  if(s.ph==='work'&&s.sp){
+  document.getElementById('tRound').style.display=s.ph==='amrap'?'block':'none';
+  if(s.ph==='amrap'){
+    document.getElementById('tPhase').textContent='AMRAP · QUANTI GIRI IN 20’?';
+    drawRounds();
+    tn.innerHTML='<div class="rlist">'+s.ex.map((x,i)=>'<div><span class="exnum">'+(i+1)+'</span><span>'+EX[x.id].ic+' '+x.n+(x.kb?' <span class="mut">· '+x.kb+' kg</span>':'')+'</span><b>'+x.r+(x.side?'/lato':'')+'</b></div>').join('')+'</div><div class="mut" style="font-size:12px">Finito il giro tocca +1 GIRO e riparti dal primo esercizio. Se la tecnica si sporca, rallenta.</div>';
+  }else if(s.ph==='work'&&s.sp){
     const lr=lastRep(s.id,s.lv);
     tn.innerHTML=s.sp.t==='iso'
       ?'<span class="tgt">⏱ Tieni fino al bip'+(s.sp.side?' · cambia lato a metà':'')+'</span>'+(s.sp.kb?'<span class="tgt">🏋️ '+s.sp.kb+' kg</span>':'')
@@ -950,10 +1002,16 @@ function finishT(){
     render();show('home');return;
   }
   const t=today(),first=!S.log[t];
-  let st=0,gain=0;
+  let st=0,gain=0,amTxt='';
+  if(seqMeta.amrap){
+    /* AMRAP result: rounds + personal record (kept even on a repeat session) */
+    const prev=S.amrapBest||0;S.amHist=S.amHist||[];S.amHist.push([t,rounds,kbFor('swing')]);while(S.amHist.length>60)S.amHist.shift();
+    if(rounds>prev){S.amrapBest=rounds;amTxt=rounds>0&&prev>0?' · 🏆 NUOVO RECORD: '+rounds+' giri!':' · '+rounds+' giri';}else amTxt=' · '+rounds+' giri (record '+prev+')';
+    if(S.log[t])S.log[t].rounds=rounds;
+  }
   if(first){
     const isW=seqMeta.type==='w';
-    S.log[t]={t:seqMeta.type};
+    S.log[t]={t:seqMeta.type};if(seqMeta.amrap)S.log[t].rounds=rounds;
     st=calcStreak();
     gain=(isW?50:30)+Math.min(30,st);
     S.xp+=gain;
@@ -964,8 +1022,8 @@ function finishT(){
     if(first){
       confetti();
       beep(880,.3);setTimeout(()=>beep(1100,.3),200);setTimeout(()=>beep(1320,.45),400);
-      toast('🎉 GIORNO '+st+' COMPLETATO! +'+gain+' XP'+(st>1?' · Streak: '+st+' 🔥':''),5000);
-    }else{toast('💪 Doppia razione! Già contato per oggi.');}
+      toast('🎉 GIORNO '+st+' COMPLETATO! +'+gain+' XP'+(st>1?' · Streak: '+st+' 🔥':'')+amTxt,6000);
+    }else{save();toast('💪 Doppia razione! Già contato per oggi.'+amTxt,5000);}
     render();show('home');
   };
   if(seqMeta.type==='w'&&seqMeta.ex)openDone(celebrate);else celebrate();
@@ -1103,7 +1161,31 @@ function renderProg(){
   const ctx={best:S.best,tot:Object.keys(S.log).length};
   document.getElementById('badges').innerHTML=BADGES.map(b=>'<div class="bdg'+(b.f(ctx)?'':' off')+'"><div class="bi">'+b.ic+'</div><b>'+b.n+'</b><span>'+b.d+'</span></div>').join('');
   document.getElementById('hmTag').textContent='Settimana '+Math.min(weekNum(),52);
+  renderRepProg();
   renderPhotos();
+}
+/* v23: per-exercise progression + AMRAP record */
+function renderRepProg(){
+  const rp=S.rp||{},ids=Object.keys(rp).filter(k=>EX[k]&&rp[k].hist&&rp[k].hist.length);
+  const am=S.amHist||[];
+  document.getElementById('repTag').textContent=ids.length?ids.length+' esercizi':'';
+  document.getElementById('amrapBox').innerHTML=am.length?'<div class="amrec"><div><b>⚡ AMRAP domenica</b><span class="mut">ultimi: '+am.slice(-5).map(x=>x[1]).join(' · ')+' giri</span></div><div class="big">'+(S.amrapBest||0)+'<small>record</small></div></div>':'';
+  if(!ids.length){document.getElementById('repRows').innerHTML='<div class="empty"><b>📈</b>Dopo il primo allenamento a ripetizioni qui vedi, esercizio per esercizio, se stai salendo.</div>';return;}
+  /* order: most recently trained first */
+  ids.sort((a,b)=>(rp[b].at||'').localeCompare(rp[a].at||''));
+  document.getElementById('repRows').innerHTML=ids.map(id=>{
+    const r=rp[id],e=EX[id];
+    /* only the points comparable with the current setup (same level & kettlebell) */
+    const cur=r.hist.filter(h=>h[2]===(r.kb||0)&&h[3]===r.lv);
+    const pts=cur.slice(-8),vals=pts.map(h=>h[1]);
+    const sp=specFor(id,r.lv||1),iso=sp.t==='iso';
+    const last=vals[vals.length-1],prev=vals.length>1?vals[vals.length-2]:null;
+    const tr=iso?'':prev===null?'':last>prev?'<span style="color:var(--ok)">▲</span>':last<prev?'<span style="color:var(--warn)">▼</span>':'<span class="mut">●</span>';
+    const mx=Math.max(1,...vals,sp.hi||1);
+    const bars=iso?'<span class="mut" style="font-size:12px">'+pts.map(h=>h[1]?'✓':'✗').join(' ')+'</span>':'<div class="spark">'+vals.map(v=>'<i style="height:'+Math.max(12,Math.round(v/mx*100))+'%;background:'+(v>=sp.hi?'var(--ok)':v<sp.lo?'var(--warn)':'var(--acc)')+'" title="'+v+'"></i>').join('')+'</div>';
+    const nm=e.v[Math.min(3,Math.max(1,r.lv||1))-1].n;
+    return '<div class="rrow"><div class="dn"><b>'+e.ic+' '+nm+'</b><span>'+(iso?'tenuta':sp.lo+'–'+sp.hi+(sp.side?'/lato':''))+(r.kb?' · '+r.kb+' kg':'')+(iso?'':' · '+vals.slice(-4).join(' → '))+'</span></div>'+bars+'<span class="tr">'+tr+'</span></div>';
+  }).join('');
 }
 function renderSet(){
   document.getElementById('setStart').value=S.start;
