@@ -165,6 +165,29 @@ label.f{display:block;color:var(--mut);font-size:12px;font-weight:700;margin:14p
 .cmp{width:50%;aspect-ratio:3/4;object-fit:cover;border-radius:10px}
 #pview{position:fixed;inset:0;background:rgba(8,11,16,.98);z-index:250;display:none;padding:calc(20px + var(--sat)) 20px 20px;overflow:auto;max-width:560px;margin:0 auto}
 #pview.on{display:block}
+/* v22: rep targets & end-of-workout sheet */
+.exmeta{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 4px}
+summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margin-top:2px}
+.tgt{display:inline-flex;align-items:center;background:var(--accSoft);border:1px solid rgba(255,122,26,.45);color:var(--acc2);border-radius:999px;padding:5px 11px;font-size:14px;font-weight:800;margin:3px 3px 0}
+#done{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;padding:calc(16px + var(--sat)) 16px calc(20px + var(--sab));overflow:auto;max-width:560px;margin:0 auto;flex-direction:column}
+#done.on{display:flex}
+.drow{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line);min-height:64px}
+.drow .dn{flex:1;min-width:0}
+.drow .dn b{display:block;font-size:15px;line-height:1.2}
+.drow .dn span{font-size:12px;color:var(--mut)}
+.step{display:flex;align-items:center;gap:4px;flex:none}
+.step button{width:46px;height:46px;border-radius:12px;border:1px solid var(--line2);background:var(--card2);color:var(--txt);font-size:24px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center}
+.step button:active{border-color:var(--acc)}
+.step b{min-width:44px;text-align:center;font-size:24px;font-variant-numeric:tabular-nums}
+.step b.hi{color:var(--ok)}.step b.lo{color:var(--warn)}
+.chk{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--line2);background:var(--card2);color:var(--txt);font-size:14px;font-weight:700;cursor:pointer}
+.chk.on{border-color:var(--ok);color:var(--ok);background:rgba(61,220,132,.1)}
+.chk.ez.on{border-color:var(--acc2);color:var(--acc2);background:var(--accSoft)}
+.prop{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px}
+.prop b{display:block;font-size:15px}
+.prop .mut{margin:4px 0 10px;font-size:13px}
+.prop .row .btn{min-height:44px;padding:10px;flex:1}
+.prop.ok{border-color:rgba(61,220,132,.5)}.prop.no{opacity:.55}
 </style>
 
 <div id="toast" role="status"></div>
@@ -181,6 +204,25 @@ label.f{display:block;color:var(--mut);font-size:12px;font-weight:700;margin:14p
   <h2 style="margin:18px 0 6px">🔥 Benvenuto nella Sfida 365</h2>
   <div class="mut" style="margin-bottom:16px;font-size:14px;line-height:1.5">Con quale allenamento vuoi iniziare il <b>giorno 1</b>? Gli altri ruoteranno di conseguenza. Il 7° giorno di ogni settimana resta sempre il recupero attivo. Potrai cambiare in Impostazioni.</div>
   <div id="chList"></div>
+</div>
+
+<!-- end-of-workout sheet: reps of the last round + rule-of-15 proposals -->
+<div id="done">
+  <div id="doneA">
+    <h2 style="margin:6px 0 4px">Com’è andata? 💪</h2>
+    <div class="mut" style="font-size:14px;line-height:1.5;margin-bottom:6px">Quante ripetizioni hai fatto nell’<b>ultimo giro</b>? L’allenamento è già contato: questo serve solo a farti progredire.</div>
+    <div id="doneRows"></div>
+    <div class="row" style="margin-top:16px">
+      <button class="btn sec" onclick="doneSkip()">Salta</button>
+      <button class="btn" onclick="doneSave()">Salva</button>
+    </div>
+  </div>
+  <div id="doneB" style="display:none">
+    <h2 style="margin:6px 0 4px">Regola del 15 📈</h2>
+    <div class="mut" style="font-size:14px;line-height:1.5">In base ai numeri di oggi. Decidi tu: <b>Sì</b> applica dalla prossima volta, <b>Non ancora</b> lascia tutto com’è.</div>
+    <div id="doneProps"></div>
+    <button class="btn" style="margin-top:16px" onclick="doneClose()">Fatto ✓</button>
+  </div>
 </div>
 
 <input type="file" id="photoIn" accept="image/*" style="display:none" onchange="savePhoto(this)">
@@ -282,12 +324,10 @@ label.f{display:block;color:var(--mut);font-size:12px;font-weight:700;margin:14p
     <details>
       <summary>Come progredisce il piano</summary>
       <div class="mut" style="font-size:14px;line-height:1.55">
-        Il lavoro vero dura sempre 20 minuti netti: 4 giri da 5 esercizi. Riscaldamento (3') e defaticamento (2') sono in più, per un totale di ~25'. A cambiare è il rapporto lavoro/recupero, che cresce ogni 4 settimane:<br><br>
-        <b style="color:var(--ok)">Fondamenta</b> 30" lavoro / 30" recupero — impara la tecnica.<br>
-        <b style="color:var(--blu)">Resistenza</b> 35" / 25".<br>
-        <b style="color:var(--acc2)">Forza</b> 40" / 20" — movimenti lenti e controllati.<br>
-        <b style="color:var(--bad)">Potenza</b> 45" / 15".<br><br>
-        Poi il ciclo riparte a un <b>livello superiore</b>: gli esercizi diventano varianti più difficili (es. push-up sulle ginocchia → standard → presa stretta). In 52 settimane attraversi 3 livelli completi. Con il ritmo intenso attivo parti direttamente dalla seconda fase.
+        Il lavoro dura sempre 20 minuti netti: 4 giri da 5 esercizi, ognuno con un tetto di 45" e 15" di recupero. Riscaldamento (3') e defaticamento (2') sono in più.<br><br>
+        <b style="color:var(--acc2)">Ripetizioni, non tempo.</b> Ogni esercizio ha una forchetta (es. 8–15): fai le ripetizioni fermandoti quando te ne restano 1–2, poi riposi. Le isometriche (plank, hollow, side plank, bottoms-up) si tengono per tutto l’intervallo.<br><br>
+        <b style="color:var(--ok)">Regola del 15.</b> A fine allenamento segni le ripetizioni dell’ultimo giro. Se arrivi al tetto della forchetta, l’app ti propone di salire: variante più dura, oppure dal 6 al 12 kg, ripartendo dal fondo della forchetta. Se non arrivi al fondo, ti propone di scendere. Decidi sempre tu.<br><br>
+        <b>Due kettlebell, ruoli chiari.</b> Il 12 fa i movimenti grandi (swing, squat, stacchi, rematore, floor press, curl); il 6 fa spalle e braccia piccole (estensioni, bottoms-up) e resta il ripiego quando il 12 è troppo. Le extrarotazioni restano sempre leggere: lì decide la spalla.
       </div>
     </details>
     <details>
@@ -346,8 +386,10 @@ label.f{display:block;color:var(--mut);font-size:12px;font-weight:700;margin:14p
     <input type="date" id="setStart" onchange="setStart(this.value)">
     <label class="f" for="setShift">Allenamento del giorno 1 (ruota il ciclo)</label>
     <select id="setShift" onchange="setShift(this.value)"></select>
-    <label class="f" for="setHard">Ritmo lavoro/recupero</label>
-    <select id="setHard" onchange="setHard(this.value)"></select>
+    <label class="f" for="setKb">Kettlebell disponibili</label>
+    <select id="setKb" onchange="setKb(this.value)"></select>
+    <div class="mut" style="margin-top:8px">Col 12 kg attivo i movimenti grandi (swing, squat, stacchi, rematore, floor press, curl) passano al 12 con forchette più basse. Le extrarotazioni restano sempre leggere. Se un giorno hai solo il 6, spegnilo: i progressi non si toccano.</div>
+    <select id="setHard" onchange="setHard(this.value)" style="display:none"></select>
   </div>
   <div class="sect">Livello di partenza</div>
   <div class="card">
@@ -374,7 +416,7 @@ label.f{display:block;color:var(--mut);font-size:12px;font-weight:700;margin:14p
     <label class="f" for="snapSel">Ripristina uno snapshot automatico</label>
     <div class="row"><select id="snapSel" class="grow"></select><button class="btn sec small" onclick="doRestoreSnap()">Ripristina</button></div>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v16</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v22</div>
 </div>
 
 <div id="nav">
@@ -472,7 +514,11 @@ swing:{ic:'💨',m:'Full body: glutei, gambe, core',saf:'MAI sopra l’altezza d
 mtclimb:{ic:'⛰️',m:'Cardio, core',saf:'Se le spalle si affaticano in appoggio, passa alla marcia veloce sul posto.',v:[
  {n:'Marcia veloce / skip basso',s:['Corsa sul posto a bassa intensità','Ginocchia che salgono a ritmo','Braccia che accompagnano rilassate'],c:'Atterra sull’avampiede, leggero',yt:'marcia sul posto workout'},
  {n:'Mountain climber lento',s:['Posizione plank su mani','Porta un ginocchio al petto, poi l’altro, alternando','Ritmo controllato, fianchi bassi'],c:'Le spalle restano sopra le mani',yt:'mountain climber tutorial'},
- {n:'Mountain climber veloce',s:['Come livello 2 ma a ritmo di corsa','Core sempre contratto','Fino al bip senza fermarti'],c:'Respira! Non trattenere il fiato',yt:'mountain climbers fast'}]}
+ {n:'Mountain climber veloce',s:['Come livello 2 ma a ritmo di corsa','Core sempre contratto','Fino al bip senza fermarti'],c:'Respira! Non trattenere il fiato',yt:'mountain climbers fast'}]},
+lowerabs:{ic:'🔥',m:'Addome basso, core profondo',saf:'Nessun carico sulle spalle. Le braccia restano a terra lungo i fianchi, mai dietro la testa.',v:[
+ {n:'Dead bug (solo gambe)',s:['Pancia in su, ginocchia a 90°, mani a terra lungo i fianchi','Estendi lentamente una gamba in avanti senza toccare terra, torna','Alterna. Una ripetizione = una gamba'],c:'La zona lombare NON si stacca mai dal pavimento',yt:'dead bug legs only tutorial'},
+ {n:'Reverse crunch',s:['Sdraiato, ginocchia piegate a 90°, mani a terra lungo i fianchi','Arrotola il bacino portando le ginocchia verso il petto: il sedere si stacca da terra','Scendi lento in 3 secondi senza appoggiare i piedi'],c:'Il movimento è del bacino, non delle gambe: piccolo e controllato',yt:'reverse crunch tutorial'},
+ {n:'Leg raise (gambe tese)',s:['Sdraiato, gambe tese, mani sotto il sedere','Solleva le gambe fino a 90° senza slancio','Scendi in 3-4 secondi fermandoti a 10 cm da terra'],c:'Se la schiena si inarca, piega leggermente le ginocchia',yt:'leg raise tutorial'}]}
 };
 
 /* verified YouTube video per exercise VARIANT [level1,level2,level3] */
@@ -497,7 +543,51 @@ curl:['XfwEuk8I33k','ELV4xKT9oAE','KCiBkJEGZ9c'],
 deadlift:['foy5yzE4_DA','J-KZ3ypuMtY','RVK5e5C-XZU'],
 superman:['uexOGyxLr7E','z6PJMT2y8GQ','Gui5TqiKjZI'],
 swing:['5qhy8-pX8Yw','WWRTt4t2E_o','rb7wyQCe3-Q'],
-mtclimb:['-tfnUAl4oQA','uymhliNG0I4','nOl72cp3z1Y']};
+mtclimb:['-tfnUAl4oQA','uymhliNG0I4','nOl72cp3z1Y'],
+lowerabs:['XcYtWYMz39w','NcjNbLiTUlE','0tzBVqiDwSs']};
+
+/* ============ REP TARGETS (v22) ============
+   How much to do inside each work interval. t:'rep' = count reps, stop 1-2 short of failure; t:'iso' = hold for the whole interval.
+   kb:1 -> exercise uses the kettlebell: r6 is the range with the 6 kg, r12 with the 12 kg. side:1 -> per side/leg.
+   Either one spec for all levels, or v:[spec L1, spec L2, spec L3]. */
+const REP={
+ pushup:{t:'rep',r:[8,15]},
+ floorpress:{t:'rep',kb:1,r6:[12,15],r12:[6,12]},
+ triext:{t:'rep',kb:1,r6:[10,15],r12:[6,10]},
+ plankcore:{v:[{t:'iso'},{t:'iso'},{t:'rep',r:[10,16]}]},
+ hollow:{v:[{t:'rep',r:[12,20]},{t:'rep',r:[8,12],side:1},{t:'iso'}]},
+ lowerabs:{v:[{t:'rep',r:[8,12],side:1},{t:'rep',r:[10,15]},{t:'rep',r:[8,15]}]},
+ gobsquat:{v:[{t:'rep',kb:1,r6:[12,15],r12:[8,15]},{t:'rep',kb:1,r6:[10,15],r12:[6,12]},{t:'rep',r:[10,15]}]},
+ lunge:{v:[{t:'rep',r:[10,15],side:1},{t:'rep',kb:1,r6:[10,15],r12:[6,12],side:1},{t:'rep',kb:1,r6:[10,15],r12:[6,12],side:1}]},
+ rdl:{v:[{t:'rep',kb:1,r6:[12,15],r12:[8,15]},{t:'rep',kb:1,r6:[10,15],r12:[6,12]},{t:'rep',kb:1,r6:[8,12],r12:[6,10],side:1}]},
+ bridge:{v:[{t:'rep',r:[15,20]},{t:'rep',kb:1,r6:[12,15],r12:[10,15]},{t:'rep',r:[10,15],side:1}]},
+ calf:{t:'rep',r:[15,25]},
+ scap:{t:'rep',r:[10,15]},
+ ytw:{v:[{t:'iso',side:1},{t:'rep',r:[12,15],side:1},{t:'rep',r:[10,15],side:1}]},
+ carry:{t:'iso',kb:1,side:1},
+ sideplank:{t:'iso',side:1},
+ birddog:{t:'rep',r:[8,12],side:1},
+ row:{t:'rep',kb:1,r6:[12,15],r12:[6,12],side:1},
+ curl:{t:'rep',kb:1,r6:[12,15],r12:[6,12]},
+ deadlift:{t:'rep',kb:1,r6:[12,15],r12:[8,15]},
+ superman:{v:[{t:'rep',r:[12,15]},{t:'rep',r:[12,15]},{t:'rep',r:[8,12],side:1}]},
+ swing:{t:'rep',kb:1,r6:[15,20],r12:[10,15]},
+ mtclimb:{v:[{t:'iso'},{t:'rep',r:[20,30]},{t:'rep',r:[24,40]}]}
+};
+/* which kettlebell an exercise uses right now (6 or 12). 12 only if the user has it; a few start on the 6 for shoulder safety */
+const KB12_LATER=['triext','carry'];
+function kbFor(id){const sp=REP[id];if(!sp)return 0;const anyKb=sp.kb||(sp.v&&sp.v.some(x=>x.kb));if(!anyKb)return 0;if(!S.kb12)return 6;const x=S.kbx&&S.kbx[id];if(x===6||x===12)return x;return KB12_LATER.indexOf(id)>-1?6:12;}
+/* resolved target for exercise id at variant level lvl: {t,lo,hi,side,kb} */
+function specFor(id,lvl){
+  const base=REP[id];if(!base)return {t:'iso',kb:0};
+  const sp=base.v?base.v[Math.min(2,Math.max(0,lvl-1))]:base;
+  const kb=sp.kb?kbFor(id):0;
+  const r=sp.kb?(kb===12?sp.r12:sp.r6):sp.r;
+  return {t:sp.t,lo:r?r[0]:0,hi:r?r[1]:0,side:!!sp.side,kb};
+}
+function specTxt(s){if(s.t==='iso')return 'tieni'+(s.side?' · metà per lato':'');return s.lo+'–'+s.hi+(s.side?' per lato':' rip.');}
+/* last logged reps for this exercise, only if done at the same variant level and with the same kettlebell (otherwise the number means nothing) */
+function lastRep(id,L){const r=S.rp&&S.rp[id];if(!r||r.n===undefined||r.n===null)return null;if(L!==undefined&&r.lv!==undefined&&r.lv!==L)return null;if(r.kb!==undefined&&r.kb!==kbFor(id))return null;return r.n;}
 
 /* warmup & cooldown (fixed) */
 const WARM=[{n:'Marcia sul posto veloce',d:45},{n:'Circonduzioni scapole + braccia (piccole)',d:45},{n:'Cat-cow (gatto-mucca)',d:45},{n:'Squat a corpo libero lenti',d:45}];
@@ -513,7 +603,7 @@ const RECOV=[
 /* weekly schedule: getDay() -> workout */
 const SCHED={
  1:{t:'Petto & Tricipiti',ic:'💪',ex:['pushup','floorpress','triext','plankcore','hollow']},
- 2:{t:'Gambe & Glutei',ic:'🦵',ex:['gobsquat','lunge','rdl','bridge','calf']},
+ 2:{t:'Gambe & Core',ic:'🦵',ex:['gobsquat','lunge','rdl','bridge','lowerabs']},
  3:{t:'Spalle Blindate & Core',ic:'🛡️',ex:['scap','ytw','carry','sideplank','birddog']},
  4:{t:'Schiena & Bicipiti',ic:'🚣',ex:['row','curl','deadlift','superman','hollow']},
  5:{t:'Full Body Power',ic:'⚡',ex:['swing','pushup','curl','floorpress','mtclimb']},
@@ -521,6 +611,8 @@ const SCHED={
  0:{t:'Recupero Attivo & Mobilità',ic:'🧘',ex:null}
 };
 const PHASES=[{n:'Fondamenta',w:30,r:30,col:'var(--ok)'},{n:'Resistenza',w:35,r:25,col:'var(--blu)'},{n:'Forza',w:40,r:20,col:'var(--acc2)'},{n:'Potenza',w:45,r:15,col:'var(--bad)'}];
+/* v22 rep mode: fixed 45" cap + 15" rest per slot (20 slots = 20'). Reps decide the effort, the clock only keeps the session on time */
+const RW=45,RR=15;
 /* rotation: 6 training days (keys into SCHED) + recovery on cycle day 7 */
 const ROT=[1,4,2,3,5,6];
 function dsDiff(ds){return Math.round((new Date(ds+'T12:00:00')-new Date(S.start+'T12:00:00'))/864e5);}
@@ -534,10 +626,11 @@ function schedFor(ds){
   const t=c<rs?c:c-1;return SCHED[ROT[(t+(S.shift||0))%6]];}
 /* core & leg exercises start one level up when the boost is on (default on).
    swing excluded on purpose: its levels are a shoulder-safety progression, not leg strength */
-const CORE=['plankcore','hollow','sideplank','birddog'];
+const CORE=['plankcore','hollow','sideplank','birddog','lowerabs','mtclimb'];
 const LEGS=['gobsquat','lunge','rdl','bridge','calf','deadlift'];
 const UPPER=['pushup','floorpress','triext','row','curl'];
-function lvFor(id,lv){return Math.min(3,lv+(((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1)||(S.upperUp!==0&&UPPER.indexOf(id)>-1))?1:0));}
+/* variant level = week level + group boost + per-exercise delta earned with the "rule of 15" (S.rp[id].lvd) */
+function lvFor(id,lv){const d=(S.rp&&S.rp[id]&&S.rp[id].lvd)||0;return Math.max(1,Math.min(3,lv+(((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1)||(S.upperUp!==0&&UPPER.indexOf(id)>-1))?1:0)+d));}
 
 /* meals: 7 days */
 const MEALS=[
@@ -565,7 +658,7 @@ const BADGES=[
 const LVLS=['Novizio','Costante','Determinato','Disciplinato','Guerriero','Atleta','Macchina','Titano','Leggenda'];
 
 /* ============ STATE ============ */
-const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null,coreUp:1,legsUp:1,upperUp:1,hardMode:1,ovr:{}};
+const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null,coreUp:1,legsUp:1,upperUp:1,hardMode:1,ovr:{},kb12:0,kbx:{},rp:{}};
 let S=DEF;
 /* ---- storage hardening: localStorage + IndexedDB mirror + 30-day snapshots ---- */
 function idb(){return new Promise((res,rej)=>{const q=indexedDB.open('sfida365',2);q.onupgradeneeded=()=>{const d=q.result;if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv');if(!d.objectStoreNames.contains('snap'))d.createObjectStore('snap');if(!d.objectStoreNames.contains('photos'))d.createObjectStore('photos');};q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});}
@@ -685,7 +778,7 @@ function render(){
   const w=weekNum(),ph=phaseOf(w),lv=levelOf(w),sc=schedFor(today()),isRec=!sc.ex;
   document.getElementById('weekTag').textContent='Settimana '+Math.min(w,52)+'/52';
   document.getElementById('todayTitle').textContent=sc.ic+' '+sc.t;
-  document.getElementById('todaySub').innerHTML=isRec?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':'Fase <b style="color:'+ph.col+'">'+ph.n+'</b> · '+ph.w+'" lavoro / '+ph.r+'" recupero · Livello esercizi '+lv;
+  document.getElementById('todaySub').innerHTML=isRec?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':'4 giri × 5 esercizi <b style="color:var(--acc2)">a ripetizioni</b> · '+(S.kb12?'6 + 12 kg':'6 kg')+' · fermati a 1–2 dal limite';
   document.getElementById('todayDoneBox').innerHTML=doneToday?'<div class="cue" style="margin-top:10px">✅ Completato oggi! Puoi rifarlo per piacere, ma lo streak è già al sicuro.</div><button class="btn sec small" style="margin-top:10px" onclick="pickPhoto()">📸 Foto progresso di oggi</button>':'';
   document.getElementById('goBtn').textContent=isRec?'🧘 VAI AL RECUPERO ATTIVO →':'VAI ALL’ALLENAMENTO →';
   document.getElementById('abStreak').textContent='🔥 '+st;
@@ -717,11 +810,12 @@ function openWorkout(ds){
     RECOV.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'MOBILITÀ · GIRO 2'}));
     seqMeta={type:'r'};
   }else{
-    document.getElementById('wSub').textContent='20 minuti netti di lavoro: 4 giri × 5 esercizi ('+ph.w+'" on / '+ph.r+'" off). In più: 3’ riscaldamento + 2’ defaticamento.';
-    document.getElementById('wTags').innerHTML='<span class="tag hot">Fase '+ph.n+'</span> <span class="tag">Livello '+lv+'</span> <span class="tag">20’ lavoro · ~25’ totali</span>';
+    document.getElementById('wSub').textContent='4 giri × 5 esercizi. In ogni intervallo (max '+RW+'") fai le ripetizioni indicate fermandoti a 1–2 dal limite, poi recuperi fino al giro dopo. 3’ riscaldamento + 2’ defaticamento.';
+    document.getElementById('wTags').innerHTML='<span class="tag hot">A ripetizioni</span> <span class="tag">'+(S.kb12?'6 + 12 kg':'solo 6 kg')+'</span> <span class="tag">20’ lavoro · ~25’ totali</span>';
     list.innerHTML=sc.ex.map((id,ix)=>{
-      const e=EX[id],v=e.v[lvFor(id,lv)-1];
-      return '<details><summary><span class="exnum">'+(ix+1)+'</span><span class="grow">'+e.ic+' '+v.n+'</span><span class="tag">'+e.m.split(',')[0]+'</span></summary>'+
+      const L=lvFor(id,lv),e=EX[id],v=e.v[L-1],sp=specFor(id,L),lr=lastRep(id,L);
+      const meta='<div class="exmeta"><span class="tag hot">🎯 '+specTxt(sp)+'</span>'+(sp.kb?'<span class="tag">🏋️ '+sp.kb+' kg</span>':'')+(lr!==null?'<span class="tag">ultima: '+(sp.t==='iso'?'✓':lr)+'</span>':'')+'<span class="tag">Liv. '+L+'</span></div>';
+      return '<details><summary><span class="exnum">'+(ix+1)+'</span><span class="grow">'+e.ic+' '+v.n+'<small class="sub">'+specTxt(sp)+(sp.kb?' · '+sp.kb+' kg':'')+(lr!==null&&sp.t!=='iso'?' · ultima '+lr:'')+'</small></span><span class="tag">'+e.m.split(',')[0]+'</span></summary>'+meta+
       '<ol class="steps">'+v.s.filter(Boolean).map(s=>'<li>'+s+'</li>').join('')+'</ol>'+
       (v.c?'<div class="cue">💡 '+v.c+'</div>':'')+
       '<div class="saf">🛡️ '+e.saf+'</div>'+
@@ -740,13 +834,13 @@ function openWorkout(ds){
     const f0=sc.ex[0],fL=lvFor(f0,lv),lw=seq[seq.length-1];
     lw.nx=EX[f0].v[fL-1].n;lw.vid=(VIDS[f0]||[])[fL-1];
     for(let g=1;g<=4;g++)sc.ex.forEach((id,i)=>{
-      const v=EX[id].v[lvFor(id,lv)-1];
+      const L=lvFor(id,lv),v=EX[id].v[L-1],sp=specFor(id,L);
       const nid=sc.ex[i+1]||(g<4?sc.ex[0]:null);
-      seq.push({n:v.n,d:ph.w,ph:'work',lab:'LAVORO · GIRO '+g+'/4'});
-      seq.push({n:'Recupero',d:ph.r,ph:'rest',lab:'RECUPERO',vid:nid?(VIDS[nid]||[])[lvFor(nid,lv)-1]:null,nx:sc.ex[i+1]?EX[sc.ex[i+1]].v[lvFor(sc.ex[i+1],lv)-1].n:(g<4?'Nuovo giro: '+EX[sc.ex[0]].v[lvFor(sc.ex[0],lv)-1].n:'Defaticamento')});
+      seq.push({n:v.n,d:RW,ph:'work',lab:'LAVORO · GIRO '+g+'/4',id:id,sp:sp,lv:L});
+      seq.push({n:'Recupero',d:RR,ph:'rest',lab:'RECUPERO',vid:nid?(VIDS[nid]||[])[lvFor(nid,lv)-1]:null,nx:sc.ex[i+1]?EX[sc.ex[i+1]].v[lvFor(sc.ex[i+1],lv)-1].n:(g<4?'Nuovo giro: '+EX[sc.ex[0]].v[lvFor(sc.ex[0],lv)-1].n:'Defaticamento')});
     });
     COOL.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'DEFATICAMENTO'}));
-    seqMeta={type:'w'};
+    seqMeta={type:'w',ex:sc.ex.slice(),lv:lv};
   }
   /* swap menu: which session is assigned to this day */
   const curKey=Object.keys(SCHED).find(k=>SCHED[k]===sc);
@@ -804,7 +898,13 @@ function setStep(){
   const b=document.getElementById('tBody');b.className='grow '+s.ph;b.style.display='flex';b.style.flexDirection='column';b.style.justifyContent='center';
   document.getElementById('tPhase').textContent=s.ph==='rest'?'RECUPERO · PROSSIMO ESERCIZIO':s.lab;
   document.getElementById('tName').textContent=s.ph==='rest'?(s.nx?'➡️ '+s.nx:'😮‍💨 Respira'):s.n;
-  document.getElementById('tNext').textContent=s.ph==='rest'?'😮‍💨 Respira · sotto trovi il video di come si fa':(s.nx?'🏁 Prossima: 1ª ripetuta — '+s.nx+' (video sotto)':(seq[ti+1]?'Dopo: '+(seq[ti+1].ph==='rest'?'recupero':seq[ti+1].n):'Ultimo esercizio!'));
+  const tn=document.getElementById('tNext');
+  if(s.ph==='work'&&s.sp){
+    const lr=lastRep(s.id,s.lv);
+    tn.innerHTML=s.sp.t==='iso'
+      ?'<span class="tgt">⏱ Tieni fino al bip'+(s.sp.side?' · cambia lato a metà':'')+'</span>'+(s.sp.kb?'<span class="tgt">🏋️ '+s.sp.kb+' kg</span>':'')
+      :'<span class="tgt">🎯 '+s.sp.lo+'–'+s.sp.hi+(s.sp.side?' per lato':' rip.')+'</span>'+(s.sp.kb?'<span class="tgt">🏋️ '+s.sp.kb+' kg</span>':'')+(lr!==null?'<span class="tgt">ultima '+lr+'</span>':'')+'<div class="mut" style="margin-top:6px">Fermati a 1–2 dal limite, poi riposa</div>';
+  }else tn.textContent=s.ph==='rest'?'😮‍💨 Respira · sotto trovi il video di come si fa':(s.nx?'🏁 Prossima: 1ª ripetuta — '+s.nx+' (video sotto)':(seq[ti+1]?'Dopo: '+(seq[ti+1].ph==='rest'?'recupero':seq[ti+1].n):'Ultimo esercizio!'));
   const gm=s.lab.match(/GIRO (\d\/\d)/);document.getElementById('tProg').textContent=gm?'Giro '+gm[1]:(s.lab.charAt(0)+s.lab.slice(1).toLowerCase());
   /* autoplay (muted) video of the NEXT exercise during rest */
   const tv=document.getElementById('tVid');
@@ -850,20 +950,88 @@ function finishT(){
     render();show('home');return;
   }
   const t=today(),first=!S.log[t];
+  let st=0,gain=0;
   if(first){
     const isW=seqMeta.type==='w';
     S.log[t]={t:seqMeta.type};
-    const st=calcStreak();
-    const gain=(isW?50:30)+Math.min(30,st);
+    st=calcStreak();
+    gain=(isW?50:30)+Math.min(30,st);
     S.xp+=gain;
     if(st>S.best)S.best=st;
-    save();
-    confetti();
-    beep(880,.3);setTimeout(()=>beep(1100,.3),200);setTimeout(()=>beep(1320,.45),400);
-    toast('🎉 GIORNO '+st+' COMPLETATO! +'+gain+' XP'+(st>1?' · Streak: '+st+' 🔥':''),5000);
-  }else{toast('💪 Doppia razione! Già contato per oggi.');}
-  render();show('home');
+    save(); /* the day is counted NOW: the sheet below can never cost a streak */
+  }
+  const celebrate=()=>{
+    if(first){
+      confetti();
+      beep(880,.3);setTimeout(()=>beep(1100,.3),200);setTimeout(()=>beep(1320,.45),400);
+      toast('🎉 GIORNO '+st+' COMPLETATO! +'+gain+' XP'+(st>1?' · Streak: '+st+' 🔥':''),5000);
+    }else{toast('💪 Doppia razione! Già contato per oggi.');}
+    render();show('home');
+  };
+  if(seqMeta.type==='w'&&seqMeta.ex)openDone(celebrate);else celebrate();
 }
+
+/* ============ END-OF-WORKOUT SHEET (v22) ============ */
+let doneCb=null,doneVals={};
+function openDone(cb){
+  doneCb=cb;doneVals={};
+  const lv=seqMeta.lv;
+  document.getElementById('doneRows').innerHTML=seqMeta.ex.map(id=>{
+    const L=lvFor(id,lv),e=EX[id],v=e.v[L-1],sp=specFor(id,L),lr=lastRep(id,L);
+    if(sp.t==='iso'){
+      doneVals[id]={iso:1,ok:1,easy:0};
+      return '<div class="drow"><div class="dn"><b>'+e.ic+' '+v.n+'</b><span>tenuta'+(sp.kb?' · '+sp.kb+' kg':'')+'</span></div><button class="chk on" id="dk_'+id+'" onclick="doneTog(\''+id+'\',\'ok\')">✓ tenuto</button><button class="chk ez" id="dz_'+id+'" onclick="doneTog(\''+id+'\',\'easy\')">😴 facile</button></div>';
+    }
+    const n=lr!==null?lr:sp.lo;doneVals[id]={n:n,sp:sp};
+    return '<div class="drow"><div class="dn"><b>'+e.ic+' '+v.n+'</b><span>'+sp.lo+'–'+sp.hi+(sp.side?' per lato':'')+(sp.kb?' · '+sp.kb+' kg':'')+(lr!==null?' · ultima '+lr:'')+'</span></div><div class="step"><button onclick="doneAdj(\''+id+'\',-1)" aria-label="meno">−</button><b id="dv_'+id+'">'+n+'</b><button onclick="doneAdj(\''+id+'\',1)" aria-label="più">+</button></div></div>';
+  }).join('');
+  seqMeta.ex.forEach(id=>doneColor(id));
+  document.getElementById('doneA').style.display='block';document.getElementById('doneB').style.display='none';
+  document.getElementById('done').classList.add('on');document.getElementById('done').scrollTop=0;
+}
+function doneAdj(id,d){const v=doneVals[id];v.n=Math.max(0,Math.min(99,v.n+d));document.getElementById('dv_'+id).textContent=v.n;doneColor(id);}
+function doneColor(id){const v=doneVals[id];if(!v||v.iso)return;const el=document.getElementById('dv_'+id);el.className=v.n>=v.sp.hi?'hi':v.n<v.sp.lo?'lo':'';}
+function doneTog(id,k){const v=doneVals[id];v[k]=v[k]?0:1;document.getElementById((k==='ok'?'dk_':'dz_')+id).classList.toggle('on',!!v[k]);if(k==='easy'&&v.easy&&!v.ok){v.ok=1;document.getElementById('dk_'+id).classList.add('on');}}
+function doneSkip(){document.getElementById('done').classList.remove('on');const cb=doneCb;doneCb=null;cb&&cb();}
+function doneSave(){
+  const t=today(),lv=seqMeta.lv;S.rp=S.rp||{};
+  const reps={};
+  seqMeta.ex.forEach(id=>{
+    const v=doneVals[id],L=lvFor(id,lv),kb=kbFor(id);
+    const n=v.iso?(v.ok?1:0):v.n;
+    const r=S.rp[id]||{};
+    r.n=n;r.at=t;r.kb=kb;r.lv=L;r.lvd=r.lvd||0;
+    r.hist=(r.hist||[]);r.hist.push([t,n,kb,L]);while(r.hist.length>60)r.hist.shift();
+    S.rp[id]=r;reps[id]=n;
+  });
+  if(S.log[t])S.log[t].reps=reps;
+  save();
+  /* rule of 15 */
+  const props=[];
+  seqMeta.ex.forEach(id=>{
+    const v=doneVals[id],L=lvFor(id,lv),sp=specFor(id,L),e=EX[id],nm=e.v[L-1].n;
+    const up=v.iso?!!v.easy:v.n>=sp.hi, down=v.iso?!v.ok:v.n<sp.lo;
+    if(up){
+      if(sp.kb===6&&S.kb12){const s12=Object.assign({},sp);const b=REP[id].v?REP[id].v[L-1]:REP[id];props.push({id,act:'kb12',h:nm,txt:'Passa al 12 kg. Nuovo obiettivo: '+(b.r12?b.r12[0]+'–'+b.r12[1]:'tieni')+(sp.side?' per lato':'')+'.'});}
+      else if(L<3)props.push({id,act:'lvup',h:nm,txt:'Sali di variante → '+e.v[L].n+'. Riparti dal fondo della forchetta.'});
+      else props.push({id,act:null,h:nm,txt:'Sei al massimo della progressione: rendilo più duro rallentando la discesa (3–4 secondi) o con 1 secondo di pausa.'});
+    }else if(down){
+      if(sp.kb===12)props.push({id,act:'kb6',h:nm,txt:'Oggi sotto la forchetta: torna al 6 kg su questo esercizio, la regola del 15 ti riporterà al 12.'});
+      else if(L>1)props.push({id,act:'lvdown',h:nm,txt:'Sotto la forchetta: scendi di variante → '+e.v[L-2].n+'.'});
+      else props.push({id,act:null,h:nm,txt:'Sotto la forchetta: nessun problema, resta qui e punta a '+sp.lo+'.'});
+    }
+  });
+  if(!props.length){doneSkip();return;}
+  document.getElementById('doneProps').innerHTML=props.map((p,i)=>'<div class="prop" id="pp_'+i+'"><b>'+EX[p.id].ic+' '+p.h+'</b><div class="mut">'+p.txt+'</div>'+(p.act?'<div class="row"><button class="btn sec small" onclick="propNo('+i+')">Non ancora</button><button class="btn small" onclick="propYes('+i+',\''+p.id+'\',\''+p.act+'\')">Sì</button></div>':'')+'</div>').join('');
+  document.getElementById('doneA').style.display='none';document.getElementById('doneB').style.display='block';document.getElementById('done').scrollTop=0;
+}
+function propYes(i,id,act){
+  S.rp=S.rp||{};S.kbx=S.kbx||{};const r=S.rp[id]||(S.rp[id]={lvd:0});
+  if(act==='kb12')S.kbx[id]=12;else if(act==='kb6')S.kbx[id]=6;else if(act==='lvup')r.lvd=(r.lvd||0)+1;else if(act==='lvdown')r.lvd=(r.lvd||0)-1;
+  save();const el=document.getElementById('pp_'+i);el.classList.add('ok');el.querySelector('.row').innerHTML='<span class="tag hot">✓ dalla prossima volta</span>';
+}
+function propNo(i){const el=document.getElementById('pp_'+i);el.classList.add('no');el.querySelector('.row').innerHTML='<span class="tag">lasciato com’è</span>';}
+function doneClose(){doneSkip();}
 
 /* confetti */
 function confetti(){
@@ -877,16 +1045,11 @@ function confetti(){
 /* ============ PLAN screen ============ */
 function renderPlan(){
   const w=weekNum(),ph=phaseOf(w),lv=levelOf(w);
-  /* 4-phase timeline of the current 16-week cycle */
-  const boost=S.hardMode!==0?1:0,slot=Math.floor((w-1)/4)%4,left=4-((w-1)%4);
-  let tl='<div class="timeline">',tll='<div class="tll">';
-  for(let i=0;i<4;i++){const p=PHASES[Math.min(3,i+boost)];tl+='<div class="'+(i<slot?'done':i===slot?'cur':'')+'"></div>';tll+='<span class="'+(i===slot?'cur':'')+'">'+p.w+'"/'+p.r+'"</span>';}
-  const np=PHASES[Math.min(3,slot+1+boost)];
-  const nxt=slot<3?'Prossimo ritmo tra '+left+' settiman'+(left===1?'a':'e')+': '+np.w+'"/'+np.r+'"':'Ultima fase del ciclo: tra '+left+' settiman'+(left===1?'a':'e')+' sali di livello';
-  const tlHtml=tl+'</div>'+tll+'</div><div class="mut" style="margin-top:8px">'+nxt+'</div>';
-  document.getElementById('phaseCard').innerHTML='<div class="row"><h3 class="grow">Settimana '+Math.min(w,52)+' di 52</h3><span class="tag hot">Livello '+lv+'</span></div>'+
-   '<div style="margin-top:8px;font-size:15px">Fase <b style="color:'+ph.col+'">'+ph.n+'</b>: <b>'+ph.w+'"</b> lavoro / <b>'+ph.r+'"</b> recupero</div>'+
-   '<div class="xpbar" style="margin-top:10px"><i style="width:'+Math.min(100,w/52*100)+'%"></i></div><div class="mut">'+Math.min(100,Math.round(w/52*100))+'% dell’anno di sfida</div>'+tlHtml;
+  /* v22: progression is per exercise (rule of 15); count how many exercises have moved up */
+  const ups=Object.keys(S.rp||{}).filter(k=>(S.rp[k].lvd||0)>0).length,k12=Object.keys(S.kbx||{}).filter(k=>S.kbx[k]===12).length;
+  document.getElementById('phaseCard').innerHTML='<div class="row"><h3 class="grow">Settimana '+Math.min(w,52)+' di 52</h3><span class="tag hot">A ripetizioni</span></div>'+
+   '<div style="margin-top:8px;font-size:15px">Tetto <b>'+RW+'"</b> per esercizio / <b>'+RR+'"</b> recupero · '+(S.kb12?'6 + 12 kg':'solo 6 kg')+'</div>'+
+   '<div class="xpbar" style="margin-top:10px"><i style="width:'+Math.min(100,w/52*100)+'%"></i></div><div class="mut">'+Math.min(100,Math.round(w/52*100))+'% dell’anno di sfida'+(ups||k12?' · '+(ups?ups+' esercizi saliti di variante':'')+(ups&&k12?', ':'')+(k12?k12+' passati al 12 kg':''):'')+'</div>';
   const names=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
   const wk=Math.floor(Math.max(0,dsDiff(today()))/7);
   document.getElementById('weekPlan').innerHTML=[0,1,2,3,4,5,6].map(i=>{
@@ -951,6 +1114,8 @@ function renderSet(){
   document.getElementById('setLegs').innerHTML='<option value="1"'+(lu===1?' selected':'')+'>🦵 +1 livello (partenza avanzata)</option><option value="0"'+(lu===0?' selected':'')+'>Normale (segue il piano)</option>';
   const uu=S.upperUp!==0?1:0;
   document.getElementById('setUpper').innerHTML='<option value="1"'+(uu===1?' selected':'')+'>🔥 +1 livello (partenza avanzata)</option><option value="0"'+(uu===0?' selected':'')+'>Normale (segue il piano)</option>';
+  const k12=S.kb12?1:0;
+  document.getElementById('setKb').innerHTML='<option value="0"'+(k12===0?' selected':'')+'>Solo 6 kg</option><option value="1"'+(k12===1?' selected':'')+'>6 kg + 12 kg</option>';
   const hm=S.hardMode!==0?1:0;
   document.getElementById('setHard').innerHTML='<option value="1"'+(hm===1?' selected':'')+'>⚡ Intenso (+1 fase, parti da 35s/25s)</option><option value="0"'+(hm===0?' selected':'')+'>Standard (parti da 30s/30s)</option>';
   try{idbKeys('snap').then(ks=>{ks.sort().reverse();document.getElementById('snapSel').innerHTML=ks.length?ks.map(k=>'<option value="'+k+'">'+k+'</option>').join(''):'<option value="">nessuno snapshot ancora</option>';}).catch(()=>{});}catch(e){}
@@ -981,6 +1146,7 @@ function setShift(v){S.shift=parseInt(v)||0;save();render();toast('🔄 Piano ru
 function setCore(v){S.coreUp=parseInt(v)||0;save();toast(S.coreUp?'💪 Addominali a +1 livello.':'Addominali a livello normale.');}
 function setLegs(v){S.legsUp=parseInt(v)||0;save();toast(S.legsUp?'🦵 Gambe a +1 livello.':'Gambe a livello normale.');}
 function setUpper(v){S.upperUp=parseInt(v)||0;save();toast(S.upperUp?'🔥 Petto/braccia a +1 livello.':'Petto/braccia a livello normale.');}
+function setKb(v){S.kb12=parseInt(v)?1:0;save();render();toast(S.kb12?'🏋️ 12 kg attivo: i movimenti grandi passano al 12.':'Solo 6 kg: forchette alte su tutto.');}
 function setHard(v){S.hardMode=parseInt(v)||0;save();render();toast(S.hardMode?'⚡ Ritmo intenso attivo.':'Ritmo standard.');}
 
 /* ---- progress photos (stored on-device in IndexedDB, resized) ---- */
