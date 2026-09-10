@@ -138,7 +138,7 @@ details>*:not(summary){margin-bottom:12px}
 /* heatmap */
 .hm{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
 .hm i{aspect-ratio:1;border-radius:6px;background:var(--card2)}
-.hm i.d1{background:#6b3a10}.hm i.d2{background:var(--acc)}.hm i.fz{background:var(--blu)}
+.hm i.d1{background:#6b3a10}.hm i.d2{background:var(--acc)}.hm i.fz{background:var(--blu)}.hm i.rc{background:transparent;border:1px dashed var(--mut)}
 .hm .hd{font-size:10px;color:var(--mut);text-align:center;font-weight:800}
 .hm i.tdy{outline:2px solid var(--acc2);outline-offset:-2px}
 .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--mut)}
@@ -385,7 +385,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
   <div class="card">
     <div class="row"><h3 class="grow">Il tuo percorso</h3><span class="tag" id="hmTag"></span></div>
     <div class="hm" id="heat" style="margin-top:12px"></div>
-    <div class="legend"><span><i style="background:var(--acc)"></i>allenamento</span><span><i style="background:var(--blu)"></i>streak congelato</span><span><i style="outline:2px solid var(--acc2);outline-offset:-2px"></i>oggi</span></div>
+    <div class="legend"><span><i style="background:var(--acc)"></i>allenamento</span><span><i style="background:var(--blu)"></i>streak congelato</span><span><i style="border:1px dashed var(--mut)"></i>riposo saltato</span><span><i style="outline:2px solid var(--acc2);outline-offset:-2px"></i>oggi</span></div>
   </div>
   <div class="card" id="repCard">
     <div class="row"><h3 class="grow">📈 Per esercizio</h3><span class="tag" id="repTag"></span></div>
@@ -395,7 +395,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
   </div>
   <div class="card">
     <div class="row"><h3 class="grow">🧊 Gettone salva-streak</h3><span class="tag hot" id="fzTag"></span></div>
-    <div class="mut" style="margin-top:6px">Uno al mese: se salti un giorno, lo usi per non perdere lo streak.</div>
+    <div class="mut" style="margin-top:6px">Uno al mese: se salti un giorno di allenamento, lo usi per non perdere lo streak. Il giorno di recupero non spezza mai la catena: se lo fai prendi gli XP, se lo salti non succede niente.</div>
   </div>
   <div class="card">
     <div class="row"><h3 class="grow">📸 Foto progressi</h3><span class="tag" id="pcount"></span></div>
@@ -449,7 +449,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
     <label class="f" for="snapSel">Ripristina uno snapshot automatico</label>
     <div class="row"><select id="snapSel" class="grow"></select><button class="btn sec small" onclick="doRestoreSnap()">Ripristina</button></div>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v24</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v25</div>
 </div>
 
 <div id="nav">
@@ -727,7 +727,10 @@ function reconcile(){
 function dstr(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function today(){return dstr(new Date());}
 function addD(ds,n){const d=new Date(ds+'T12:00:00');d.setDate(d.getDate()+n);return dstr(d);}
-function active(ds){return !!S.log[ds]||!!S.frozen[ds];}
+/* is this day a recovery day according to the plan (incl. manual swaps)? */
+function isRecDay(ds){try{return !schedFor(ds).ex;}catch(e){return false;}}
+/* a day keeps the streak alive if trained, frozen, or if it was a recovery day (v25: rest never breaks the chain; doing it still earns XP) */
+function active(ds){return !!S.log[ds]||!!S.frozen[ds]||(ds>=S.start&&ds<=today()&&isRecDay(ds));}
 
 /* streak: consecutive active days ending today or yesterday */
 function calcStreak(){
@@ -789,6 +792,7 @@ function render(){
   const hr=new Date().getHours();
   hero.classList.remove('danger');fl.classList.remove('pulse');
   if(doneToday){msg.innerHTML='✅ Fatto anche oggi. Sei una roccia.';}
+  else if(isRecDay(t)&&today()>=S.start){msg.innerHTML='🧘 Giorno di recupero: lo streak è al sicuro comunque. Se fai i 20 minuti di mobilità, la spalla ringrazia e prendi gli XP.';}
   else if(st>0&&hr>=18){hero.classList.add('danger');fl.classList.add('pulse');msg.innerHTML='<b style="color:var(--bad)">⚠️ Lo streak di '+st+' giorni MUORE a mezzanotte!</b><br>Ti bastano 20 minuti. Ora.';}
   else if(st>0){msg.innerHTML='Oggi non ti sei ancora allenato. Non spezzare la catena.';}
   else{msg.innerHTML='Ogni leggenda inizia dal giorno 1. Inizia oggi.';}
@@ -1162,7 +1166,8 @@ function renderProg(){
     const ds=addD(mon0,w*7+d);
     const l=S.log[ds],fz=S.frozen[ds];
     const dim=ds>today()||ds<S.start;
-    html+='<i class="'+(fz?'fz':l?'d2':'')+(ds===today()?' tdy':'')+'"'+(dim?' style="opacity:.15"':'')+' title="'+ds+'"></i>';
+    const rc=!l&&!fz&&!dim&&ds<today()&&isRecDay(ds);
+    html+='<i class="'+(fz?'fz':l?'d2':rc?'rc':'')+(ds===today()?' tdy':'')+'"'+(dim?' style="opacity:.15"':'')+' title="'+ds+(rc?' · riposo (streak salvo)':'')+'"></i>';
   }}
   document.getElementById('heat').innerHTML=html;
   /* freeze tag */
