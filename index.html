@@ -210,6 +210,9 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
 .prop .mut{margin:4px 0 10px;font-size:13px}
 .prop .row .btn{min-height:44px;padding:10px;flex:1}
 .prop.ok{border-color:rgba(61,220,132,.5)}.prop.no{opacity:.55}
+.exadj{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.exadj .chk{min-height:40px;padding:0 10px;font-size:13px}
+.exadj .step{margin-left:auto}.exadj .step button{width:40px;height:40px;font-size:20px}.exadj .step button:disabled{opacity:.3}
 </style>
 
 <div id="toast" role="status"></div>
@@ -449,7 +452,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
     <label class="f" for="snapSel">Ripristina uno snapshot automatico</label>
     <div class="row"><select id="snapSel" class="grow"></select><button class="btn sec small" onclick="doRestoreSnap()">Ripristina</button></div>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v27</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v28</div>
 </div>
 
 <div id="nav">
@@ -865,6 +868,10 @@ function openWorkout(ds){
       '<ol class="steps">'+v.s.filter(Boolean).map(s=>'<li>'+s+'</li>').join('')+'</ol>'+
       (v.c?'<div class="cue">💡 '+v.c+'</div>':'')+
       '<div class="saf">🛡️ '+e.saf+'</div>'+
+      /* v28: manual adjust (kettlebell & variant) without waiting for the end-of-workout rule */
+      (isA?'':'<div class="exadj"><span class="mut">Regola tu:</span>'+
+        (REP[id]&&(REP[id].kb||(REP[id].v&&REP[id].v.some(x=>x.kb)))&&S.kb12?'<button class="chk'+(sp.kb===6?' on':'')+'" onclick="adjEx(\''+id+'\',\'kb\',6)">6 kg</button><button class="chk'+(sp.kb===12?' on':'')+'" onclick="adjEx(\''+id+'\',\'kb\',12)">12 kg</button>':'')+
+        '<span class="step"><button onclick="adjEx(\''+id+'\',\'lv\',-1)" aria-label="variante più facile"'+(L<=1?' disabled':'')+'>−</button><b style="font-size:14px;min-width:52px">Liv. '+L+'</b><button onclick="adjEx(\''+id+'\',\'lv\',1)" aria-label="variante più dura"'+(L>=3?' disabled':'')+'>+</button></span></div>')+
       '<div class="vid" data-v="'+((VIDS[id]||[])[lvFor(id,lv)-1]||'')+'"></div>'+
       '<a class="ytb" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(v.yt)+'">🔎 Altri video su YouTube</a></details>';
     }).join('');
@@ -909,6 +916,18 @@ function openWorkout(ds){
   pn.style.display=isToday?'none':'block';
   pn.textContent='👀 Anteprima · settimana '+Math.min(w,52)+', livello '+lv+'. Potrai avviarlo solo quel giorno. Sfoglia con ‹ ›';
   show('work');
+}
+/* manual kettlebell / variant change for one exercise (persisted like the rule-of-15 decisions) */
+function adjEx(id,what,v){
+  S.rp=S.rp||{};S.kbx=S.kbx||{};const r=S.rp[id]||(S.rp[id]={lvd:0});
+  const ds=window.__wds||today(),w=Math.max(1,Math.floor(dsDiff(ds)/7)+1),lv=levelOf(w),L=lvFor(id,lv);
+  if(what==='kb'){S.kbx[id]=v;toast('🏋️ '+EX[id].v[L-1].n+': '+v+' kg dalla prossima volta.');}
+  else{const nL=Math.max(1,Math.min(3,L+v));if(nL===L)return;r.lvd=(r.lvd||0)+(nL-L);toast((v>0?'⬆️ ':'⬇️ ')+EX[id].v[nL-1].n+' dalla prossima volta.');}
+  save();
+  /* re-render keeping the same exercise open */
+  const open=[...document.querySelectorAll('#wList details')].map(d=>d.open);
+  openWorkout(ds);
+  document.querySelectorAll('#wList details').forEach((d,i)=>{if(open[i]){d.open=true;}});
 }
 function browseDay(d){openWorkout(addD(window.__wds||today(),d));}
 function swapDay(v){
