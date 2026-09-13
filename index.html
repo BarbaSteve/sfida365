@@ -449,7 +449,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
     <label class="f" for="snapSel">Ripristina uno snapshot automatico</label>
     <div class="row"><select id="snapSel" class="grow"></select><button class="btn sec small" onclick="doRestoreSnap()">Ripristina</button></div>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v26</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v27</div>
 </div>
 
 <div id="nav">
@@ -609,6 +609,8 @@ const REP={
 };
 /* which kettlebell an exercise uses right now (6 or 12). 12 only if the user has it; a few start on the 6 for shoulder safety */
 const KB12_LATER=['triext','carry'];
+/* exercises whose level-1 variant is two-handed: the 6 kg one-arm -> 12 kg step goes through it */
+const TWOHAND={curl:1,floorpress:1};
 function kbFor(id){const sp=REP[id];if(!sp)return 0;const anyKb=sp.kb||(sp.v&&sp.v.some(x=>x.kb));if(!anyKb)return 0;if(!S.kb12)return 6;const x=S.kbx&&S.kbx[id];if(x===6||x===12)return x;return KB12_LATER.indexOf(id)>-1?6:12;}
 /* resolved target for exercise id at variant level lvl: {t,lo,hi,side,kb} */
 function specFor(id,lvl){
@@ -1085,22 +1087,29 @@ function doneSave(){
     const v=doneVals[id],L=lvFor(id,lv),sp=specFor(id,L),e=EX[id],nm=e.v[L-1].n;
     const up=v.iso?!!v.easy:v.n>=sp.hi, down=v.iso?!v.ok:v.n<sp.lo;
     if(up){
-      if(sp.kb===6&&S.kb12){const s12=Object.assign({},sp);const b=REP[id].v?REP[id].v[L-1]:REP[id];props.push({id,act:'kb12',h:nm,txt:'Passa al 12 kg. Nuovo obiettivo: '+(b.r12?b.r12[0]+'–'+b.r12[1]:'tieni')+(sp.side?' per lato':'')+'.'});}
+      if(sp.kb===6&&S.kb12&&TWOHAND[id]&&L>1){
+        /* 6 kg one-arm -> 12 kg two-hands: the natural step (12 kg one-arm doubles the load at once) */
+        const b=REP[id].v?REP[id].v[0]:REP[id];props.push({id,act:'kb12dn',L:L,h:nm,txt:'Passa al 12 kg con la variante a due mani ('+e.v[0].n+'). Obiettivo: '+(b.r12?b.r12[0]+'–'+b.r12[1]:'tieni')+'. Il 12 a un braccio arriverà dopo.'});}
+      else if(sp.kb===6&&S.kb12){const b=REP[id].v?REP[id].v[L-1]:REP[id];props.push({id,act:'kb12',h:nm,txt:'Passa al 12 kg. Nuovo obiettivo: '+(b.r12?b.r12[0]+'–'+b.r12[1]:'tieni')+(sp.side?' per lato':'')+'.'});}
       else if(L<3)props.push({id,act:'lvup',h:nm,txt:'Sali di variante → '+e.v[L].n+'. Riparti dal fondo della forchetta.'});
       else props.push({id,act:null,h:nm,txt:'Sei al massimo della progressione: rendilo più duro rallentando la discesa (3–4 secondi) o con 1 secondo di pausa.'});
     }else if(down){
-      if(sp.kb===12)props.push({id,act:'kb6',h:nm,txt:'Oggi sotto la forchetta: torna al 6 kg su questo esercizio, la regola del 15 ti riporterà al 12.'});
+      if(sp.kb===12&&TWOHAND[id]&&L>1)props.push({id,act:'kb12dn',L:L,h:nm,txt:'Sotto la forchetta col 12 a un braccio: passa alla variante a due mani ('+e.v[0].n+') tenendo il 12 kg. Se anche così non arrivi a 6, la prossima volta ti propongo il 6 kg.'});
+      else if(sp.kb===12)props.push({id,act:'kb6',h:nm,txt:'Oggi sotto la forchetta: torna al 6 kg su questo esercizio, la regola del 15 ti riporterà al 12.'});
       else if(L>1)props.push({id,act:'lvdown',h:nm,txt:'Sotto la forchetta: scendi di variante → '+e.v[L-2].n+'.'});
       else props.push({id,act:null,h:nm,txt:'Sotto la forchetta: nessun problema, resta qui e punta a '+sp.lo+'.'});
     }
   });
   if(!props.length){doneSkip();return;}
-  document.getElementById('doneProps').innerHTML=props.map((p,i)=>'<div class="prop" id="pp_'+i+'"><b>'+EX[p.id].ic+' '+p.h+'</b><div class="mut">'+p.txt+'</div>'+(p.act?'<div class="row"><button class="btn sec small" onclick="propNo('+i+')">Non ancora</button><button class="btn small" onclick="propYes('+i+',\''+p.id+'\',\''+p.act+'\')">Sì</button></div>':'')+'</div>').join('');
+  window.__props=props;
+  document.getElementById('doneProps').innerHTML=props.map((p,i)=>'<div class="prop" id="pp_'+i+'"><b>'+EX[p.id].ic+' '+p.h+'</b><div class="mut">'+p.txt+'</div>'+(p.act?'<div class="row"><button class="btn sec small" onclick="propNo('+i+')">Non ancora</button><button class="btn small" onclick="propYes('+i+')">Sì</button></div>':'')+'</div>').join('');
   document.getElementById('doneA').style.display='none';document.getElementById('doneB').style.display='block';document.getElementById('done').scrollTop=0;
 }
-function propYes(i,id,act){
+function propYes(i){
+  const p=(window.__props||[])[i];if(!p)return;const id=p.id,act=p.act;
   S.rp=S.rp||{};S.kbx=S.kbx||{};const r=S.rp[id]||(S.rp[id]={lvd:0});
   if(act==='kb12')S.kbx[id]=12;else if(act==='kb6')S.kbx[id]=6;else if(act==='lvup')r.lvd=(r.lvd||0)+1;else if(act==='lvdown')r.lvd=(r.lvd||0)-1;
+  else if(act==='kb12dn'){S.kbx[id]=12;r.lvd=(r.lvd||0)-((p.L||1)-1);} /* 12 kg + back to the two-hand variant (level 1) */
   save();const el=document.getElementById('pp_'+i);el.classList.add('ok');el.querySelector('.row').innerHTML='<span class="tag hot">✓ dalla prossima volta</span>';
 }
 function propNo(i){const el=document.getElementById('pp_'+i);el.classList.add('no');el.querySelector('.row').innerHTML='<span class="tag">lasciato com’è</span>';}
