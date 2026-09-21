@@ -353,7 +353,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
         4 giri da 5 esercizi, circa 20 minuti di lavoro più riscaldamento (3') e defaticamento (2').<br><br>
         <b style="color:var(--acc2)">Ripetizioni, non tempo.</b> Ogni esercizio ha una forchetta (es. 8–15): fai le ripetizioni senza cronometro, fermandoti quando te ne restano 1–2, tocchi FATTO e riposi 15". Le isometriche (plank, hollow, side plank, bottoms-up) restano a tempo e si tengono fino al bip.<br><br>
         <b style="color:var(--ok)">Regola del 15.</b> A fine allenamento segni le ripetizioni dell’ultimo giro. Se arrivi al tetto della forchetta, l’app ti propone di salire: variante più dura, oppure dal 6 al 12 kg, ripartendo dal fondo della forchetta. Se non arrivi al fondo, ti propone di scendere. Decidi sempre tu.<br><br>
-        <b style="color:var(--blu)">Domenica AMRAP.</b> Un solo cronometro da 20 minuti e un giro fisso di 5 esercizi: quanti giri riesci a completare? Il record resta in Progressi e la settimana dopo lo batti. Se la tecnica si sporca, rallenta: il record vale meno della spalla.<br><br>
+        <b style="color:var(--blu)">Domenica Core & Fiato, test AMRAP ogni 4 settimane.</b> La domenica è il giorno dell’addome (crunch con kettlebell, addome basso, hollow, side plank, mountain climber). Una domenica su quattro diventa il test: un solo cronometro da 20 minuti e un giro fisso di 5 esercizi, quanti giri riesci? Il record resta in Progressi e al test successivo lo batti. Se la tecnica si sporca, rallenta.<br><br>
         <b>Due kettlebell, ruoli chiari.</b> Il 12 fa i movimenti grandi (swing, squat, stacchi, rematore, floor press, curl); il 6 fa spalle e braccia piccole (estensioni, bottoms-up) e resta il ripiego quando il 12 è troppo. Le extrarotazioni restano sempre leggere: lì decide la spalla.
       </div>
     </details>
@@ -452,7 +452,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
     <label class="f" for="snapSel">Ripristina uno snapshot automatico</label>
     <div class="row"><select id="snapSel" class="grow"></select><button class="btn sec small" onclick="doRestoreSnap()">Ripristina</button></div>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v28</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v29</div>
 </div>
 
 <div id="nav">
@@ -554,7 +554,11 @@ mtclimb:{ic:'⛰️',m:'Cardio, core',saf:'Se le spalle si affaticano in appoggi
 lowerabs:{ic:'🔥',m:'Addome basso, core profondo',saf:'Nessun carico sulle spalle. Le braccia restano a terra lungo i fianchi, mai dietro la testa.',v:[
  {n:'Dead bug (solo gambe)',s:['Pancia in su, ginocchia a 90°, mani a terra lungo i fianchi','Estendi lentamente una gamba in avanti senza toccare terra, torna','Alterna. Una ripetizione = una gamba'],c:'La zona lombare NON si stacca mai dal pavimento',yt:'dead bug legs only tutorial'},
  {n:'Reverse crunch',s:['Sdraiato, ginocchia piegate a 90°, mani a terra lungo i fianchi','Arrotola il bacino portando le ginocchia verso il petto: il sedere si stacca da terra','Scendi lento in 3 secondi senza appoggiare i piedi'],c:'Il movimento è del bacino, non delle gambe: piccolo e controllato',yt:'reverse crunch tutorial'},
- {n:'Leg raise (gambe tese)',s:['Sdraiato, gambe tese, mani sotto il sedere','Solleva le gambe fino a 90° senza slancio','Scendi in 3-4 secondi fermandoti a 10 cm da terra'],c:'Se la schiena si inarca, piega leggermente le ginocchia',yt:'leg raise tutorial'}]}
+ {n:'Leg raise (gambe tese)',s:['Sdraiato, gambe tese, mani sotto il sedere','Solleva le gambe fino a 90° senza slancio','Scendi in 3-4 secondi fermandoti a 10 cm da terra'],c:'Se la schiena si inarca, piega leggermente le ginocchia',yt:'leg raise tutorial'}]},
+kbcrunch:{ic:'🧲',m:'Addome (retto), flessione con carico',saf:'Kettlebell tenuto al petto o sopra il petto a braccia verticali (come la fine del floor press): mai dietro la testa, mai sopra la testa.',v:[
+ {n:'Crunch con kettlebell al petto',s:['Sdraiato, ginocchia piegate, kettlebell abbracciato al petto con due mani','Solleva le scapole da terra arrotolando il busto, mento lontano dal petto','Scendi in 2-3 secondi senza appoggiare del tutto le spalle'],c:'Il peso rende ogni ripetizione una ripetizione vera: poche e pulite',yt:'kettlebell crunch'},
+ {n:'Crunch con kettlebell a braccia tese',s:['Sdraiato, kettlebell tenuto per le corna sopra il petto, braccia tese verticali','Solleva le scapole spingendo il peso verso il soffitto, non verso le ginocchia','Discesa lenta, braccia sempre verticali'],c:'Le braccia restano perpendicolari al pavimento: la spalla è nella posizione più stabile',yt:'kettlebell crunch arms extended'},
+ {n:'Sit-up con kettlebell al petto',s:['Sdraiato, ginocchia piegate, kettlebell al petto','Sali fino a sedere arrotolando la schiena una vertebra alla volta','Scendi in 3 secondi, sempre arrotolando'],c:'Se i piedi si alzano, riduci il peso (6 kg): niente slancio',yt:'kettlebell sit up'}]}
 };
 
 /* verified YouTube video per exercise VARIANT [level1,level2,level3] */
@@ -580,7 +584,8 @@ deadlift:['foy5yzE4_DA','J-KZ3ypuMtY','RVK5e5C-XZU'],
 superman:['uexOGyxLr7E','8efHUpan-vs','tl9GV1DjwYs'],
 swing:['5qhy8-pX8Yw','WWRTt4t2E_o','rb7wyQCe3-Q'],
 mtclimb:['-tfnUAl4oQA','uymhliNG0I4','nOl72cp3z1Y'],
-lowerabs:['XcYtWYMz39w','NcjNbLiTUlE','0tzBVqiDwSs']};
+lowerabs:['XcYtWYMz39w','NcjNbLiTUlE','0tzBVqiDwSs'],
+kbcrunch:['EDTlff62vP4','uZHD5JELZ4Q','wXZxPX4Cv04']};
 
 /* ============ REP TARGETS (v22) ============
    How much to do inside each work interval. t:'rep' = count reps, stop 1-2 short of failure; t:'iso' = hold for the whole interval.
@@ -608,7 +613,8 @@ const REP={
  deadlift:{v:[{t:'rep',kb:1,r6:[12,15],r12:[8,15]},{t:'rep',kb:1,r6:[12,15],r12:[8,15]},{t:'rep',kb:1,r6:[10,15],r12:[6,12],side:1}]},
  superman:{v:[{t:'rep',r:[12,15]},{t:'rep',r:[8,12]},{t:'rep',r:[10,15]}]},
  swing:{t:'rep',kb:1,r6:[15,20],r12:[10,15]},
- mtclimb:{v:[{t:'iso'},{t:'rep',r:[20,30]},{t:'rep',r:[24,40]}]}
+ mtclimb:{v:[{t:'iso'},{t:'rep',r:[20,30]},{t:'rep',r:[24,40]}]},
+ kbcrunch:{v:[{t:'rep',kb:1,r6:[15,20],r12:[12,15]},{t:'rep',kb:1,r6:[12,15],r12:[10,15]},{t:'rep',kb:1,r6:[10,15],r12:[8,12]}]}
 };
 /* which kettlebell an exercise uses right now (6 or 12). 12 only if the user has it; a few start on the 6 for shoulder safety */
 const KB12_LATER=['triext','carry'];
@@ -641,18 +647,23 @@ const RECOV=[
 /* weekly schedule: getDay() -> workout */
 const SCHED={
  1:{t:'Petto & Tricipiti',ic:'💪',ex:['pushup','floorpress','triext','plankcore','hollow']},
- 2:{t:'Gambe & Core',ic:'🦵',ex:['gobsquat','lunge','rdl','bridge','lowerabs']},
+ 2:{t:'Gambe & Core',ic:'🦵',ex:['swing','gobsquat','lunge','rdl','lowerabs']},
  3:{t:'Spalle Blindate & Core',ic:'🛡️',ex:['scap','ytw','carry','sideplank','birddog']},
  4:{t:'Schiena & Bicipiti',ic:'🚣',ex:['row','curl','deadlift','superman','hollow']},
- 5:{t:'Full Body AMRAP',ic:'⚡',ex:['swing','pushup','row','floorpress','mtclimb'],amrap:{swing:10,pushup:8,row:8,floorpress:10,mtclimb:30}},
+ 5:{t:'Test AMRAP',ic:'⚡',ex:['swing','pushup','row','floorpress','mtclimb'],amrap:{swing:10,pushup:8,row:8,floorpress:10,mtclimb:30}},
  6:{t:'Braccia & Petto Pump',ic:'🔥',ex:['curl','floorpress','triext','pushup','row']},
+ 7:{t:'Core & Fiato',ic:'🎯',ex:['kbcrunch','lowerabs','hollow','sideplank','mtclimb']},
  0:{t:'Recupero Attivo & Mobilità',ic:'🧘',ex:null}
 };
 const PHASES=[{n:'Fondamenta',w:30,r:30,col:'var(--ok)'},{n:'Resistenza',w:35,r:25,col:'var(--blu)'},{n:'Forza',w:40,r:20,col:'var(--acc2)'},{n:'Potenza',w:45,r:15,col:'var(--bad)'}];
 /* v22 rep mode: fixed 45" cap + 15" rest per slot (20 slots = 20'). Reps decide the effort, the clock only keeps the session on time */
 const RW=45,RR=15;
 /* rotation: 6 training days (keys into SCHED) + recovery on cycle day 7 */
-const ROT=[1,4,2,3,5,6];
+const ROT=[1,4,2,3,7,6];
+/* v29: the AMRAP is a test, run every 4 weeks in the Core & Fiato slot. Week index counted from the rotation anchor. */
+const AM_EVERY=4,AM_OFF=3; /* rot0 = 2026-09-08 -> first test Sun 2026-10-04 */
+function amrapWeek(ds){const a=S.rot0||S.start;const d=Math.round((new Date(ds+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);if(d<0)return false;return Math.floor(d/7)%AM_EVERY===AM_OFF;}
+function nextAmrap(){for(let i=0;i<=35;i++){const ds=addD(today(),i);if(schedFor(ds)===SCHED[5])return ds;}return null;}
 function dsDiff(ds){return Math.round((new Date(ds+'T12:00:00')-new Date(S.start+'T12:00:00'))/864e5);}
 function cycDay(ds){const d=dsDiff(ds);return ((d%7)+7)%7;}
 /* rotation anchor (defaults to start date) and fixed recovery slot inside the 7-day cycle (default: day 7) */
@@ -661,10 +672,11 @@ function schedFor(ds){
   const o=S.ovr&&S.ovr[ds];if(o!==undefined&&o!==null&&SCHED[o])return SCHED[o]; /* per-day override (swap) */
   const c=rotDay(ds),rs=(S.recSlot===undefined||S.recSlot===null)?6:S.recSlot;
   if(c===rs)return SCHED[0];
-  const t=c<rs?c:c-1;return SCHED[ROT[(t+(S.shift||0))%6]];}
+  const t=c<rs?c:c-1;const base=SCHED[ROT[(t+(S.shift||0))%6]];
+  return (base===SCHED[7]&&amrapWeek(ds))?SCHED[5]:base;}
 /* core & leg exercises start one level up when the boost is on (default on).
    swing excluded on purpose: its levels are a shoulder-safety progression, not leg strength */
-const CORE=['plankcore','hollow','sideplank','birddog','lowerabs','mtclimb'];
+const CORE=['plankcore','hollow','sideplank','birddog','lowerabs','mtclimb','kbcrunch'];
 const LEGS=['gobsquat','lunge','rdl','bridge','calf','deadlift','swing']; /* swing L2 = swing basso (ombelico): the hinge drill is only for day one */
 const UPPER=['pushup','floorpress','triext','row','curl'];
 /* variant level = week level + group boost + per-exercise delta earned with the "rule of 15" (S.rp[id].lvd) */
@@ -824,7 +836,9 @@ function render(){
   document.getElementById('todayDoneBox').innerHTML=doneToday?'<div class="cue" style="margin-top:10px">✅ Completato oggi! Puoi rifarlo per piacere, ma lo streak è già al sicuro.</div><button class="btn sec small" style="margin-top:10px" onclick="pickPhoto()">📸 Foto progresso di oggi</button>':'';
   document.getElementById('goBtn').textContent=isRec?'🧘 VAI AL RECUPERO ATTIVO →':'VAI ALL’ALLENAMENTO →';
   document.getElementById('abStreak').textContent='🔥 '+st;
-  const nsc=schedFor(addD(today(),1));document.getElementById('nextTxt').textContent='Domani: '+nsc.ic+' '+nsc.t;
+  const nsc=schedFor(addD(today(),1));
+  const na=nextAmrap(),naTxt=(na&&na!==today())?' · ⚡ Test AMRAP '+['dom','lun','mar','mer','gio','ven','sab'][new Date(na+'T12:00:00').getDay()]+' '+na.slice(8,10)+'/'+na.slice(5,7)+(S.amrapBest?' (da battere '+S.amrapBest+')':''):'';
+  document.getElementById('nextTxt').textContent='Domani: '+nsc.ic+' '+nsc.t+naTxt;
   /* before the start date: countdown + preview mode */
   if(today()<S.start){
     const dd=Math.round((new Date(S.start+'T12:00:00')-new Date(today()+'T12:00:00'))/864e5);
@@ -906,7 +920,7 @@ function openWorkout(ds){
   /* swap menu: which session is assigned to this day */
   const curKey=Object.keys(SCHED).find(k=>SCHED[k]===sc);
   const isOvr=S.ovr&&S.ovr[ds]!==undefined;
-  document.getElementById('swapSel').innerHTML=[1,2,3,4,5,6,0].map(k=>'<option value="'+k+'"'+(String(k)===String(curKey)?' selected':'')+'>'+SCHED[k].ic+' '+SCHED[k].t+(String(k)===String(curKey)&&!isOvr?' (da piano)':'')+'</option>').join('')+(isOvr?'<option value="">↩︎ Torna al piano standard</option>':'');
+  document.getElementById('swapSel').innerHTML=[1,2,3,4,7,6,5,0].map(k=>'<option value="'+k+'"'+(String(k)===String(curKey)?' selected':'')+'>'+SCHED[k].ic+' '+SCHED[k].t+(String(k)===String(curKey)&&!isOvr?' (da piano)':'')+'</option>').join('')+(isOvr?'<option value="">↩︎ Torna al piano standard</option>':'');
   /* browsing another day: preview only, START hidden */
   const isToday=ds===today();
   const dnames=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
