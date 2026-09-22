@@ -452,7 +452,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
     <label class="f" for="snapSel">Ripristina uno snapshot automatico</label>
     <div class="row"><select id="snapSel" class="grow"></select><button class="btn sec small" onclick="doRestoreSnap()">Ripristina</button></div>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v29</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v30</div>
 </div>
 
 <div id="nav">
@@ -661,8 +661,10 @@ const RW=45,RR=15;
 /* rotation: 6 training days (keys into SCHED) + recovery on cycle day 7 */
 const ROT=[1,4,2,3,7,6];
 /* v29: the AMRAP is a test, run every 4 weeks in the Core & Fiato slot. Week index counted from the rotation anchor. */
-const AM_EVERY=4,AM_OFF=3; /* rot0 = 2026-09-08 -> first test Sun 2026-10-04 */
-function amrapWeek(ds){const a=S.rot0||S.start;const d=Math.round((new Date(ds+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);if(d<0)return false;return Math.floor(d/7)%AM_EVERY===AM_OFF;}
+/* fixed calendar: first test 2026-10-04, then every 28 days. The Core & Fiato day that falls within ±3 days of a test date becomes the test,
+   whatever the rotation/shift the user has set (there is exactly one such day per 4 weeks). */
+const AM_ANCHOR='2026-10-04';
+function amrapWeek(ds){const d=Math.round((new Date(ds+'T12:00:00')-new Date(AM_ANCHOR+'T12:00:00'))/864e5);if(d<-3)return false;const m=((d%28)+28)%28;return m<=3||m>=25;}
 function nextAmrap(){for(let i=0;i<=35;i++){const ds=addD(today(),i);if(schedFor(ds)===SCHED[5])return ds;}return null;}
 function dsDiff(ds){return Math.round((new Date(ds+'T12:00:00')-new Date(S.start+'T12:00:00'))/864e5);}
 function cycDay(ds){const d=dsDiff(ds);return ((d%7)+7)%7;}
