@@ -154,6 +154,23 @@ details>*:not(summary){margin-bottom:12px}
 .bdg b{display:block;font-size:12px;margin-top:4px}
 .bdg span{font-size:10px;color:var(--mut)}
 /* meals */
+/* v33: Corpo */
+.wrow{display:flex;align-items:center;gap:8px;margin-top:10px}
+.wbtn{width:52px;height:56px;border-radius:14px;border:1px solid var(--line2);background:var(--card2);color:var(--txt);font-size:28px;font-weight:800;cursor:pointer;flex:none}
+#bwIn{flex:1;min-width:0;text-align:center;font-size:36px;font-weight:900;font-variant-numeric:tabular-nums;padding:6px;height:56px}
+.wunit{color:var(--mut);font-weight:700}
+.bstats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.bstat{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.bstat b{display:block;font-size:22px;font-variant-numeric:tabular-nums;line-height:1.1}
+.bstat span{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.bstat small{display:block;font-size:12px;color:var(--txt2);margin-top:2px}
+.verd{border-radius:12px;padding:10px 12px;margin-top:10px;font-size:14px;line-height:1.45}
+.verd.ok{background:rgba(61,220,132,.1);border:1px solid rgba(61,220,132,.35)}
+.verd.warn{background:rgba(255,207,63,.1);border:1px solid rgba(255,207,63,.35)}
+.verd.info{background:var(--accSoft);border:1px solid rgba(255,122,26,.35)}
+.gsel{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.gsel .chk{flex:1 1 45%;justify-content:center;min-height:44px}
+#wChart svg{width:100%;height:150px;display:block}
 .meal{border-left:3px solid var(--acc);padding:8px 12px;margin-bottom:8px;background:var(--card2);border-radius:0 10px 10px 0}
 .meal b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--acc2)}
 .meal p{margin:3px 0 0;font-size:14px}
@@ -297,6 +314,7 @@ input.grow{min-width:0}
     <div id="streakMsg" class="mut" style="margin-top:10px;font-size:14px"></div>
   </div>
   <div id="freezeBox"></div>
+  <div id="bodyCue" style="margin-bottom:12px"></div>
   <div class="card">
     <div class="row" style="margin-bottom:4px">
       <h2 class="grow" id="todayTitle">Oggi</h2>
@@ -394,21 +412,55 @@ input.grow{min-width:0}
   </div>
 </div>
 
-<!-- ===================== MEALS ===================== -->
-<div class="screen" id="s-meal">
-  <div class="card" id="mealToday"></div>
+<!-- ===================== BODY (Corpo) ===================== -->
+<div class="screen" id="s-body">
   <div class="card">
-    <h3>La regola del piatto</h3>
-    <div class="plate">
-      <div class="pl1">½<br>Verdure</div>
-      <div class="pl2">¼<br>Proteine</div>
-      <div class="pl3">¼<br>Carbo integrali</div>
+    <div class="row"><h3 class="grow">⚖️ Peso di oggi</h3><span class="tag" id="bwTag"></span></div>
+    <div class="wrow">
+      <button class="wbtn" onclick="bwAdj(-0.1)" aria-label="meno">−</button>
+      <input id="bwIn" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="0.0">
+      <span class="wunit">kg</span>
+      <button class="wbtn" onclick="bwAdj(0.1)" aria-label="più">+</button>
     </div>
-    <div class="mut" style="margin-top:10px;font-size:14px;line-height:1.5">
-      Nessuna dieta, solo equilibrio: a pranzo e cena metà verdure, un quarto proteine (carne bianca, pesce, uova, legumi), un quarto carboidrati integrali. Colazione con proteine + frutta. 1 cucchiaio di olio EVO a pasto, 1,5–2 L di acqua al giorno. Uno sgarro a settimana è previsto, non è un fallimento.
-    </div>
+    <button class="btn" style="margin-top:10px" onclick="saveWeight()">Salva peso</button>
+    <div class="mut" style="margin-top:8px;font-size:12px">Stessa ora, stessa bilancia, dopo il bagno e prima di colazione. Conta la media, non il singolo giorno.</div>
   </div>
-  <div class="card" id="mealWeek"></div>
+  <div class="card" id="waistCard">
+    <div class="row"><h3 class="grow">📏 Vita</h3><span class="tag" id="waTag"></span></div>
+    <div class="mut" id="waHint" style="margin:4px 0 8px;font-size:13px"></div>
+    <div class="row"><input id="waIn" type="number" inputmode="decimal" step="0.5" min="50" max="200" placeholder="cm" class="grow"><button class="btn small" onclick="saveWaist()">Salva</button></div>
+    <div class="mut" style="margin-top:8px;font-size:12px">All’altezza dell’ombelico, a fine espirazione, metro aderente ma non stretto. Una volta a settimana.</div>
+  </div>
+  <div class="card" id="bodyStats"></div>
+  <div class="card" id="goalCard"></div>
+  <div class="card">
+    <div class="row"><h3 class="grow">Andamento peso</h3><span class="tag" id="chTag"></span></div>
+    <div id="wChart" style="margin-top:8px"></div>
+    <div class="legend"><span><i style="background:var(--mut)"></i>giornaliero</span><span><i style="background:var(--acc)"></i>media 7 giorni</span></div>
+  </div>
+  <div class="card">
+    <div class="row"><h3 class="grow">📸 Foto progressi</h3><span class="tag" id="pcount"></span></div>
+    <button class="btn sec small" style="margin-top:10px" onclick="pickPhoto()">📸 Aggiungi foto di oggi</button>
+    <div class="pgrid" id="pgrid"></div>
+    <div id="pcompare"></div>
+  </div>
+  <div class="card">
+    <button class="btn sec small" onclick="openOnboard(1)">✏️ Modifica altezza / età / obiettivo</button>
+  </div>
+</div>
+
+<!-- first-run body data -->
+<div id="onboard" class="sheet">
+  <h2 style="margin:6px 0 4px">Due dati su di te 🧍</h2>
+  <div class="mut" style="font-size:14px;line-height:1.5;margin-bottom:6px">Servono per calcolare dove sei e proporti un obiettivo sensato. Restano sul telefono.</div>
+  <label class="f" for="obH">Altezza (cm)</label><input id="obH" type="number" inputmode="numeric" min="120" max="230" placeholder="es. 178">
+  <label class="f" for="obA">Età</label><input id="obA" type="number" inputmode="numeric" min="14" max="99" placeholder="es. 34">
+  <label class="f" for="obW">Peso di oggi (kg)</label><input id="obW" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="es. 78.4">
+  <label class="f" for="obV">Vita all’ombelico (cm) — facoltativa ma consigliata</label><input id="obV" type="number" inputmode="decimal" step="0.5" min="50" max="200" placeholder="es. 86">
+  <label class="f" for="obG">Obiettivo</label>
+  <select id="obG"><option value="auto">Consigliami tu (in base ai numeri)</option><option value="recomp">Ricomposizione: stesso peso, meno vita, più petto/braccia</option><option value="bulk">Massa pulita: +0,2–0,4 kg al mese</option><option value="cut">Definizione: −0,3–0,5 kg a settimana</option></select>
+  <button class="btn" style="margin-top:18px" onclick="saveOnboard()">Calcola e continua →</button>
+  <button class="btn sec" style="margin-top:8px" onclick="document.getElementById('onboard').classList.remove('on')">Più tardi</button>
 </div>
 
 <!-- ===================== PROGRESS ===================== -->
@@ -427,12 +479,6 @@ input.grow{min-width:0}
   <div class="card">
     <div class="row"><h3 class="grow">🧊 Gettone salva-streak</h3><span class="tag hot" id="fzTag"></span></div>
     <div class="mut" style="margin-top:6px">Uno al mese: se salti un giorno di allenamento, lo usi per non perdere lo streak. Il giorno di recupero non spezza mai la catena: se lo fai prendi gli XP, se lo salti non succede niente.</div>
-  </div>
-  <div class="card">
-    <div class="row"><h3 class="grow">📸 Foto progressi</h3><span class="tag" id="pcount"></span></div>
-    <button class="btn sec small" style="margin-top:10px" onclick="pickPhoto()">📸 Aggiungi foto di oggi</button>
-    <div class="pgrid" id="pgrid"></div>
-    <div id="pcompare"></div>
   </div>
   <div class="sect">Medaglie</div>
   <div class="bgrid" id="badges"></div>
@@ -480,13 +526,13 @@ input.grow{min-width:0}
     <label class="f" for="snapSel">Ripristina uno snapshot automatico</label>
     <div class="row"><select id="snapSel" class="grow"></select><button class="btn sec small" onclick="doRestoreSnap()">Ripristina</button></div>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v32</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v33</div>
 </div>
 
 <div id="nav">
   <button class="on" data-s="home" onclick="show('home')"><span class="ic">🔥</span>Oggi</button>
   <button data-s="plan" onclick="show('plan')"><span class="ic">📅</span>Piano</button>
-  <button data-s="meal" onclick="show('meal')"><span class="ic">🍽</span>Pasti</button>
+  <button data-s="body" onclick="show('body')"><span class="ic">⚖️</span>Corpo</button>
   <button data-s="prog" onclick="show('prog')"><span class="ic">📈</span>Progressi</button>
 </div>
 
@@ -718,16 +764,6 @@ const UPPER=['pushup','floorpress','triext','row','curl','squeeze'];
 /* variant level = week level + group boost + per-exercise delta earned with the "rule of 15" (S.rp[id].lvd) */
 function lvFor(id,lv){const d=(S.rp&&S.rp[id]&&S.rp[id].lvd)||0;return Math.max(1,Math.min(3,lv+(((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1)||(S.upperUp!==0&&UPPER.indexOf(id)>-1))?1:0)+d));}
 
-/* meals: 7 days */
-const MEALS=[
- {c:'Yogurt greco + miele + noci + un frutto',s:'Una manciata di mandorle',p:'Pasta integrale al pomodoro + insalatona con tonno e olive',ce:'Frittata di 2-3 uova con zucchine + pane integrale'},
- {c:'Fiocchi d’avena con latte, banana e cannella',s:'Yogurt bianco',p:'Riso con pollo a striscioline e verdure saltate',ce:'Minestrone + crostini integrali + scaglie di parmigiano'},
- {c:'Pane integrale tostato + ricotta + marmellata',s:'Un frutto di stagione',p:'Insalata di farro con mozzarella, pomodorini e rucola',ce:'Filetto di pesce al forno + patate e verdure arrosto'},
- {c:'Yogurt greco + frutti di bosco + granola',s:'Una manciata di noci',p:'Panino integrale con tacchino, insalata e pomodoro',ce:'Zuppa di legumi (ceci o lenticchie) + verdure di contorno'},
- {c:'Uova strapazzate + pane integrale + spremuta',s:'Un frutto',p:'Pasta integrale con tonno e pomodorini + verdura cruda',ce:'Petto di pollo alla piastra + insalata mista + pane'},
- {c:'Fiocchi d’avena + latte + mela e cannella',s:'Yogurt o kefir',p:'Riso basmati con salmone (anche in scatola) e zucchine',ce:'Pizza! (una a settimana ci sta) + insalata prima',},
- {c:'Colazione libera del weekend (con un po’ di proteine)',s:'Frutta secca',p:'Pranzo della domenica: porzioni normali, verdure per prime',ce:'Cena leggera: vellutata di verdure + uovo o formaggio magro + pane'}];
-
 const BADGES=[
  {id:'s3',ic:'🔥',n:'Scintilla',d:'3 giorni di fila',f:s=>s.best>=3},
  {id:'s7',ic:'🎯',n:'Prima settimana',d:'7 giorni di fila',f:s=>s.best>=7},
@@ -826,9 +862,9 @@ function show(id){
   document.getElementById('s-'+id).classList.add('on');
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.s===id));
   window.scrollTo(0,0);
-  const T={home:'Oggi',work:'Allenamento',plan:'Piano',meal:'Pasti',prog:'Progressi',set:'Impostazioni'};
+  const T={home:'Oggi',work:'Allenamento',plan:'Piano',body:'Corpo',prog:'Progressi',set:'Impostazioni'};
   document.getElementById('abTitle').textContent=T[id]||'Sfida 365';
-  if(id==='prog')renderProg();if(id==='meal')renderMeal();if(id==='plan')renderPlan();if(id==='set')renderSet();
+  if(id==='prog')renderProg();if(id==='body')renderBody();if(id==='plan')renderPlan();if(id==='set')renderSet();
 }
 function toast(msg,ms){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',ms||3500);}
 
@@ -872,6 +908,8 @@ function render(){
   document.getElementById('todayDoneBox').innerHTML=doneToday?'<div class="cue" style="margin-top:10px">✅ Completato oggi! Puoi rifarlo per piacere, ma lo streak è già al sicuro.</div><button class="btn sec small" style="margin-top:10px" onclick="pickPhoto()">📸 Foto progresso di oggi</button>':'';
   document.getElementById('goBtn').textContent=isRec?'🧘 VAI AL RECUPERO ATTIVO →':'VAI ALL’ALLENAMENTO →';
   document.getElementById('abStreak').textContent='🔥 '+st;
+  /* v33: body cues */
+  try{const bb=S.body||{};const cue=document.getElementById('bodyCue');if(cue){const needW=bb.h&&!(bb.w||[]).some(x=>x[0]===t);const lw=(bb.wa||[]).slice(-1)[0];const needV=bb.h&&(!lw||Math.round((new Date(t+'T12:00:00')-new Date(lw[0]+'T12:00:00'))/864e5)>=7);cue.innerHTML=!bb.h?'<button class="btn sec small" onclick="show(\'body\')">🧍 Imposta altezza e peso →</button>':(needW||needV)?'<button class="btn sec small" onclick="show(\'body\')">'+(needW?'⚖️ Segna il peso di oggi':'📏 Misura la vita (settimanale)')+' →</button>':'';}}catch(e){}
   const nsc=schedFor(addD(today(),1));
   const na=nextAmrap(),naTxt=(na&&na!==today())?' · ⚡ Test AMRAP '+['dom','lun','mar','mer','gio','ven','sab'][new Date(na+'T12:00:00').getDay()]+' '+na.slice(8,10)+'/'+na.slice(5,7)+(S.amrapBest?' (da battere '+S.amrapBest+')':''):'';
   document.getElementById('nextTxt').textContent='Domani: '+nsc.ic+' '+nsc.t+naTxt;
@@ -1264,20 +1302,136 @@ function renderPlan(){
   }).join('');
 }
 
-/* ============ MEALS screen ============ */
-function renderMeal(){
-  const d=new Date().getDay(),m=MEALS[(d+6)%7];
-  const names=['Domenica','Lunedì','Martedì','Mercoledì','Giovedì','Venerdì','Sabato'];
-  document.getElementById('mealToday').innerHTML='<h3>'+names[d]+'</h3><div style="margin-top:10px">'+
-   '<div class="meal"><b>Colazione</b><p>'+m.c+'</p></div>'+
-   '<div class="meal"><b>Spuntino</b><p>'+m.s+'</p></div>'+
-   '<div class="meal"><b>Pranzo</b><p>'+m.p+'</p></div>'+
-   '<div class="meal"><b>Cena</b><p>'+m.ce+'</p></div></div>'+
-   '<div class="mut" style="margin-top:6px">Nei giorni di allenamento: proteine entro 1-2 ore dalla fine (bastano yogurt, uova o il pasto normale).</div>';
-  document.getElementById('mealWeek').innerHTML='<h3>Tutta la settimana</h3>'+[1,2,3,4,5,6,0].map(d2=>{
-    const mm=MEALS[(d2+6)%7];
-    return '<details'+(d2===d?' open':'')+'><summary>'+names[d2]+'</summary><div style="padding-bottom:12px;font-size:14px;color:#c6d2e0">🌅 '+mm.c+'<br>🍎 '+mm.s+'<br>☀️ '+mm.p+'<br>🌙 '+mm.ce+'</div></details>';
-  }).join('');
+/* ============ BODY (Corpo) screen, v33 ============ */
+/* S.body = {h:cm, age, goal:'auto'|'recomp'|'bulk'|'cut', w:[[ds,kg]...], wa:[[ds,cm]...]} */
+function B(){S.body=S.body||{w:[],wa:[]};S.body.w=S.body.w||[];S.body.wa=S.body.wa||[];return S.body;}
+function lastOf(arr){return arr.length?arr[arr.length-1]:null;}
+function wOn(ds){const e=B().w.find(x=>x[0]===ds);return e?e[1]:null;}
+/* 7-day trailing average ending at ds (uses the entries in the window; needs >=3 points) */
+function avg7(ds){const from=addD(ds,-6);const pts=B().w.filter(x=>x[0]>=from&&x[0]<=ds);if(pts.length<3)return null;return pts.reduce((a,x)=>a+x[1],0)/pts.length;}
+function bmiOf(kg){const h=B().h;return h?kg/((h/100)*(h/100)):null;}
+function goalAuto(){
+  const b=B(),kg=avg7(today())||(lastOf(b.w)||[])[1],wa=(lastOf(b.wa)||[])[1];
+  if(!kg||!b.h)return {g:'recomp',why:'Senza vita misurata parto dalla ricomposizione: la scelta più sicura.'};
+  const bmi=bmiOf(kg),whtr=wa&&b.h?wa/b.h:null;
+  if(bmi<20)return {g:'bulk',why:'BMI sotto 20: hai margine per costruire, la priorità è mangiare abbastanza.'};
+  if(whtr!==null){
+    if(whtr>=0.55)return {g:'cut',why:'Vita/altezza '+whtr.toFixed(2)+': sopra 0,55 conviene prima togliere grasso addominale, poi costruire.'};
+    if(whtr>=0.5)return {g:'recomp',why:'Vita/altezza '+whtr.toFixed(2)+': tra 0,50 e 0,55 la ricomposizione è la strada: peso fermo, vita giù, petto e braccia su.'};
+    return {g:'bulk',why:'Vita/altezza '+whtr.toFixed(2)+': sei già asciutto, puoi permetterti una massa pulita (+0,2–0,4 kg al mese).'};
+  }
+  if(bmi>=25)return {g:'recomp',why:'BMI '+bmi.toFixed(1)+' senza misura della vita: ricomposizione, e misura la vita per affinare.'};
+  return {g:'recomp',why:'BMI '+bmi.toFixed(1)+': ricomposizione, e misura la vita per capire se passare a massa.'};
+}
+const GOALS={recomp:{n:'Ricomposizione',ic:'⚖️',d:'Peso fermo, vita che scende, petto e braccia che crescono.',kcal:0},bulk:{n:'Massa pulita',ic:'📈',d:'+0,2–0,4 kg al mese. Se la vita sale più di 1 cm al mese, stai mettendo grasso.',kcal:200},cut:{n:'Definizione',ic:'🔥',d:'−0,3–0,5 kg a settimana, proteine alte per non perdere muscolo.',kcal:-350}};
+function goalNow(){const g=B().goal||'auto';return g==='auto'?goalAuto().g:g;}
+/* weekly verdict: compare 7-day average now vs 14 days ago, and waist now vs previous */
+function verdict(){
+  const b=B(),g=goalNow(),now=avg7(today()),prev=avg7(addD(today(),-14));
+  const wa=b.wa.slice(-2),dwa=wa.length===2?wa[1][1]-wa[0][1]:null;
+  if(b.w.length<3)return {c:'info',t:'Segna il peso per qualche giorno: dal 3° giorno parte la media, dopo 2 settimane il primo verdetto.'};
+  if(now===null||prev===null)return {c:'info',t:'Media a 7 giorni: '+(now?now.toFixed(1)+' kg':'in arrivo')+'. Il primo verdetto arriva dopo 2 settimane di pesate.'};
+  const d=now-prev,dTxt=(d>=0?'+':'')+d.toFixed(1)+' kg in 2 settimane',waTxt=dwa===null?'':' · vita '+(dwa>=0?'+':'')+dwa.toFixed(1)+' cm';
+  if(g==='recomp'){
+    if(d>0.6&&(dwa===null||dwa>0))return {c:'warn',t:'Tira il freno: '+dTxt+waTxt+'. Il peso sale e la vita non scende: togli 200 kcal (i carboidrati serali) e tieni le proteine.'};
+    if(d<-0.8)return {c:'warn',t:'Stai scendendo troppo ('+dTxt+waTxt+'): rischi di perdere anche muscolo. Aggiungi un pugno di carboidrati nei giorni di allenamento.'};
+    return {c:'ok',t:'Stai facendo bene: '+dTxt+waTxt+'. Peso stabile è esattamente l’obiettivo; la differenza la vedi in vita, foto e ripetizioni.'};
+  }
+  if(g==='bulk'){
+    if(dwa!==null&&dwa>=1)return {c:'warn',t:'Vita +'+dwa.toFixed(1)+' cm: stai mettendo grasso, non solo muscolo. Riduci il surplus a +100 kcal.'};
+    if(d<0)return {c:'warn',t:'Peso in calo ('+dTxt+'): per crescere devi mangiare di più. +200 kcal, soprattutto proteine e carboidrati intorno all’allenamento.'};
+    if(d>0.6)return {c:'warn',t:'Troppo veloce ('+dTxt+'): sopra 0,4 kg al mese il resto è grasso. Riduci un po’.'};
+    return {c:'ok',t:'Massa pulita in corso: '+dTxt+waTxt+'. Ritmo giusto.'};
+  }
+  if(d>0.2)return {c:'warn',t:'Peso in salita ('+dTxt+'): il deficit non c’è. Controlla le calorie liquide e i condimenti.'};
+  if(d<-1.4)return {c:'warn',t:'Troppo veloce ('+dTxt+'): stai perdendo anche muscolo. Aggiungi 150–200 kcal.'};
+  if(d<-0.4)return {c:'ok',t:'Definizione in corso: '+dTxt+waTxt+'. Ritmo ideale.'};
+  return {c:'info',t:'Peso fermo ('+dTxt+'): se dura 3 settimane, togli 150 kcal.'};
+}
+/* rough energy: Mifflin-St Jeor (male) x 1.55 (6 sessions/week + daily life) */
+function tdee(){const b=B(),kg=avg7(today())||(lastOf(b.w)||[])[1];if(!kg||!b.h||!b.age)return null;const bmr=10*kg+6.25*b.h-5*b.age+5;return Math.round(bmr*1.55/10)*10;}
+function renderBody(){
+  const b=B();
+  if(!b.h){openOnboard(0);}
+  const t=today(),wt=wOn(t),last=lastOf(b.w);
+  document.getElementById('bwIn').value=wt!==null?wt:(last?last[1]:'');
+  document.getElementById('bwTag').textContent=wt!==null?'✓ segnato oggi':(last?'ultimo: '+last[0].slice(8,10)+'/'+last[0].slice(5,7):'mai segnato');
+  const lw=lastOf(b.wa);const days=lw?Math.round((new Date(t+'T12:00:00')-new Date(lw[0]+'T12:00:00'))/864e5):null;
+  document.getElementById('waTag').textContent=lw?lw[1]+' cm':'—';
+  document.getElementById('waHint').textContent=!lw?'Ancora nessuna misura: è il numero che segue davvero il grasso addominale.':days>=7?'Ultima misura '+days+' giorni fa: oggi tocca misurare.':'Prossima misura tra '+(7-days)+' giorn'+(7-days===1?'o':'i')+'.';
+  document.getElementById('waIn').value='';
+  /* stats */
+  const kg=avg7(t)||(last?last[1]:null),bmi=kg?bmiOf(kg):null,whtr=(lw&&b.h)?lw[1]/b.h:null;
+  const hm=b.h?(b.h/100)*(b.h/100):null,ideal=hm?[Math.round(20*hm),Math.round(25*hm)]:null;
+  const bmiTxt=bmi===null?'':bmi<18.5?'sottopeso':bmi<25?'normopeso':bmi<30?'sovrappeso (BMI)':'obesità (BMI)';
+  const whTxt=whtr===null?'misura la vita':whtr<0.43?'molto asciutto':whtr<0.5?'ok: sotto 0,50':whtr<0.55?'zona di lavoro':'priorità: vita';
+  document.getElementById('bodyStats').innerHTML='<div class="row"><h3 class="grow">Dove sei</h3>'+(b.h?'<span class="tag">'+b.h+' cm · '+(b.age||'?')+' anni</span>':'')+'</div>'+
+   '<div class="bstats">'+
+   '<div class="bstat"><span>Peso medio 7 gg</span><b>'+(kg?kg.toFixed(1):'—')+'<small style="display:inline;font-size:13px"> kg</small></b><small>'+(b.w.length?b.w.length+' pesate':'')+'</small></div>'+
+   '<div class="bstat"><span>BMI</span><b>'+(bmi?bmi.toFixed(1):'—')+'</b><small>'+bmiTxt+(ideal?' · forma '+ideal[0]+'–'+ideal[1]+' kg':'')+'</small></div>'+
+   '<div class="bstat"><span>Vita / altezza</span><b>'+(whtr?whtr.toFixed(2):'—')+'</b><small>'+whTxt+'</small></div>'+
+   '<div class="bstat"><span>Fabbisogno stimato</span><b>'+(tdee()?tdee():'—')+'<small style="display:inline;font-size:13px"> kcal</small></b><small>mantenimento, stima</small></div></div>'+
+   '<div class="mut" style="margin-top:8px;font-size:12px">Il BMI da solo con gambe sviluppate sovrastima il grasso: il rapporto vita/altezza è il numero da guardare (sotto 0,50).</div>';
+  /* goal */
+  const auto=goalAuto(),g=goalNow(),G=GOALS[g],v=verdict(),te=tdee();
+  const kcal=te?(te+G.kcal):null,prot=kg?Math.round(kg*1.8):null;
+  document.getElementById('goalCard').innerHTML='<div class="row"><h3 class="grow">'+G.ic+' '+G.n+'</h3><span class="tag hot">'+((b.goal||'auto')==='auto'?'consigliato':'scelto da te')+'</span></div>'+
+   '<div class="mut" style="margin-top:4px;font-size:14px">'+G.d+'</div>'+
+   ((b.goal||'auto')==='auto'?'<div class="mut" style="margin-top:6px;font-size:13px">Perché: '+auto.why+'</div>':'')+
+   '<div class="verd '+v.c+'">'+v.t+'</div>'+
+   (kcal?'<div class="bstats"><div class="bstat"><span>Calorie/giorno</span><b>~'+kcal+'</b><small>'+(G.kcal>0?'+'+G.kcal+' sul mantenimento':G.kcal<0?G.kcal+' sul mantenimento':'= mantenimento')+'</small></div><div class="bstat"><span>Proteine/giorno</span><b>'+prot+' g</b><small>1,8 g per kg · non negoziabile</small></div></div>':'')+
+   '<div class="gsel">'+['auto','recomp','bulk','cut'].map(k=>'<button class="chk'+((b.goal||'auto')===k?' on':'')+'" onclick="setGoal(\''+k+'\')">'+(k==='auto'?'🤖 Consigliami':GOALS[k].ic+' '+GOALS[k].n)+'</button>').join('')+'</div>';
+  renderWChart();
+  renderPhotos();
+}
+function bwAdj(d){const el=document.getElementById('bwIn');const v=parseFloat(el.value)||((lastOf(B().w)||[0,75])[1]);el.value=(Math.round((v+d)*10)/10).toFixed(1);}
+function saveWeight(){
+  const v=parseFloat(document.getElementById('bwIn').value);if(!(v>=30&&v<=250)){toast('Inserisci un peso valido.');return;}
+  const b=B(),t=today();const i=b.w.findIndex(x=>x[0]===t);if(i>=0)b.w[i][1]=v;else{b.w.push([t,v]);b.w.sort((a,c)=>a[0].localeCompare(c[0]));}
+  while(b.w.length>400)b.w.shift();save();renderBody();render();toast('⚖️ '+v.toFixed(1)+' kg salvato.');
+}
+function saveWaist(){
+  const v=parseFloat(document.getElementById('waIn').value);if(!(v>=50&&v<=200)){toast('Inserisci una misura valida in cm.');return;}
+  const b=B(),t=today();const i=b.wa.findIndex(x=>x[0]===t);if(i>=0)b.wa[i][1]=v;else{b.wa.push([t,v]);b.wa.sort((a,c)=>a[0].localeCompare(c[0]));}
+  save();renderBody();toast('📏 Vita '+v+' cm salvata.');
+}
+function setGoal(k){B().goal=k;save();renderBody();toast(k==='auto'?'🤖 Obiettivo consigliato dall’app.':GOALS[k].ic+' Obiettivo: '+GOALS[k].n);}
+function openOnboard(edit){
+  const b=B();document.getElementById('obH').value=b.h||'';document.getElementById('obA').value=b.age||'';
+  document.getElementById('obW').value=wOn(today())||(lastOf(b.w)||[])[1]||'';document.getElementById('obV').value=(lastOf(b.wa)||[])[1]||'';
+  document.getElementById('obG').value=b.goal||'auto';
+  document.getElementById('onboard').classList.add('on');
+}
+function saveOnboard(){
+  const h=parseFloat(document.getElementById('obH').value),a=parseInt(document.getElementById('obA').value),w=parseFloat(document.getElementById('obW').value),v=parseFloat(document.getElementById('obV').value);
+  if(!(h>=120&&h<=230)){toast('Altezza in cm, es. 178.');return;}
+  if(!(w>=30&&w<=250)){toast('Peso di oggi in kg, es. 78.4.');return;}
+  const b=B();b.h=Math.round(h);if(a>=14&&a<=99)b.age=a;b.goal=document.getElementById('obG').value||'auto';
+  const t=today();const i=b.w.findIndex(x=>x[0]===t);if(i>=0)b.w[i][1]=w;else b.w.push([t,w]);
+  if(v>=50&&v<=200){const j=b.wa.findIndex(x=>x[0]===t);if(j>=0)b.wa[j][1]=v;else b.wa.push([t,v]);}
+  save();document.getElementById('onboard').classList.remove('on');renderBody();render();
+  const g=goalNow();toast(GOALS[g].ic+' Obiettivo proposto: '+GOALS[g].n+'. Puoi cambiarlo quando vuoi.',5000);
+}
+/* SVG chart: last 56 days, daily dots + 7-day average line */
+function renderWChart(){
+  const b=B(),el=document.getElementById('wChart');
+  /* window: from the first weigh-in (min 2 weeks) up to the last 8 weeks */
+  let from=addD(today(),-55);if(b.w.length&&b.w[0][0]>from)from=b.w[0][0];if(from>addD(today(),-13))from=addD(today(),-13);
+  const span=Math.round((new Date(today()+'T12:00:00')-new Date(from+'T12:00:00'))/864e5)||1;
+  const pts=b.w.filter(x=>x[0]>=from);
+  document.getElementById('chTag').textContent=pts.length?(span>=55?'ultime 8 settimane':'ultimi '+span+' giorni'):'';
+  if(pts.length<2){el.innerHTML='<div class="empty"><b>📉</b>Dopo qualche pesata qui vedi la curva e la media a 7 giorni.</div>';return;}
+  const W=340,H=150,L=34,R=10,T=10,Bt=22;
+  const xs=ds=>L+(Math.round((new Date(ds+'T12:00:00')-new Date(from+'T12:00:00'))/864e5))/span*(W-L-R);
+  const avgs=pts.map(p=>[p[0],avg7(p[0])]).filter(p=>p[1]!==null);
+  const all=pts.map(p=>p[1]).concat(avgs.map(p=>p[1]));let mn=Math.min(...all),mx=Math.max(...all);if(mx-mn<1.5){const m=(mx+mn)/2;mn=m-0.75;mx=m+0.75;}mn-=0.2;mx+=0.2;
+  const ys=v=>T+(1-(v-mn)/(mx-mn))*(H-T-Bt);
+  let svg='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">';
+  for(let i=0;i<=3;i++){const v=mn+(mx-mn)*i/3;const y=ys(v);svg+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)" stroke-width="1"/><text x="'+(L-4)+'" y="'+(y+4)+'" fill="var(--mut)" font-size="10" text-anchor="end">'+v.toFixed(1)+'</text>';}
+  svg+=pts.map(p=>'<circle cx="'+xs(p[0])+'" cy="'+ys(p[1])+'" r="2.5" fill="var(--mut)"/>').join('');
+  if(avgs.length>1)svg+='<polyline fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round" points="'+avgs.map(p=>xs(p[0])+','+ys(p[1])).join(' ')+'"/>';
+  const lab=[[from,'start'],[addD(from,Math.round(span/2)),'middle'],[today(),'end']];svg+=lab.map(x=>'<text x="'+xs(x[0])+'" y="'+(H-6)+'" fill="var(--mut)" font-size="10" text-anchor="'+x[1]+'">'+x[0].slice(8,10)+'/'+x[0].slice(5,7)+'</text>').join('');
+  svg+='</svg>';el.innerHTML=svg;
 }
 
 /* ============ PROGRESS screen ============ */
@@ -1308,7 +1462,6 @@ function renderProg(){
   document.getElementById('badges').innerHTML=BADGES.map(b=>'<div class="bdg'+(b.f(ctx)?'':' off')+'"><div class="bi">'+b.ic+'</div><b>'+b.n+'</b><span>'+b.d+'</span></div>').join('');
   document.getElementById('hmTag').textContent='Settimana '+Math.min(weekNum(),52);
   renderRepProg();
-  renderPhotos();
 }
 /* v23: per-exercise progression + AMRAP record */
 function renderRepProg(){
