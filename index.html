@@ -452,7 +452,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
     <label class="f" for="snapSel">Ripristina uno snapshot automatico</label>
     <div class="row"><select id="snapSel" class="grow"></select><button class="btn sec small" onclick="doRestoreSnap()">Ripristina</button></div>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v30</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v31</div>
 </div>
 
 <div id="nav">
@@ -558,7 +558,11 @@ lowerabs:{ic:'🔥',m:'Addome basso, core profondo',saf:'Nessun carico sulle spa
 kbcrunch:{ic:'🧲',m:'Addome (retto), flessione con carico',saf:'Kettlebell tenuto al petto o sopra il petto a braccia verticali (come la fine del floor press): mai dietro la testa, mai sopra la testa.',v:[
  {n:'Crunch con kettlebell al petto',s:['Sdraiato, ginocchia piegate, kettlebell abbracciato al petto con due mani','Solleva le scapole da terra arrotolando il busto, mento lontano dal petto','Scendi in 2-3 secondi senza appoggiare del tutto le spalle'],c:'Il peso rende ogni ripetizione una ripetizione vera: poche e pulite',yt:'kettlebell crunch'},
  {n:'Crunch con kettlebell a braccia tese',s:['Sdraiato, kettlebell tenuto per le corna sopra il petto, braccia tese verticali','Solleva le scapole spingendo il peso verso il soffitto, non verso le ginocchia','Discesa lenta, braccia sempre verticali'],c:'Le braccia restano perpendicolari al pavimento: la spalla è nella posizione più stabile',yt:'kettlebell crunch arms extended'},
- {n:'Sit-up con kettlebell al petto',s:['Sdraiato, ginocchia piegate, kettlebell al petto','Sali fino a sedere arrotolando la schiena una vertebra alla volta','Scendi in 3 secondi, sempre arrotolando'],c:'Se i piedi si alzano, riduci il peso (6 kg): niente slancio',yt:'kettlebell sit up'}]}
+ {n:'Sit-up con kettlebell al petto',s:['Sdraiato, ginocchia piegate, kettlebell al petto','Sali fino a sedere arrotolando la schiena una vertebra alla volta','Scendi in 3 secondi, sempre arrotolando'],c:'Se i piedi si alzano, riduci il peso (6 kg): niente slancio',yt:'kettlebell sit up'}]},
+squeeze:{ic:'🤝',m:'Petto (contrazione massima), tricipiti',saf:'L’esercizio di petto più sicuro per la tua spalla: sdraiato, gomiti che si fermano a terra, e la spinta "verso dentro" dei palmi tiene la spalla stabile e centrata.',v:[
+ {n:'Squeeze press a terra',s:['Sdraiato, ginocchia piegate, kettlebell stretto tra i PALMI (sfera in mezzo, maniglia in basso)','Stringi forte le mani una contro l’altra e spingi il peso verso l’alto','Scendi lento finché i gomiti toccano terra, senza mai smettere di stringere'],c:'La forza è nella stretta: più stringi, più il petto lavora',yt:'kettlebell squeeze press floor'},
+ {n:'Squeeze press lento + pausa',s:['Come livello 1, discesa in 3-4 secondi','Pausa di 2 secondi con i gomiti a terra, sempre stringendo','Spinta decisa e contrazione finale in alto per 1 secondo'],c:'In alto "strizza" il petto come per far incontrare i gomiti',yt:'kettlebell squeeze press slow'},
+ {n:'Squeeze press 1½ (doppio fondo)',s:['Scendi fino a terra, risali a metà, riscendi, poi risali del tutto: 1 ripetizione','Stretta massima per tutto il tempo','Gomiti a 45° dal busto, mai larghi'],c:'Il doppio fondo è brutale per il petto: poche ripetizioni, tutte pulite',yt:'kettlebell crush grip floor press'}]}
 };
 
 /* verified YouTube video per exercise VARIANT [level1,level2,level3] */
@@ -585,7 +589,8 @@ superman:['uexOGyxLr7E','8efHUpan-vs','tl9GV1DjwYs'],
 swing:['5qhy8-pX8Yw','WWRTt4t2E_o','rb7wyQCe3-Q'],
 mtclimb:['-tfnUAl4oQA','uymhliNG0I4','nOl72cp3z1Y'],
 lowerabs:['XcYtWYMz39w','NcjNbLiTUlE','0tzBVqiDwSs'],
-kbcrunch:['EDTlff62vP4','uZHD5JELZ4Q','wXZxPX4Cv04']};
+kbcrunch:['EDTlff62vP4','uZHD5JELZ4Q','wXZxPX4Cv04'],
+squeeze:['nWuSvBnkcDw','5Ud-xgCuwEY','4znfY6NkWD0']};
 
 /* ============ REP TARGETS (v22) ============
    How much to do inside each work interval. t:'rep' = count reps, stop 1-2 short of failure; t:'iso' = hold for the whole interval.
@@ -614,7 +619,8 @@ const REP={
  superman:{v:[{t:'rep',r:[12,15]},{t:'rep',r:[8,12]},{t:'rep',r:[10,15]}]},
  swing:{t:'rep',kb:1,r6:[15,20],r12:[10,15]},
  mtclimb:{v:[{t:'iso'},{t:'rep',r:[20,30]},{t:'rep',r:[24,40]}]},
- kbcrunch:{v:[{t:'rep',kb:1,r6:[15,20],r12:[12,15]},{t:'rep',kb:1,r6:[12,15],r12:[10,15]},{t:'rep',kb:1,r6:[10,15],r12:[8,12]}]}
+ kbcrunch:{v:[{t:'rep',kb:1,r6:[15,20],r12:[12,15]},{t:'rep',kb:1,r6:[12,15],r12:[10,15]},{t:'rep',kb:1,r6:[10,15],r12:[8,12]}]},
+ squeeze:{v:[{t:'rep',kb:1,r6:[12,15],r12:[8,12]},{t:'rep',kb:1,r6:[10,15],r12:[6,10]},{t:'rep',kb:1,r6:[8,12],r12:[5,8]}]}
 };
 /* which kettlebell an exercise uses right now (6 or 12). 12 only if the user has it; a few start on the 6 for shoulder safety */
 const KB12_LATER=['triext','carry'];
@@ -646,13 +652,13 @@ const RECOV=[
 
 /* weekly schedule: getDay() -> workout */
 const SCHED={
- 1:{t:'Petto & Tricipiti',ic:'💪',ex:['pushup','floorpress','triext','plankcore','hollow']},
- 2:{t:'Gambe & Core',ic:'🦵',ex:['swing','gobsquat','lunge','rdl','lowerabs']},
- 3:{t:'Spalle Blindate & Core',ic:'🛡️',ex:['scap','ytw','carry','sideplank','birddog']},
- 4:{t:'Schiena & Bicipiti',ic:'🚣',ex:['row','curl','deadlift','superman','hollow']},
+ 1:{t:'Petto & Core',ic:'💪',ex:['pushup','floorpress','squeeze','kbcrunch','hollow']},
+ 2:{t:'Gambe & Petto',ic:'🦵',ex:['swing','gobsquat','rdl','lunge','pushup']},
+ 3:{t:'Spalle Blindate & Braccia',ic:'🛡️',ex:['scap','ytw','carry','curl','triext']},
+ 4:{t:'Schiena & Braccia',ic:'🚣',ex:['row','superman','curl','triext','lowerabs']},
  5:{t:'Test AMRAP',ic:'⚡',ex:['swing','pushup','row','floorpress','mtclimb'],amrap:{swing:10,pushup:8,row:8,floorpress:10,mtclimb:30}},
- 6:{t:'Braccia & Petto Pump',ic:'🔥',ex:['curl','floorpress','triext','pushup','row']},
- 7:{t:'Core & Fiato',ic:'🎯',ex:['kbcrunch','lowerabs','hollow','sideplank','mtclimb']},
+ 6:{t:'Schiena & Bicipiti',ic:'🔥',ex:['row','deadlift','curl','triext','birddog']},
+ 7:{t:'Petto, Core & Fiato',ic:'🎯',ex:['floorpress','squeeze','kbcrunch','sideplank','mtclimb']},
  0:{t:'Recupero Attivo & Mobilità',ic:'🧘',ex:null}
 };
 const PHASES=[{n:'Fondamenta',w:30,r:30,col:'var(--ok)'},{n:'Resistenza',w:35,r:25,col:'var(--blu)'},{n:'Forza',w:40,r:20,col:'var(--acc2)'},{n:'Potenza',w:45,r:15,col:'var(--bad)'}];
@@ -680,7 +686,7 @@ function schedFor(ds){
    swing excluded on purpose: its levels are a shoulder-safety progression, not leg strength */
 const CORE=['plankcore','hollow','sideplank','birddog','lowerabs','mtclimb','kbcrunch'];
 const LEGS=['gobsquat','lunge','rdl','bridge','calf','deadlift','swing']; /* swing L2 = swing basso (ombelico): the hinge drill is only for day one */
-const UPPER=['pushup','floorpress','triext','row','curl'];
+const UPPER=['pushup','floorpress','triext','row','curl','squeeze'];
 /* variant level = week level + group boost + per-exercise delta earned with the "rule of 15" (S.rp[id].lvd) */
 function lvFor(id,lv){const d=(S.rp&&S.rp[id]&&S.rp[id].lvd)||0;return Math.max(1,Math.min(3,lv+(((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1)||(S.upperUp!==0&&UPPER.indexOf(id)>-1))?1:0)+d));}
 
