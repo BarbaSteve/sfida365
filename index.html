@@ -59,7 +59,26 @@ button{font-family:inherit}
 #nav button.on .ic{filter:none;opacity:1;transform:translateY(-1px)}
 #nav button.on::after{content:"";position:absolute;top:0;width:28px;height:3px;border-radius:0 0 3px 3px;background:var(--acc)}
 /* hero */
-.hero{text-align:center;padding:26px 16px 22px;background:radial-gradient(120% 90% at 50% 0%,rgba(255,122,26,.18),var(--card) 60%)}
+/* v34: compact hero with weekly ring */
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.hleft{display:flex;align-items:center;gap:12px;text-align:left}
+.hero .flame{font-size:40px;white-space:nowrap;line-height:1}
+.hero .snum{font-size:40px;line-height:1}
+.hleft .slab{font-size:10px;margin-top:2px}
+.wring{position:relative;width:84px;height:84px;flex:none}
+.wring svg{width:84px;height:84px;transform:rotate(-90deg)}
+.wring .rbg{fill:none;stroke:var(--card2);stroke-width:7}
+.wring .rfg{fill:none;stroke:var(--acc);stroke-width:7;stroke-linecap:round;stroke-dasharray:169.6;stroke-dashoffset:169.6;transition:stroke-dashoffset .6s ease}
+.wring.full .rfg{stroke:var(--ok)}
+.wring .rtxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1}
+.wring .rtxt b{font-size:15px}.wring .rtxt span{font-size:9px;color:var(--mut);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+.sumgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
+.sumgrid .bstat{text-align:center}
+.prrow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.prrow:last-child{border-bottom:0}
+.prrow .dn{flex:1;min-width:0}.prrow .dn b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.prrow .dn span{font-size:12px;color:var(--mut)}
+.prrow .pr{font-size:12px;font-weight:800;color:var(--ok);white-space:nowrap}
+.hero{text-align:center;padding:20px 16px 18px;background:radial-gradient(120% 90% at 50% 0%,rgba(255,122,26,.18),var(--card) 60%)}
 .flame{font-size:58px;line-height:1;filter:drop-shadow(0 6px 18px rgba(255,122,26,.35))}
 .flame.dead{filter:grayscale(1);opacity:.4}
 .snum{font-size:52px;font-weight:900;letter-spacing:-.03em;line-height:1.05;margin-top:6px}
@@ -286,6 +305,14 @@ input.grow{min-width:0}
   <label class="f" for="musicAdd">Aggiungi una tua playlist (link Spotify)</label>
   <div class="row"><input id="musicAdd" placeholder="https://open.spotify.com/playlist/…" class="grow" inputmode="url"><button class="btn small" onclick="addMusic()">Salva</button></div>
 </div>
+<!-- post-workout summary (v34) -->
+<div id="summary" class="sheet">
+  <h2 style="margin:6px 0 2px" id="sumTitle">Allenamento completato 🎉</h2>
+  <div class="mut" id="sumSub" style="font-size:14px"></div>
+  <div id="sumBody"></div>
+  <button class="btn" style="margin-top:14px" onclick="closeSummary()">Fatto ✓</button>
+  <button class="btn sec" style="margin-top:8px" onclick="closeSummary();pickPhoto()">📸 Foto di oggi</button>
+</div>
 <!-- resume an interrupted workout -->
 <div id="resume" class="sheet">
   <h2 style="margin:6px 0 4px">Allenamento interrotto 🏃</h2>
@@ -308,9 +335,10 @@ input.grow{min-width:0}
 <!-- ===================== HOME ===================== -->
 <div class="screen on" id="s-home">
   <div class="card hero" id="heroCard">
-    <div class="flame" id="flame">🔥</div>
-    <div class="snum" id="streakN">0</div>
-    <div class="slab">giorni di streak</div>
+    <div class="hrow">
+      <div class="hleft"><div class="flame" id="flame">🔥</div><div><div class="snum" id="streakN">0</div><div class="slab">giorni di streak</div></div></div>
+      <div class="wring" id="wkRing"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" class="rbg"/><circle cx="32" cy="32" r="27" class="rfg" id="ringFg"/></svg><div class="rtxt"><b id="ringN">0/6</b><span>settimana</span></div></div>
+    </div>
     <div id="streakMsg" class="mut" style="margin-top:10px;font-size:14px"></div>
   </div>
   <div id="freezeBox"></div>
@@ -322,7 +350,8 @@ input.grow{min-width:0}
     </div>
     <div class="mut" id="todaySub"></div>
     <div id="todayDoneBox"></div>
-    <button class="btn" id="goBtn" style="margin-top:14px" onclick="openWorkout()">VAI ALL'ALLENAMENTO →</button>
+    <button class="btn" id="goBtn" style="margin-top:14px" onclick="homeStart()">▶ START</button>
+    <button class="btn sec small" id="goPrev" style="margin-top:8px;width:100%" onclick="openWorkout()">Vedi esercizi, video e musica →</button>
     <div class="mut" id="nextTxt" style="margin-top:10px;text-align:center"></div>
   </div>
   <div class="stats">
@@ -499,17 +528,6 @@ input.grow{min-width:0}
     <label class="f" for="setSnd">Suoni del timer</label>
     <select id="setSnd" onchange="setSnd(this.value)"></select>
     <div class="mut" style="margin-top:8px">Spenti di default: su iPhone ogni bip mette in pausa la musica. La vibrazione resta.</div>
-    <select id="setHard" onchange="setHard(this.value)" style="display:none"></select>
-  </div>
-  <div class="sect">Livello di partenza</div>
-  <div class="card">
-    <label class="f" for="setCore">Addominali / core</label>
-    <select id="setCore" onchange="setCore(this.value)"></select>
-    <label class="f" for="setLegs">Gambe / glutei</label>
-    <select id="setLegs" onchange="setLegs(this.value)"></select>
-    <label class="f" for="setUpper">Petto / braccia</label>
-    <select id="setUpper" onchange="setUpper(this.value)"></select>
-    <div class="mut" style="margin-top:12px">Gli esercizi di prevenzione spalla e lo swing restano sempre a progressione normale: lì decide la spalla, non il livello.</div>
   </div>
   <div class="sect">Dati e backup</div>
   <div class="card">
@@ -526,7 +544,7 @@ input.grow{min-width:0}
     <label class="f" for="snapSel">Ripristina uno snapshot automatico</label>
     <div class="row"><select id="snapSel" class="grow"></select><button class="btn sec small" onclick="doRestoreSnap()">Ripristina</button></div>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v33</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v34</div>
 </div>
 
 <div id="nav">
@@ -906,7 +924,10 @@ function render(){
   document.getElementById('todayTitle').textContent=sc.ic+' '+sc.t;
   document.getElementById('todaySub').innerHTML=isRec?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':sc.amrap?'AMRAP: un cronometro da 20’, quanti giri riesci? '+(S.amrapBest?'<b style="color:var(--acc2)">Da battere: '+S.amrapBest+' giri</b>':'<b style="color:var(--acc2)">Prima volta: fai il tuo record</b>'):'4 giri × 5 esercizi <b style="color:var(--acc2)">a ripetizioni</b> · '+(S.kb12?'6 + 12 kg':'6 kg')+' · fermati a 1–2 dal limite';
   document.getElementById('todayDoneBox').innerHTML=doneToday?'<div class="cue" style="margin-top:10px">✅ Completato oggi! Puoi rifarlo per piacere, ma lo streak è già al sicuro.</div><button class="btn sec small" style="margin-top:10px" onclick="pickPhoto()">📸 Foto progresso di oggi</button>':'';
-  document.getElementById('goBtn').textContent=isRec?'🧘 VAI AL RECUPERO ATTIVO →':'VAI ALL’ALLENAMENTO →';
+  document.getElementById('goBtn').textContent=doneToday?'✅ FATTO OGGI · RIFAI':isRec?'🧘 START RECUPERO (20’)':sc.amrap?'⚡ START TEST AMRAP':'▶ START ALLENAMENTO';
+  /* weekly ring: training days done this week (Mon–Sun), recovery day excluded from the target */
+  try{const mon=addD(t,-((new Date(t+'T12:00:00').getDay()+6)%7));let done=0,goal=0;for(let i=0;i<7;i++){const ds=addD(mon,i);const r=isRecDay(ds);if(!r)goal++;if(S.log[ds]&&!r)done++;}
+    const pct=goal?Math.min(1,done/goal):0;document.getElementById('ringFg').style.strokeDashoffset=(169.6*(1-pct)).toFixed(1);document.getElementById('ringN').textContent=done+'/'+goal;document.getElementById('wkRing').classList.toggle('full',done>=goal&&goal>0);}catch(e){}
   document.getElementById('abStreak').textContent='🔥 '+st;
   /* v33: body cues */
   try{const bb=S.body||{};const cue=document.getElementById('bodyCue');if(cue){const needW=bb.h&&!(bb.w||[]).some(x=>x[0]===t);const lw=(bb.wa||[]).slice(-1)[0];const needV=bb.h&&(!lw||Math.round((new Date(t+'T12:00:00')-new Date(lw[0]+'T12:00:00'))/864e5)>=7);cue.innerHTML=!bb.h?'<button class="btn sec small" onclick="show(\'body\')">🧍 Imposta altezza e peso →</button>':(needW||needV)?'<button class="btn sec small" onclick="show(\'body\')">'+(needW?'⚖️ Segna il peso di oggi':'📏 Misura la vita (settimanale)')+' →</button>':'';}}catch(e){}
@@ -1034,7 +1055,7 @@ function delMusic(i){S.pl.splice(i,1);save();renderMusic();}
 
 /* ============ RESUME AN INTERRUPTED WORKOUT (v32) ============ */
 const RUN_KEY='sfida365_run';
-function saveRun(){try{if(!seq.length)return;localStorage.setItem(RUN_KEY,JSON.stringify({ds:window.__wds||today(),ti,tLeft,rounds,paused,ts:Date.now(),k:seqMeta.amrap?'a':seqMeta.type}));}catch(e){}}
+function saveRun(){try{if(!seq.length)return;localStorage.setItem(RUN_KEY,JSON.stringify({ds:window.__wds||today(),ti,tLeft,rounds,paused,ts:Date.now(),st:runStart,k:seqMeta.amrap?'a':seqMeta.type}));}catch(e){}}
 function clearRun(){try{localStorage.removeItem(RUN_KEY);}catch(e){}}
 function checkRun(){
   let r=null;try{r=JSON.parse(localStorage.getItem(RUN_KEY)||'null');}catch(e){}
@@ -1049,7 +1070,7 @@ async function doResume(){
   const r=window.__run;document.getElementById('resume').classList.remove('on');if(!r)return;
   openWorkout(r.ds);
   if(!seq.length||r.ti>=seq.length){clearRun();return;}
-  rounds=r.rounds||0;paused=false;
+  rounds=r.rounds||0;paused=false;runStart=r.st||Date.now();
   document.getElementById('tmr').classList.add('on');
   try{wl=await navigator.wakeLock.request('screen');}catch(e){}
   ti=r.ti;setStep();
@@ -1057,6 +1078,25 @@ async function doResume(){
   drawT();tick();toast('▶ Ripreso: '+(seq[ti].lab||'').toLowerCase());
 }
 
+/* v34: post-workout summary */
+function openSummary(){
+  const m=window.__sum;if(!m)return;
+  const sc=schedFor(today());
+  document.getElementById('sumTitle').textContent=m.first?'Giorno '+m.st+' completato 🎉':'Doppia razione 💪';
+  document.getElementById('sumSub').textContent=sc.ic+' '+sc.t+(m.first?' · +'+m.gain+' XP':' · già contato per oggi');
+  let h='<div class="sumgrid">'+
+    '<div class="bstat"><span>Durata</span><b>'+(m.dur?m.dur+'’':'—')+'</b></div>'+
+    (m.amrap?'<div class="bstat"><span>Giri</span><b>'+m.rounds+'</b><small>'+(m.rounds>=m.best&&m.rounds>0?'🏆 record':'record '+m.best)+'</small></div>':m.type==='r'?'<div class="bstat"><span>Mobilità</span><b>16</b><small>posizioni</small></div>':'<div class="bstat"><span>Ripetizioni</span><b>'+(m.tot||'—')+'</b><small>stimate (×4 giri)</small></div>')+
+    '<div class="bstat"><span>Streak</span><b>'+m.st+'</b><small>giorn'+(m.st===1?'o':'i')+'</small></div></div>';
+  if(m.prs.length){h+='<div class="sect" style="margin-top:6px">🏅 Record personali di oggi</div>'+m.prs.map(p=>'<div class="prrow"><div class="dn"><b>'+EX[p.id].ic+' '+EX[p.id].v[p.L-1].n+'</b><span>prima: '+p.pb+'</span></div><span class="pr">'+p.n+' rip. · +'+(p.n-p.pb)+'</span></div>').join('');}
+  else if(m.type==='w'&&!m.amrap&&m.tot)h+='<div class="mut" style="margin-top:8px;font-size:13px">Nessun record oggi: normale, i record arrivano a ondate. La costanza è il record vero.</div>';
+  if(m.amrap&&m.rounds>0&&m.rounds>=m.best)h+='<div class="verd ok">🏆 Nuovo record AMRAP: '+m.rounds+' giri. Prossimo test tra 4 settimane.</div>';
+  document.getElementById('sumBody').innerHTML=h;
+  document.getElementById('summary').classList.add('on');
+}
+function closeSummary(){document.getElementById('summary').classList.remove('on');window.__sum=null;}
+/* v34: one-tap start from Home */
+function homeStart(){openWorkout(today());if(today()<S.start){return;}setTimeout(()=>startTimer(),60);}
 /* manual kettlebell / variant change for one exercise (persisted like the rule-of-15 decisions) */
 function adjEx(id,what,v){
   S.rp=S.rp||{};S.kbx=S.kbx||{};const r=S.rp[id]||(S.rp[id]={lvd:0});
@@ -1078,7 +1118,7 @@ function swapDay(v){
 }
 
 /* ============ TIMER ============ */
-let ti=0,tLeft=0,tH=null,paused=false,wl=null,AC=null,rounds=0;
+let ti=0,tLeft=0,tH=null,paused=false,wl=null,AC=null,rounds=0,runStart=0;
 /* big button under the clock: +1 round in AMRAP, FATTO (next step) on open rep exercises */
 function roundBtn(){const s=seq[ti];if(s&&s.ph==='amrap')addRound();else nextStep();}
 function nextStep(){ti++;if(ti>=seq.length){finishT();return;}if(navigator.vibrate)navigator.vibrate(60);setStep();}
@@ -1108,7 +1148,7 @@ function beep(f,dur,vol){
 function oscBeep(f,dur,vol){try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();const o=AC.createOscillator(),g=AC.createGain();o.frequency.value=f;o.type='sine';g.gain.value=vol;o.connect(g);g.connect(AC.destination);o.start();g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+dur);o.stop(AC.currentTime+dur);}catch(e){}}
 async function startTimer(){
   if(!seq.length)return;
-  ti=0;paused=false;rounds=0;clearRun();
+  ti=0;paused=false;rounds=0;clearRun();runStart=Date.now();
   document.getElementById('tmr').classList.add('on');
   try{wl=await navigator.wakeLock.request('screen');}catch(e){}
   beep(880,.2);setStep();tick();
@@ -1194,13 +1234,13 @@ function finishT(){
     if(st>S.best)S.best=st;
     save(); /* the day is counted NOW: the sheet below can never cost a streak */
   }
+  window.__sum={dur:runStart?Math.max(1,Math.round((Date.now()-runStart)/60000)):null,type:seqMeta.type,amrap:!!seqMeta.amrap,rounds:rounds,st:st,gain:gain,first:first,prs:[],tot:0,best:S.amrapBest||0};
   const celebrate=()=>{
     if(first){
       confetti();
       beep(880,.3);setTimeout(()=>beep(1100,.3),200);setTimeout(()=>beep(1320,.45),400);
-      toast('🎉 GIORNO '+st+' COMPLETATO! +'+gain+' XP'+(st>1?' · Streak: '+st+' 🔥':'')+amTxt,6000);
-    }else{save();toast('💪 Doppia razione! Già contato per oggi.'+amTxt,5000);}
-    render();show('home');
+    }else{save();}
+    render();show('home');openSummary();
   };
   if(seqMeta.type==='w'&&seqMeta.ex)openDone(celebrate);else celebrate();
 }
@@ -1234,6 +1274,9 @@ function doneSave(){
     const v=doneVals[id],L=lvFor(id,lv),kb=kbFor(id);
     const n=v.iso?(v.ok?1:0):v.n;
     const r=S.rp[id]||{};
+    /* personal record check (same kettlebell & variant) */
+    if(!v.iso&&window.__sum){const prev=(r.hist||[]).filter(h=>h[2]===kb&&h[3]===L&&h[0]!==t).map(h=>h[1]);const pb=prev.length?Math.max(...prev):null;
+      if(pb!==null&&n>pb)window.__sum.prs.push({id,n,pb,L});window.__sum.tot+=n*4;}
     r.n=n;r.at=t;r.kb=kb;r.lv=L;r.lvd=r.lvd||0;
     r.hist=(r.hist||[]);r.hist.push([t,n,kb,L]);while(r.hist.length>60)r.hist.shift();
     S.rp[id]=r;reps[id]=n;
@@ -1490,17 +1533,17 @@ function renderSet(){
   document.getElementById('setStart').value=S.start;
   document.getElementById('setShift').innerHTML=ROT.map((k,i)=>'<option value="'+i+'"'+((S.shift||0)===i?' selected':'')+'>'+SCHED[k].ic+' '+SCHED[k].t+'</option>').join('');
   const cu=S.coreUp!==0?1:0;
-  document.getElementById('setCore').innerHTML='<option value="1"'+(cu===1?' selected':'')+'>💪 +1 livello (partenza avanzata)</option><option value="0"'+(cu===0?' selected':'')+'>Normale (segue il piano)</option>';
+  if(document.getElementById('setCore'))document.getElementById('setCore').innerHTML='<option value="1"'+(cu===1?' selected':'')+'>💪 +1 livello (partenza avanzata)</option><option value="0"'+(cu===0?' selected':'')+'>Normale (segue il piano)</option>';
   const lu=S.legsUp!==0?1:0;
-  document.getElementById('setLegs').innerHTML='<option value="1"'+(lu===1?' selected':'')+'>🦵 +1 livello (partenza avanzata)</option><option value="0"'+(lu===0?' selected':'')+'>Normale (segue il piano)</option>';
+  if(document.getElementById('setLegs'))document.getElementById('setLegs').innerHTML='<option value="1"'+(lu===1?' selected':'')+'>🦵 +1 livello (partenza avanzata)</option><option value="0"'+(lu===0?' selected':'')+'>Normale (segue il piano)</option>';
   const uu=S.upperUp!==0?1:0;
-  document.getElementById('setUpper').innerHTML='<option value="1"'+(uu===1?' selected':'')+'>🔥 +1 livello (partenza avanzata)</option><option value="0"'+(uu===0?' selected':'')+'>Normale (segue il piano)</option>';
+  if(document.getElementById('setUpper'))document.getElementById('setUpper').innerHTML='<option value="1"'+(uu===1?' selected':'')+'>🔥 +1 livello (partenza avanzata)</option><option value="0"'+(uu===0?' selected':'')+'>Normale (segue il piano)</option>';
   const k12=S.kb12?1:0;
   document.getElementById('setKb').innerHTML='<option value="0"'+(k12===0?' selected':'')+'>Solo 6 kg</option><option value="1"'+(k12===1?' selected':'')+'>6 kg + 12 kg</option>';
   const sn=S.snd?1:0;
   document.getElementById('setSnd').innerHTML='<option value="0"'+(sn===0?' selected':'')+'>🔇 Spenti (solo vibrazione)</option><option value="1"'+(sn===1?' selected':'')+'>🔔 Accesi</option>';
   const hm=S.hardMode!==0?1:0;
-  document.getElementById('setHard').innerHTML='<option value="1"'+(hm===1?' selected':'')+'>⚡ Intenso (+1 fase, parti da 35s/25s)</option><option value="0"'+(hm===0?' selected':'')+'>Standard (parti da 30s/30s)</option>';
+  if(document.getElementById('setHard'))document.getElementById('setHard').innerHTML='<option value="1"'+(hm===1?' selected':'')+'>⚡ Intenso (+1 fase, parti da 35s/25s)</option><option value="0"'+(hm===0?' selected':'')+'>Standard (parti da 30s/30s)</option>';
   try{idbKeys('snap').then(ks=>{ks.sort().reverse();document.getElementById('snapSel').innerHTML=ks.length?ks.map(k=>'<option value="'+k+'">'+k+'</option>').join(''):'<option value="">nessuno snapshot ancora</option>';}).catch(()=>{});}catch(e){}
 }
 
