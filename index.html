@@ -59,6 +59,30 @@ button{font-family:inherit}
 #nav button.on .ic{filter:none;opacity:1;transform:translateY(-1px)}
 #nav button.on::after{content:"";position:absolute;top:0;width:28px;height:3px;border-radius:0 0 3px 3px;background:var(--acc)}
 /* hero */
+/* v35: avatar & tiers */
+.lvrow{display:flex;align-items:center;gap:12px}
+.avatar{width:104px;height:120px;flex:none;position:relative}
+.avatar svg{width:104px;height:120px;overflow:visible;display:block}
+.aura{transform-box:fill-box;transform-origin:center;animation:aura 2.2s ease-in-out infinite}
+.aura2{transform-box:fill-box;transform-origin:50% 100%;animation:flame 1.3s ease-in-out infinite}
+@keyframes flame{0%,100%{transform:scaleY(1) scaleX(1)}50%{transform:scaleY(1.08) scaleX(.96)}}
+.spark{animation:spark 1.8s ease-in-out infinite}
+.spark:nth-child(2){animation-delay:.6s}.spark:nth-child(3){animation-delay:1.2s}
+.hairg{transform-box:fill-box;transform-origin:50% 100%;animation:hair 1.1s ease-in-out infinite}
+@keyframes aura{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.12);opacity:.95}}
+@keyframes spark{0%{transform:translateY(0);opacity:0}30%{opacity:1}100%{transform:translateY(-26px);opacity:0}}
+@keyframes hair{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.06)}}
+@media (prefers-reduced-motion:reduce){.aura,.aura2,.spark,.hairg{animation:none}}
+.trow{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.trow:last-child{border-bottom:0}
+.trow .tn{width:22px;height:22px;border-radius:6px;background:var(--card2);border:1px solid var(--line);display:inline-flex;align-items:center;justify-content:center;font-size:11px;color:var(--mut);flex:none}
+.trow.cur{color:var(--acc2);font-weight:800}.trow.cur .tn{border-color:var(--acc);color:var(--acc2)}
+.trow.done{opacity:.6}.trow.done .tn{background:rgba(61,220,132,.15);color:var(--ok);border-color:rgba(61,220,132,.4)}
+/* run */
+.runrow{display:flex;align-items:center;gap:8px;margin-top:8px}
+.runrow .wbtn{width:46px;height:48px;font-size:22px}
+.runrow input{flex:1;min-width:0;text-align:center;font-size:26px;font-weight:900;height:48px;padding:4px}
+.hm i.rn{box-shadow:inset 0 0 0 2px var(--bg),inset 0 0 0 4px var(--blu)}
 /* v34: compact hero with weekly ring */
 .hrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .hleft{display:flex;align-items:center;gap:12px;text-align:left}
@@ -313,6 +337,17 @@ input.grow{min-width:0}
   <button class="btn" style="margin-top:14px" onclick="closeSummary()">Fatto ✓</button>
   <button class="btn sec" style="margin-top:8px" onclick="closeSummary();pickPhoto()">📸 Foto di oggi</button>
 </div>
+<!-- run log (v35) -->
+<div id="runsheet" class="sheet">
+  <div class="row" style="margin-bottom:8px"><h2 class="grow" style="margin:0">🏃 Ho corso</h2><button class="btn sec small" onclick="closeRun()">✕</button></div>
+  <div class="mut" style="font-size:13px;line-height:1.5">La corsa dà XP (1 al minuto, fino a 40) e moltiplica ×1,5 gli XP dell’allenamento dello stesso giorno. Non tocca lo streak: quello è del kettlebell.</div>
+  <label class="f" for="runMin">Minuti</label>
+  <div class="runrow"><button class="wbtn" onclick="runAdj(-5)">−</button><input id="runMin" type="number" inputmode="numeric" min="5" max="240" value="30"><button class="wbtn" onclick="runAdj(5)">+</button></div>
+  <label class="f" for="runKm">Km (facoltativo)</label>
+  <input id="runKm" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="es. 5.2">
+  <button class="btn" style="margin-top:16px" onclick="saveRunLog()">Salva corsa</button>
+  <button class="btn sec" style="margin-top:8px" onclick="delRun()">Rimuovi la corsa di oggi</button>
+</div>
 <!-- resume an interrupted workout -->
 <div id="resume" class="sheet">
   <h2 style="margin:6px 0 4px">Allenamento interrotto 🏃</h2>
@@ -343,6 +378,7 @@ input.grow{min-width:0}
   </div>
   <div id="freezeBox"></div>
   <div id="bodyCue" style="margin-bottom:12px"></div>
+  <div id="runCue" style="margin-bottom:12px"></div>
   <div class="card">
     <div class="row" style="margin-bottom:4px">
       <h2 class="grow" id="todayTitle">Oggi</h2>
@@ -359,10 +395,16 @@ input.grow{min-width:0}
     <div class="stat"><b id="stBest">0</b><span>record streak</span></div>
     <div class="stat"><b id="stPct">0%</b><span>dell'anno</span></div>
   </div>
-  <div class="card">
-    <div class="row"><h3 class="grow" id="lvlName">Novizio</h3><span class="tag hot" id="lvlTag">Lv 1</span></div>
-    <div class="xpbar"><i id="xpFill" style="width:0%"></i></div>
-    <div class="mut" id="xpTxt"></div>
+  <div class="card lvcard">
+    <div class="lvrow">
+      <div class="avatar" id="avatar"></div>
+      <div class="grow" style="min-width:0">
+        <div class="row"><h3 class="grow" id="lvlName">Recluta</h3><span class="tag hot" id="lvlTag">Lv 1</span></div>
+        <div class="xpbar"><i id="xpFill" style="width:0%"></i></div>
+        <div class="mut" id="xpTxt" style="font-size:12px"></div>
+      </div>
+    </div>
+    <details style="margin-top:8px"><summary style="min-height:36px;padding:6px 0;font-size:13px;color:var(--mut)">Tutti i livelli</summary><div id="tierList"></div></details>
   </div>
 </div>
 
@@ -381,6 +423,8 @@ input.grow{min-width:0}
     <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap" id="wTags"></div>
     <label class="f" for="swapSel">Cambia l'allenamento di questo giorno</label>
     <select id="swapSel" onchange="swapDay(this.value)"></select>
+    <button class="chk" id="bwBtn" style="margin-top:12px;width:100%;justify-content:center" onclick="toggleBW()">🎒 Senza attrezzi: OFF</button>
+    <div class="mut" id="bwHint" style="margin-top:6px;font-size:12px">In viaggio o fuori casa: stessi muscoli, stessa durata, solo corpo libero (serve un tavolo robusto e una sedia).</div>
   </div>
   <div class="card">
     <h3 style="margin-bottom:2px">Esercizi</h3>
@@ -497,7 +541,7 @@ input.grow{min-width:0}
   <div class="card">
     <div class="row"><h3 class="grow">Il tuo percorso</h3><span class="tag" id="hmTag"></span></div>
     <div class="hm" id="heat" style="margin-top:12px"></div>
-    <div class="legend"><span><i style="background:var(--acc)"></i>allenamento</span><span><i style="background:var(--blu)"></i>streak congelato</span><span><i style="border:1px dashed var(--mut)"></i>riposo saltato</span><span><i style="outline:2px solid var(--acc2);outline-offset:-2px"></i>oggi</span></div>
+    <div class="legend"><span><i style="background:var(--acc)"></i>allenamento</span><span><i style="background:var(--blu)"></i>streak congelato</span><span><i style="border:1px dashed var(--mut)"></i>riposo saltato</span><span><i style="background:var(--acc);box-shadow:inset 0 0 0 2px var(--bg),inset 0 0 0 4px var(--blu)"></i>+corsa</span><span><i style="outline:2px solid var(--acc2);outline-offset:-2px"></i>oggi</span></div>
   </div>
   <div class="card" id="repCard">
     <div class="row"><h3 class="grow">📈 Per esercizio</h3><span class="tag" id="repTag"></span></div>
@@ -525,6 +569,9 @@ input.grow{min-width:0}
     <label class="f" for="setKb">Kettlebell disponibili</label>
     <select id="setKb" onchange="setKb(this.value)"></select>
     <div class="mut" style="margin-top:8px">Col 12 kg attivo i movimenti grandi (swing, squat, stacchi, rematore, floor press, curl) passano al 12 con forchette più basse. Le extrarotazioni restano sempre leggere. Se un giorno hai solo il 6, spegnilo: i progressi non si toccano.</div>
+    <label class="f" for="setTravel">Modalità viaggio (solo corpo libero)</label>
+    <select id="setTravel" onchange="setTravel(this.value)"></select>
+    <div class="mut" style="margin-top:8px">Quando sei via: ogni allenamento viene tradotto a corpo libero finché non la spegni. Per un giorno solo usa l’interruttore nell’allenamento.</div>
     <label class="f" for="setSnd">Suoni del timer</label>
     <select id="setSnd" onchange="setSnd(this.value)"></select>
     <div class="mut" style="margin-top:8px">Spenti di default: su iPhone ogni bip mette in pausa la musica. La vibrazione resta.</div>
@@ -544,7 +591,7 @@ input.grow{min-width:0}
     <label class="f" for="snapSel">Ripristina uno snapshot automatico</label>
     <div class="row"><select id="snapSel" class="grow"></select><button class="btn sec small" onclick="doRestoreSnap()">Ripristina</button></div>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v34</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v35</div>
 </div>
 
 <div id="nav">
@@ -654,7 +701,39 @@ kbcrunch:{ic:'🧲',m:'Addome (retto), flessione con carico',saf:'Kettlebell ten
 squeeze:{ic:'🤝',m:'Petto (contrazione massima), tricipiti',saf:'L’esercizio di petto più sicuro per la tua spalla: sdraiato, gomiti che si fermano a terra, e la spinta "verso dentro" dei palmi tiene la spalla stabile e centrata.',v:[
  {n:'Squeeze press a terra',s:['Sdraiato, ginocchia piegate, kettlebell stretto tra i PALMI (sfera in mezzo, maniglia in basso)','Stringi forte le mani una contro l’altra e spingi il peso verso l’alto','Scendi lento finché i gomiti toccano terra, senza mai smettere di stringere'],c:'La forza è nella stretta: più stringi, più il petto lavora',yt:'kettlebell squeeze press floor'},
  {n:'Squeeze press lento + pausa',s:['Come livello 1, discesa in 3-4 secondi','Pausa di 2 secondi con i gomiti a terra, sempre stringendo','Spinta decisa e contrazione finale in alto per 1 secondo'],c:'In alto "strizza" il petto come per far incontrare i gomiti',yt:'kettlebell squeeze press slow'},
- {n:'Squeeze press 1½ (doppio fondo)',s:['Scendi fino a terra, risali a metà, riscendi, poi risali del tutto: 1 ripetizione','Stretta massima per tutto il tempo','Gomiti a 45° dal busto, mai larghi'],c:'Il doppio fondo è brutale per il petto: poche ripetizioni, tutte pulite',yt:'kettlebell crush grip floor press'}]}
+ {n:'Squeeze press 1½ (doppio fondo)',s:['Scendi fino a terra, risali a metà, riscendi, poi risali del tutto: 1 ripetizione','Stretta massima per tutto il tempo','Gomiti a 45° dal busto, mai larghi'],c:'Il doppio fondo è brutale per il petto: poche ripetizioni, tutte pulite',yt:'kettlebell crush grip floor press'}]},
+pushup2:{ic:'🧗',m:'Petto (alto), tricipiti',saf:'Piedi rialzati su sedia o letto: più carico sul petto senza toccare la spalla. Gomiti a 45°, mai larghi.',v:[
+ {n:'Push-up piedi su gradino basso',s:['Piedi su un gradino/cuscino (20-30 cm), mani sotto le spalle','Scendi col petto verso terra, gomiti a 45°','Risali spingendo forte, corpo rigido'],c:'Il bacino non deve cedere: addome contratto',yt:'feet elevated push up'},
+ {n:'Push-up piedi su sedia',s:['Piedi su una sedia (40-50 cm)','Scendi controllato, fermati se la spalla protesta','Spinta decisa in salita'],c:'Più alti i piedi, più lavora il petto alto',yt:'decline push up chair'},
+ {n:'Push-up piedi su sedia lento + pausa',s:['Come livello 2, discesa in 3 secondi','Pausa di 1 secondo in basso','Salita esplosiva'],c:'Il tempo lento sostituisce il peso',yt:'decline push up slow'}]},
+slowpush:{ic:'🐢',m:'Petto (tensione continua), tricipiti',saf:'Stessa regola dei push-up: profondità comoda per la spalla, gomiti a 45°.',v:[
+ {n:'Push-up lento 3-1-1',s:['Scendi in 3 secondi, pausa di 1 secondo in basso, sali in 1 secondo','Corpo in linea per tutto il tempo','Se troppo duro, sulle ginocchia con lo stesso ritmo'],c:'Conta ad alta voce: 3 giù, 1 fermo, 1 su',yt:'tempo push up 3-1-1'},
+ {n:'Push-up lento 4-2-1',s:['Discesa in 4 secondi, 2 di pausa in basso, salita in 1','Mai appoggiare il petto a terra',''],c:'La pausa in basso è dove il petto brucia',yt:'slow tempo push up'},
+ {n:'Push-up 1½ (doppio fondo)',s:['Scendi, risali a metà, riscendi, poi risali del tutto: 1 ripetizione','Ritmo controllato',''],c:'Poche ripetizioni, tutte perfette',yt:'1.5 rep push up'}]},
+tablext:{ic:'🪑',m:'Tricipiti',saf:'Gomiti che si piegano davanti a te, spalla stabile: è l’estensione a terra in piedi. Tavolo o piano ben fissato.',v:[
+ {n:'Estensione tricipiti al tavolo (in piedi)',s:['Mani sul bordo di un tavolo, larghezza spalle, corpo inclinato e rigido','Piega SOLO i gomiti portando la testa sotto il bordo','Riestendi le braccia senza muovere le spalle'],c:'Più i piedi sono lontani dal tavolo, più è duro',yt:'bodyweight triceps extension table'},
+ {n:'Estensione al tavolo, piedi lontani',s:['Stessa esecuzione con il corpo più inclinato','Discesa in 3 secondi','Estensione completa e pausa di 1 secondo'],c:'Gomiti stretti, non aprirli in fuori',yt:'table triceps extension'},
+ {n:'Estensione su superficie bassa (sedia)',s:['Mani sul bordo di una sedia stabile o di un letto basso','Movimento identico, molto più carico','Poche ripetizioni pulite'],c:'Se la spalla tira, torna al tavolo',yt:'bodyweight skull crusher chair'}]},
+selfcurl:{ic:'🤜',m:'Bicipiti (resistenza manuale)',saf:'Gomito fermo al fianco, la spalla non partecipa: identico al curl con kettlebell.',v:[
+ {n:'Curl a resistenza manuale',s:['Seduto o in piedi, gomito destro al fianco, mano sinistra sopra il polso destro','Piega il braccio destro verso la spalla mentre la sinistra FRENA con forza costante (3 secondi a salire)','Scendi in 3 secondi frenando ancora. Fai le ripetizioni con un braccio, poi con l’altro'],c:'Il segreto è frenare sul serio: deve costare quanto un curl con 12 kg',yt:'self resisted bicep curl'},
+ {n:'Curl a resistenza manuale + pausa',s:['Come livello 1 con 2 secondi di pausa a metà salita','Salita 3", pausa 2", discesa 3"','Fai le ripetizioni con un braccio, poi con l’altro'],c:'Alla pausa il bicipite deve tremare',yt:'self resisted curl slow'},
+ {n:'Curl con asciugamano (isometrico + eccentrico)',s:['Asciugamano sotto il piede, estremità nella mano, gomito al fianco','Tira verso l’alto contro la gamba che resiste, tieni 3 secondi in alto','Scendi lento mentre la gamba spinge. Fai le ripetizioni con un braccio, poi con l’altro'],c:'Regola tu la resistenza con la gamba: più spingi, più cresce',yt:'towel bicep curl'}]},
+tablerow:{ic:'🪢',m:'Dorsali, bicipiti',saf:'Tirata orizzontale: la più sicura per la tua spalla. Gomiti verso i fianchi, mai aperti. Serve un tavolo robusto.',v:[
+ {n:'Rematore sotto il tavolo (ginocchia piegate)',s:['Sdraiato sotto un tavolo solido, afferra il bordo, ginocchia piegate e piedi a terra','Tira il petto verso il bordo stringendo le scapole','Scendi lento a braccia tese'],c:'Il corpo resta una tavola dal ginocchio alla testa',yt:'inverted row table beginner'},
+ {n:'Rematore sotto il tavolo (gambe tese)',s:['Come livello 1 ma gambe tese, talloni a terra','Pausa di 1 secondo in alto','Discesa in 3 secondi'],c:'Più sei orizzontale, più è duro',yt:'inverted row table'},
+ {n:'Rematore sotto il tavolo, piedi rialzati',s:['Piedi su una sedia, corpo orizzontale','Tirata piena, pausa 2 secondi in alto',''],c:'Se il tavolo si muove, fermati: sicurezza prima',yt:'inverted row feet elevated'}]},
+bwsquat:{ic:'🦵',m:'Quadricipiti, glutei (corpo libero)',saf:'Nessun carico sulla spalla.',v:[
+ {n:'Squat a corpo libero',s:['Piedi larghezza spalle, braccia avanti','Scendi spingendo i fianchi indietro, cosce almeno parallele','Risali spingendo con tutto il piede'],c:'Petto alto, talloni a terra',yt:'bodyweight squat tutorial'},
+ {n:'Squat lento + pausa',s:['Discesa in 3 secondi, 2 secondi di pausa in basso','Risalita normale',''],c:'La pausa elimina il rimbalzo: lavoro vero',yt:'pause squat bodyweight'},
+ {n:'Pistol assistito (mano al muro/stipite)',s:['In piedi su una gamba, mano leggera su stipite o muro','Scendi il più possibile controllando, l’altra gamba avanti','Risali aiutandoti il meno possibile. Fai le ripetizioni con una gamba, poi con l’altra'],c:'Il ginocchio segue la punta del piede',yt:'assisted pistol squat'}]},
+bwrdl:{ic:'🦩',m:'Femorali, glutei (una gamba)',saf:'Braccia rilassate: la spalla non lavora.',v:[
+ {n:'Stacco rumeno a una gamba (assistito)',s:['In piedi su una gamba, mano che sfiora il muro','Fianchi indietro, busto avanti, gamba libera che si allunga dietro','Risali col gluteo. Fai le ripetizioni con una gamba, poi con l’altra'],c:'Fianchi paralleli al pavimento',yt:'single leg deadlift bodyweight'},
+ {n:'Stacco rumeno a una gamba libero',s:['Senza appoggio, braccia avanti per equilibrio','Discesa in 3 secondi','Fai le ripetizioni con una gamba, poi con l’altra'],c:'Se oscilli, fissa un punto a terra davanti a te',yt:'single leg romanian deadlift bodyweight'},
+ {n:'Stacco a una gamba + pausa',s:['Come livello 2 con 2 secondi di pausa in basso','Risalita lenta','Fai le ripetizioni con una gamba, poi con l’altra'],c:'Il femorale deve tirare, non la schiena',yt:'single leg rdl pause'}]},
+squatjump:{ic:'🚀',m:'Gambe, glutei, fiato (potenza)',saf:'Nessun carico sulla spalla. Atterraggio morbido, ginocchia che assorbono.',v:[
+ {n:'Squat jump basso',s:['Squat a corpo libero, salto piccolo e controllato','Atterra morbido sull’avampiede e riparti','Ritmo costante'],c:'Silenzioso = giusto',yt:'jump squat beginner'},
+ {n:'Squat jump',s:['Scendi al parallelo ed esplodi verso l’alto','Atterra piegando le ginocchia e riparti subito',''],c:'Braccia che accompagnano il salto',yt:'jump squat tutorial'},
+ {n:'Squat jump + pausa',s:['Pausa di 2 secondi in basso, poi salto massimo','Atterraggio controllato, riposiziona i piedi',''],c:'La pausa toglie l’elastico: pura potenza',yt:'pause jump squat'}]}
 };
 
 /* verified YouTube video per exercise VARIANT [level1,level2,level3] */
@@ -682,7 +761,15 @@ swing:['5qhy8-pX8Yw','WWRTt4t2E_o','rb7wyQCe3-Q'],
 mtclimb:['-tfnUAl4oQA','uymhliNG0I4','nOl72cp3z1Y'],
 lowerabs:['XcYtWYMz39w','NcjNbLiTUlE','0tzBVqiDwSs'],
 kbcrunch:['EDTlff62vP4','uZHD5JELZ4Q','wXZxPX4Cv04'],
-squeeze:['nWuSvBnkcDw','5Ud-xgCuwEY','4znfY6NkWD0']};
+squeeze:['nWuSvBnkcDw','5Ud-xgCuwEY','4znfY6NkWD0'],
+pushup2:['jmp6RQNviI0','xoX1nSewXgA','MjnJWRwbSYE'],
+slowpush:['9fUqWtPPWZY','UYLm4HpSarA','6ouq4GmdhNs'],
+tablext:['C0PNI3rxxQg','S0c-E9AgAKU','I7AT4ZMOTrc'],
+selfcurl:['3LixnZr0YKo','PwBOPb13BfE','astPQqDb1s4'],
+tablerow:['k4F3ze51pt8','jjSaYXeKiNk','HkOnR8WpmBY'],
+bwsquat:['n_xLyzPEX7A','m0GcZ24pK6k','jUQzp0KWgQY'],
+bwrdl:['iRKxRm0zLgA','JQZqPsmeesc','gz9l8UA_KXs'],
+squatjump:['5xv0DKqe5XQ','h5TmdMMtIT4','36vnWAkL7ZQ']};
 
 /* ============ REP TARGETS (v22) ============
    How much to do inside each work interval. t:'rep' = count reps, stop 1-2 short of failure; t:'iso' = hold for the whole interval.
@@ -712,8 +799,20 @@ const REP={
  swing:{t:'rep',kb:1,r6:[15,20],r12:[10,15]},
  mtclimb:{v:[{t:'iso'},{t:'rep',r:[20,30]},{t:'rep',r:[24,40]}]},
  kbcrunch:{v:[{t:'rep',kb:1,r6:[15,20],r12:[12,15]},{t:'rep',kb:1,r6:[12,15],r12:[10,15]},{t:'rep',kb:1,r6:[10,15],r12:[8,12]}]},
- squeeze:{v:[{t:'rep',kb:1,r6:[12,15],r12:[8,12]},{t:'rep',kb:1,r6:[10,15],r12:[6,10]},{t:'rep',kb:1,r6:[8,12],r12:[5,8]}]}
+ squeeze:{v:[{t:'rep',kb:1,r6:[12,15],r12:[8,12]},{t:'rep',kb:1,r6:[10,15],r12:[6,10]},{t:'rep',kb:1,r6:[8,12],r12:[5,8]}]},
+ pushup2:{v:[{t:'rep',r:[8,15]},{t:'rep',r:[6,12]},{t:'rep',r:[5,10]}]},
+ slowpush:{v:[{t:'rep',r:[6,12]},{t:'rep',r:[5,10]},{t:'rep',r:[4,8]}]},
+ tablext:{v:[{t:'rep',r:[8,15]},{t:'rep',r:[6,12]},{t:'rep',r:[5,10]}]},
+ selfcurl:{t:'rep',r:[8,12],side:1},
+ tablerow:{v:[{t:'rep',r:[8,15]},{t:'rep',r:[6,12]},{t:'rep',r:[5,10]}]},
+ bwsquat:{v:[{t:'rep',r:[15,25]},{t:'rep',r:[10,15]},{t:'rep',r:[5,10],side:1}]},
+ bwrdl:{v:[{t:'rep',r:[8,12],side:1},{t:'rep',r:[8,12],side:1},{t:'rep',r:[6,10],side:1}]},
+ squatjump:{v:[{t:'rep',r:[10,15]},{t:'rep',r:[8,15]},{t:'rep',r:[6,12]}]}
 };
+/* v35: bodyweight substitutes (no equipment at all) — same day, same muscles */
+const BW={floorpress:'pushup2',squeeze:'slowpush',triext:'tablext',curl:'selfcurl',row:'tablerow',deadlift:'bwrdl',rdl:'bwrdl',gobsquat:'bwsquat',swing:'squatjump',kbcrunch:'plankcore',carry:'birddog'};
+function isBW(ds){return !!(S.travel||(S.bwd&&S.bwd[ds]));}
+function bwEx(list,ds){if(!isBW(ds))return list;const out=[];list.forEach(id=>{let n=BW[id]||id;if(out.indexOf(n)>-1){const alt={pushup2:'slowpush',slowpush:'pushup',plankcore:'hollow',hollow:'lowerabs',birddog:'sideplank',bwrdl:'bridge',selfcurl:'tablerow'};n=alt[n]&&out.indexOf(alt[n])<0?alt[n]:n;}out.push(n);});return out;}
 /* which kettlebell an exercise uses right now (6 or 12). 12 only if the user has it; a few start on the 6 for shoulder safety */
 const KB12_LATER=['triext','carry'];
 /* exercises whose level-1 variant is two-handed: the 6 kg one-arm -> 12 kg step goes through it */
@@ -777,10 +876,12 @@ function schedFor(ds){
 /* core & leg exercises start one level up when the boost is on (default on).
    swing excluded on purpose: its levels are a shoulder-safety progression, not leg strength */
 const CORE=['plankcore','hollow','sideplank','birddog','lowerabs','mtclimb','kbcrunch'];
+const BWSET=['pushup2','slowpush','tablext','selfcurl','tablerow','bwsquat','bwrdl','squatjump'];
 const LEGS=['gobsquat','lunge','rdl','bridge','calf','deadlift','swing']; /* swing L2 = swing basso (ombelico): the hinge drill is only for day one */
-const UPPER=['pushup','floorpress','triext','row','curl','squeeze'];
+const UPPER=['pushup','floorpress','triext','row','curl','squeeze','pushup2','slowpush','tablext','selfcurl','tablerow'];
 /* variant level = week level + group boost + per-exercise delta earned with the "rule of 15" (S.rp[id].lvd) */
-function lvFor(id,lv){const d=(S.rp&&S.rp[id]&&S.rp[id].lvd)||0;return Math.max(1,Math.min(3,lv+(((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1)||(S.upperUp!==0&&UPPER.indexOf(id)>-1))?1:0)+d));}
+const BW_LV={lunge:1,bridge:1,calf:1}; /* variants 2-3 of these use the kettlebell: in no-equipment mode stay on the bodyweight one */
+function lvFor(id,lv){if(window.__bwNow&&BW_LV[id])return BW_LV[id];const d=(S.rp&&S.rp[id]&&S.rp[id].lvd)||0;return Math.max(1,Math.min(3,lv+(((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1)||(S.upperUp!==0&&UPPER.indexOf(id)>-1))?1:0)+d));}
 
 const BADGES=[
  {id:'s3',ic:'🔥',n:'Scintilla',d:'3 giorni di fila',f:s=>s.best>=3},
@@ -795,7 +896,11 @@ const BADGES=[
  {id:'t50',ic:'🥈',n:'Mezzo centinaio',d:'50 allenamenti totali',f:s=>s.tot>=50},
  {id:'t100',ic:'🥇',n:'Centurione',d:'100 allenamenti totali',f:s=>s.tot>=100},
  {id:'t250',ic:'🏛️',n:'Spartano',d:'250 allenamenti totali',f:s=>s.tot>=250}];
-const LVLS=['Novizio','Costante','Determinato','Disciplinato','Guerriero','Atleta','Macchina','Titano','Leggenda'];
+/* v35: 15 tiers, thresholds tuned on a year of training (~60 XP/day). Stage drives the avatar look. */
+const TIERS=[{n:'Recluta',xp:0,st:0},{n:'Allievo',xp:250,st:0},{n:'Guerriero',xp:600,st:1},{n:'Guerriero d’Élite',xp:1100,st:1},{n:'Risveglio',xp:1800,st:1},
+ {n:'Aura Dorata',xp:2700,st:2},{n:'Aura Dorata II',xp:3800,st:2},{n:'Aura Dorata III',xp:5100,st:2},{n:'Oltre il Limite',xp:6600,st:3},{n:'Forza Calma',xp:8300,st:3},
+ {n:'Aura d’Argento',xp:10300,st:4},{n:'Istinto',xp:12600,st:4},{n:'Leggenda',xp:15200,st:4},{n:'Mito',xp:18000,st:5},{n:'Eterno',xp:21000,st:5}];
+const LVLS=TIERS.map(t=>t.n);
 
 /* ============ STATE ============ */
 const DEF={start:'2026-08-24',log:{},frozen:{},fz:{},xp:0,best:0,shift:null,coreUp:1,legsUp:1,upperUp:1,hardMode:1,ovr:{},kb12:0,kbx:{},rp:{},snd:0};
@@ -872,7 +977,7 @@ function phaseOf(w){const i=Math.floor((w-1)/4)%4;return PHASES[Math.min(3,i+(S.
 function levelOf(w){return Math.min(3,Math.floor((w-1)/16)+1);}
 
 /* xp */
-function lvlIdx(){return Math.min(LVLS.length-1,Math.floor(S.xp/600));}
+function lvlIdx(){let i=0;for(let k=0;k<TIERS.length;k++)if(S.xp>=TIERS[k].xp)i=k;return i;}
 
 /* ============ RENDER ============ */
 function show(id){
@@ -912,23 +1017,27 @@ function render(){
   document.getElementById('stBest').textContent=S.best;
   document.getElementById('stPct').textContent=Math.min(100,Math.round(Object.keys(S.log).length/365*100))+'%';
   /* xp */
-  const li=lvlIdx();
-  document.getElementById('lvlName').textContent=LVLS[li];
-  document.getElementById('lvlTag').textContent='Lv '+(li+1);
-  const into=S.xp-li*600;
-  document.getElementById('xpFill').style.width=Math.min(100,into/6)+'%';
-  document.getElementById('xpTxt').textContent=li>=LVLS.length-1?S.xp+' XP — livello massimo!':into+' / 600 XP per diventare '+LVLS[li+1];
+  const li=lvlIdx(),T0=TIERS[li],T1=TIERS[li+1];
+  document.getElementById('lvlName').textContent=T0.n;
+  document.getElementById('lvlTag').textContent='Lv '+(li+1)+'/'+TIERS.length;
+  const into=S.xp-T0.xp,span=T1?T1.xp-T0.xp:1;
+  document.getElementById('xpFill').style.width=(T1?Math.min(100,into/span*100):100)+'%';
+  document.getElementById('xpTxt').textContent=T1?(T1.xp-S.xp)+' XP per diventare '+T1.n+' · '+S.xp+' XP totali':S.xp+' XP — livello massimo!';
+  try{document.getElementById('avatar').innerHTML=avatarSVG(T0.st);
+    document.getElementById('tierList').innerHTML=TIERS.map((t,i)=>'<div class="trow'+(i===li?' cur':i<li?' done':'')+'"><span class="tn">'+(i+1)+'</span><span class="grow">'+t.n+'</span><span class="mut">'+t.xp+' XP</span></div>').join('');}catch(e){}
   /* today card */
   const w=weekNum(),ph=phaseOf(w),lv=levelOf(w),sc=schedFor(today()),isRec=!sc.ex;
   document.getElementById('weekTag').textContent='Settimana '+Math.min(w,52)+'/52';
   document.getElementById('todayTitle').textContent=sc.ic+' '+sc.t;
-  document.getElementById('todaySub').innerHTML=isRec?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':sc.amrap?'AMRAP: un cronometro da 20’, quanti giri riesci? '+(S.amrapBest?'<b style="color:var(--acc2)">Da battere: '+S.amrapBest+' giri</b>':'<b style="color:var(--acc2)">Prima volta: fai il tuo record</b>'):'4 giri × 5 esercizi <b style="color:var(--acc2)">a ripetizioni</b> · '+(S.kb12?'6 + 12 kg':'6 kg')+' · fermati a 1–2 dal limite';
+  document.getElementById('todaySub').innerHTML=isRec?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':sc.amrap?'AMRAP: un cronometro da 20’, quanti giri riesci? '+(S.amrapBest?'<b style="color:var(--acc2)">Da battere: '+S.amrapBest+' giri</b>':'<b style="color:var(--acc2)">Prima volta: fai il tuo record</b>'):'4 giri × 5 esercizi <b style="color:var(--acc2)">a ripetizioni</b> · '+(isBW(today())?'🎒 corpo libero':(S.kb12?'6 + 12 kg':'6 kg'))+' · fermati a 1–2 dal limite';
   document.getElementById('todayDoneBox').innerHTML=doneToday?'<div class="cue" style="margin-top:10px">✅ Completato oggi! Puoi rifarlo per piacere, ma lo streak è già al sicuro.</div><button class="btn sec small" style="margin-top:10px" onclick="pickPhoto()">📸 Foto progresso di oggi</button>':'';
   document.getElementById('goBtn').textContent=doneToday?'✅ FATTO OGGI · RIFAI':isRec?'🧘 START RECUPERO (20’)':sc.amrap?'⚡ START TEST AMRAP':'▶ START ALLENAMENTO';
   /* weekly ring: training days done this week (Mon–Sun), recovery day excluded from the target */
   try{const mon=addD(t,-((new Date(t+'T12:00:00').getDay()+6)%7));let done=0,goal=0;for(let i=0;i<7;i++){const ds=addD(mon,i);const r=isRecDay(ds);if(!r)goal++;if(S.log[ds]&&!r)done++;}
     const pct=goal?Math.min(1,done/goal):0;document.getElementById('ringFg').style.strokeDashoffset=(169.6*(1-pct)).toFixed(1);document.getElementById('ringN').textContent=done+'/'+goal;document.getElementById('wkRing').classList.toggle('full',done>=goal&&goal>0);}catch(e){}
   document.getElementById('abStreak').textContent='🔥 '+st;
+  /* v35: run cue */
+  try{const rr=(S.run||{})[t];document.getElementById('runCue').innerHTML='<button class="chk'+(rr?' on':'')+'" style="width:100%;justify-content:center" onclick="openRun()">'+(rr?'🏃 Oggi: '+rr.min+'’'+(rr.km?' · '+rr.km+' km':'')+' · +'+((rr.xp||0)+(rr.bonus||0))+' XP':'🏃 Ho corso oggi')+'</button>';}catch(e){}
   /* v33: body cues */
   try{const bb=S.body||{};const cue=document.getElementById('bodyCue');if(cue){const needW=bb.h&&!(bb.w||[]).some(x=>x[0]===t);const lw=(bb.wa||[]).slice(-1)[0];const needV=bb.h&&(!lw||Math.round((new Date(t+'T12:00:00')-new Date(lw[0]+'T12:00:00'))/864e5)>=7);cue.innerHTML=!bb.h?'<button class="btn sec small" onclick="show(\'body\')">🧍 Imposta altezza e peso →</button>':(needW||needV)?'<button class="btn sec small" onclick="show(\'body\')">'+(needW?'⚖️ Segna il peso di oggi':'📏 Misura la vita (settimanale)')+' →</button>':'';}}catch(e){}
   const nsc=schedFor(addD(today(),1));
@@ -950,8 +1059,11 @@ function render(){
 let seq=[],seqMeta={};
 function openWorkout(ds){
   ds=ds||today();window.__wds=ds;
-  const w=Math.max(1,Math.floor(dsDiff(ds)/7)+1),ph=phaseOf(w),lv=levelOf(w),sc=schedFor(ds),isRec=!sc.ex;
-  document.getElementById('wTitle').textContent=sc.ic+' '+sc.t;
+  const w=Math.max(1,Math.floor(dsDiff(ds)/7)+1),ph=phaseOf(w),lv=levelOf(w);let sc=schedFor(ds);const isRec=!sc.ex;
+  /* v35: no-equipment mode swaps every kettlebell exercise for a bodyweight equivalent */
+  const bw=!isRec&&isBW(ds);window.__bwNow=bw;
+  if(bw){const ex=bwEx(sc.ex,ds);let am=null;if(sc.amrap){am={};sc.ex.forEach((id,i)=>{am[ex[i]]=sc.amrap[id];});}sc=Object.assign({},sc,{ex:ex,amrap:am});}
+  document.getElementById('wTitle').textContent=sc.ic+' '+sc.t+(bw?' 🎒':'');
   const list=document.getElementById('wList');
   if(isRec){
     document.getElementById('wSub').textContent='2 giri × 8 posizioni da 75". Respira, allunga, non forzare mai.';
@@ -964,10 +1076,10 @@ function openWorkout(ds){
     const isA=!!sc.amrap,best=S.amrapBest||0;
     if(isA){
       document.getElementById('wSub').textContent='AMRAP: un solo cronometro da 20 minuti. Completa il giro (5 esercizi, ripetizioni fisse), tocca +1 GIRO e riparti. Quanti giri riesci a fare? Tecnica sporca = rallenta: qui il record vale meno della spalla.';
-      document.getElementById('wTags').innerHTML='<span class="tag hot">AMRAP 20’</span> <span class="tag">'+(S.kb12?'12 kg':'6 kg')+'</span> <span class="tag">'+(best?'Da battere: '+best+' giri':'Prima volta: fai il tuo record')+'</span>';
+      document.getElementById('wTags').innerHTML='<span class="tag hot">AMRAP 20’</span> <span class="tag">'+(bw?'🎒 corpo libero':(S.kb12?'12 kg':'6 kg'))+'</span> <span class="tag">'+(best?'Da battere: '+best+' giri':'Prima volta: fai il tuo record')+'</span>';
     }else{
       document.getElementById('wSub').textContent='4 giri × 5 esercizi. Sugli esercizi a ripetizioni non c’è cronometro: fai le tue fermandoti a 1–2 dal limite e tocchi FATTO; poi '+RR+'" di recupero. Le tenute (plank, hollow…) restano a tempo. 3’ riscaldamento + 2’ defaticamento.';
-      document.getElementById('wTags').innerHTML='<span class="tag hot">A ripetizioni</span> <span class="tag">'+(S.kb12?'6 + 12 kg':'solo 6 kg')+'</span> <span class="tag">~25’ totali</span>';
+      document.getElementById('wTags').innerHTML='<span class="tag hot">A ripetizioni</span> <span class="tag">'+(bw?'🎒 corpo libero':(S.kb12?'6 + 12 kg':'solo 6 kg'))+'</span> <span class="tag">~25’ totali</span>';
     }
     list.innerHTML=sc.ex.map((id,ix)=>{
       const L=lvFor(id,lv),e=EX[id],v=e.v[L-1],sp=isA?{t:'rep',lo:sc.amrap[id],hi:sc.amrap[id],side:!!(REP[id].side||(REP[id].v&&REP[id].v[L-1].side)),kb:kbFor(id)}:specFor(id,L),lr=isA?null:lastRep(id,L);
@@ -1025,8 +1137,71 @@ function openWorkout(ds){
   pn.style.display=isToday?'none':'block';
   pn.textContent='👀 Anteprima · settimana '+Math.min(w,52)+', livello '+lv+'. Potrai avviarlo solo quel giorno. Sfoglia con ‹ ›';
   try{renderMusic();}catch(e){}
+  const bb=document.getElementById('bwBtn');if(bb){const on=isBW(ds);bb.textContent='🎒 Senza attrezzi: '+(on?'ON':'OFF');bb.classList.toggle('on',on);bb.style.display=isRec?'none':'';document.getElementById('bwHint').style.display=isRec?'none':'';if(S.travel){bb.textContent='🎒 Modalità viaggio attiva (Impostazioni)';}}
   show('work');
 }
+/* ============ AVATAR (v35): an original little warrior that evolves with the tier ============ */
+function avatarSVG(st){
+  st=Math.max(0,Math.min(5,st||0));
+  /* palette per stage: 0-1 dark hair no/blue aura · 2-3 gold · 4-5 silver/white */
+  const P=[
+    {hair:'#2a2f3a',hi:'#4a5265',aura:null,eye:'#2b2f3a',shirt:'#3b4a63',belt:'#4da3ff'},
+    {hair:'#2a2f3a',hi:'#4a5265',aura:'#4da3ff',eye:'#2b2f3a',shirt:'#3b4a63',belt:'#4da3ff'},
+    {hair:'#f7c437',hi:'#ffe98a',aura:'#ffb13b',eye:'#2f9e6a',shirt:'#c9372c',belt:'#f7c437'},
+    {hair:'#ffd54a',hi:'#fff4b8',aura:'#ffd54a',eye:'#2f9e6a',shirt:'#c9372c',belt:'#ffd54a'},
+    {hair:'#dfe6f5',hi:'#ffffff',aura:'#b9c8ff',eye:'#6cc8ff',shirt:'#22304a',belt:'#dfe6f5'},
+    {hair:'#f4f6ff',hi:'#ffffff',aura:'#ffffff',eye:'#8fe0ff',shirt:'#22304a',belt:'#ffffff'}][st];
+  const skin='#f6d3b3',skinSh='#e4b591',ink='#1a1d26',u='u'+st;
+  /* hair: a cap of layered spikes; taller/sharper with the stage */
+  const H=[10,12,20,27,32,36][st],N=[4,5,6,7,8,8][st];
+  const L=40,R=80,w=(R-L)/N;let spk='';
+  for(let i=0;i<N;i++){const c=i-(N-1)/2,a=L+i*w,b=a+w;const lean=c*(st>=2?3.2:1.2);const hh=H+(Math.abs(c)<1?6:0)-Math.abs(c)*(st>=2?1.4:2.2);spk+=' Q'+((a+b)/2+lean-w*0.15)+' '+(46-hh*0.55)+' '+((a+b)/2+lean)+' '+(46-hh)+' Q'+((a+b)/2+lean+w*0.35)+' '+(46-hh*0.45)+' '+b+' 46';}
+  const hairPath='M'+L+' 46'+spk+' L'+R+' 52 Q60 44 '+L+' 52 Z';
+  const bangs='M40 50 Q46 40 54 48 Q58 42 64 48 Q70 40 80 50 Q76 56 68 52 Q62 58 56 52 Q48 58 40 50 Z';
+  /* aura: soft blurred glow + flame tongues (stage>=2), animated by CSS */
+  let aura='';
+  if(P.aura){
+    aura+='<defs><radialGradient id="'+u+'g" cx="50%" cy="60%" r="50%"><stop offset="0" stop-color="'+P.aura+'" stop-opacity=".95"/><stop offset=".6" stop-color="'+P.aura+'" stop-opacity=".35"/><stop offset="1" stop-color="'+P.aura+'" stop-opacity="0"/></radialGradient><filter id="'+u+'b" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter></defs>';
+    aura+='<ellipse class="aura" cx="60" cy="78" rx="52" ry="62" fill="url(#'+u+'g)"/>';
+    if(st>=2){aura+='<g class="aura2" filter="url(#'+u+'b)" opacity=".75"><path d="M60 8 C66 22 80 18 82 34 C92 44 84 58 96 66 C102 82 96 104 84 116 C74 128 46 128 36 116 C24 104 18 82 24 66 C36 58 28 44 38 34 C40 18 54 22 60 8 Z" fill="'+P.aura+'"/></g>';}
+    if(st>=3){aura+='<g fill="'+(st>=4?'#fff':'#fff1a8')+'"><circle class="spark" cx="20" cy="90" r="2"/><circle class="spark" cx="100" cy="80" r="1.7"/><circle class="spark" cx="34" cy="118" r="1.5"/><circle class="spark" cx="92" cy="112" r="1.4"/></g>';}
+  }
+  const brow=st>=1?'<path d="M47 54 L55 56.5" stroke="'+ink+'" stroke-width="2.2" stroke-linecap="round"/><path d="M73 54 L65 56.5" stroke="'+ink+'" stroke-width="2.2" stroke-linecap="round"/>':'<path d="M47 55 L55 55.5" stroke="'+ink+'" stroke-width="2" stroke-linecap="round"/><path d="M73 55 L65 55.5" stroke="'+ink+'" stroke-width="2" stroke-linecap="round"/>';
+  const mouth=st>=2?'<path d="M55 71 Q60 74 65 71" stroke="'+ink+'" stroke-width="1.6" fill="none" stroke-linecap="round"/>':'<path d="M56 71 Q60 73.5 64 71" stroke="'+ink+'" stroke-width="1.5" fill="none" stroke-linecap="round"/>';
+  return '<svg viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" aria-label="Il tuo guerriero">'+aura+
+   /* legs & boots */ '<path d="M50 104 L48 126 M70 104 L72 126" stroke="#2a3446" stroke-width="10" stroke-linecap="round"/><path d="M42 128 L54 128 M66 128 L78 128" stroke="'+ink+'" stroke-width="7" stroke-linecap="round"/>'+
+   /* torso */ '<path d="M44 84 Q44 78 50 78 L70 78 Q76 78 76 84 L74 108 Q60 112 46 108 Z" fill="'+P.shirt+'" stroke="'+ink+'" stroke-width="2"/>'+
+   /* belt */ '<rect x="45" y="100" width="30" height="6" rx="3" fill="'+P.belt+'" stroke="'+ink+'" stroke-width="1.5"/>'+
+   /* arms: fists on hips, elbows out (ready) */ '<path d="M46 84 L30 98 L40 102" stroke="'+skin+'" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M74 84 L90 98 L80 102" stroke="'+skin+'" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M46 84 L30 98 L40 102 M74 84 L90 98 L80 102" stroke="'+ink+'" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".35"/>'+
+   /* neck */ '<rect x="55" y="72" width="10" height="9" fill="'+skinSh+'"/>'+
+   /* head */ '<circle cx="60" cy="58" r="22" fill="'+skin+'" stroke="'+ink+'" stroke-width="2"/>'+
+   /* ears */ '<circle cx="38.5" cy="60" r="3.5" fill="'+skin+'" stroke="'+ink+'" stroke-width="1.5"/><circle cx="81.5" cy="60" r="3.5" fill="'+skin+'" stroke="'+ink+'" stroke-width="1.5"/>'+
+   /* eyes */ '<ellipse cx="51" cy="62" rx="4.2" ry="5.2" fill="#fff"/><ellipse cx="69" cy="62" rx="4.2" ry="5.2" fill="#fff"/><ellipse cx="51.5" cy="63" rx="2.6" ry="3.6" fill="'+P.eye+'"/><ellipse cx="69.5" cy="63" rx="2.6" ry="3.6" fill="'+P.eye+'"/><circle cx="52.5" cy="61.5" r="1" fill="#fff"/><circle cx="70.5" cy="61.5" r="1" fill="#fff"/>'+brow+mouth+
+   /* cheeks */ '<circle cx="45" cy="67" r="2.5" fill="#f2a08a" opacity=".35"/><circle cx="75" cy="67" r="2.5" fill="#f2a08a" opacity=".35"/>'+
+   /* hair: back cap + spikes + bangs + highlight */ '<g class="hairg"><path d="'+hairPath+'" fill="'+P.hair+'" stroke="'+ink+'" stroke-width="2" stroke-linejoin="round"/><path d="'+bangs+'" fill="'+P.hair+'" stroke="'+ink+'" stroke-width="1.8" stroke-linejoin="round"/><path d="M47 48.5 Q52 44.5 57 47.5" stroke="'+P.hi+'" stroke-width="2" fill="none" stroke-linecap="round" opacity=".8"/></g>'+
+   '</svg>';
+}
+
+/* ============ RUN LOG (v35): extra XP + x1.5 multiplier on the day's workout ============ */
+function runXP(min){return Math.min(40,Math.max(0,Math.round(min)));}
+function openRun(){const t=today(),r=(S.run||{})[t];document.getElementById('runMin').value=r?r.min:30;document.getElementById('runKm').value=r&&r.km?r.km:'';document.getElementById('runsheet').classList.add('on');}
+function closeRun(){document.getElementById('runsheet').classList.remove('on');}
+function runAdj(d){const el=document.getElementById('runMin');el.value=Math.max(5,Math.min(240,(parseInt(el.value)||0)+d));}
+function saveRunLog(){
+  const min=parseInt(document.getElementById('runMin').value),km=parseFloat(document.getElementById('runKm').value);
+  if(!(min>=5)){toast('Almeno 5 minuti.');return;}
+  const t=today();S.run=S.run||{};const prev=S.run[t];
+  /* undo previous XP for today, then apply the new one (idempotent) */
+  if(prev)S.xp-=(prev.xp||0)+(prev.bonus||0);
+  const xp=runXP(min);let bonus=0;
+  if(S.log[t]){const base=S.log[t].xp||50;bonus=Math.round(base*0.5);}
+  S.run[t]={min:min,km:(km>0?Math.round(km*10)/10:null),xp:xp,bonus:bonus};
+  S.xp+=xp+bonus;
+  save();closeRun();render();
+  toast('🏃 '+min+'’ registrati: +'+xp+' XP'+(bonus?' · +'+bonus+' XP bonus allenamento ×1,5':'')+'.',5000);
+}
+function delRun(){const t=today();const prev=(S.run||{})[t];if(!prev)return;S.xp-=(prev.xp||0)+(prev.bonus||0);delete S.run[t];save();closeRun();render();toast('Corsa rimossa.');}
+
 /* ============ MUSIC (Spotify quick launch, v32) ============ */
 const MUSIC=[
  {n:'Beast Mode',d:'Spotify · hip-hop/trap ad alta energia',id:'37i9dQZF1DX76Wlfdnj7AP'},
@@ -1091,10 +1266,14 @@ function openSummary(){
   if(m.prs.length){h+='<div class="sect" style="margin-top:6px">🏅 Record personali di oggi</div>'+m.prs.map(p=>'<div class="prrow"><div class="dn"><b>'+EX[p.id].ic+' '+EX[p.id].v[p.L-1].n+'</b><span>prima: '+p.pb+'</span></div><span class="pr">'+p.n+' rip. · +'+(p.n-p.pb)+'</span></div>').join('');}
   else if(m.type==='w'&&!m.amrap&&m.tot)h+='<div class="mut" style="margin-top:8px;font-size:13px">Nessun record oggi: normale, i record arrivano a ondate. La costanza è il record vero.</div>';
   if(m.amrap&&m.rounds>0&&m.rounds>=m.best)h+='<div class="verd ok">🏆 Nuovo record AMRAP: '+m.rounds+' giri. Prossimo test tra 4 settimane.</div>';
+  if(window.__lvup){h+='<div class="verd info" style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:60px;height:68px">'+avatarSVG(window.__lvup.st)+'</div><div><b>Nuovo livello: '+window.__lvup.n+'</b><div class="mut" style="font-size:12px">Il tuo guerriero è cresciuto.</div></div></div>';window.__lvup=null;}
   document.getElementById('sumBody').innerHTML=h;
   document.getElementById('summary').classList.add('on');
 }
 function closeSummary(){document.getElementById('summary').classList.remove('on');window.__sum=null;}
+/* v35: no-equipment toggle for one day */
+function toggleBW(){const ds=window.__wds||today();if(S.travel){toast('Modalità viaggio attiva per tutti i giorni: la spegni in Impostazioni.');return;}S.bwd=S.bwd||{};if(S.bwd[ds])delete S.bwd[ds];else S.bwd[ds]=1;save();render();openWorkout(ds);toast(S.bwd[ds]?'🎒 Oggi a corpo libero.':'🏋️ Torni al kettlebell.');}
+function setTravel(v){S.travel=parseInt(v)?1:0;save();render();toast(S.travel?'🎒 Modalità viaggio: tutti gli allenamenti a corpo libero.':'🏋️ Modalità viaggio spenta.');}
 /* v34: one-tap start from Home */
 function homeStart(){openWorkout(today());if(today()<S.start){return;}setTimeout(()=>startTimer(),60);}
 /* manual kettlebell / variant change for one exercise (persisted like the rule-of-15 decisions) */
@@ -1230,7 +1409,9 @@ function finishT(){
     S.log[t]={t:seqMeta.type};if(seqMeta.amrap)S.log[t].rounds=rounds;
     st=calcStreak();
     gain=(isW?50:30)+Math.min(30,st);
-    S.xp+=gain;
+    S.log[t].xp=gain;
+    if((S.run||{})[t]){const b=Math.round(gain*0.5);S.run[t].bonus=(S.run[t].bonus||0)+b;gain+=b;} /* v35: run today -> x1.5 */
+    const li0=lvlIdx();S.xp+=gain;const li1=lvlIdx();window.__lvup=li1>li0?TIERS[li1]:null;
     if(st>S.best)S.best=st;
     save(); /* the day is counted NOW: the sheet below can never cost a streak */
   }
@@ -1494,7 +1675,7 @@ function renderProg(){
     const l=S.log[ds],fz=S.frozen[ds];
     const dim=ds>today()||ds<S.start;
     const rc=!l&&!fz&&!dim&&ds<today()&&isRecDay(ds);
-    html+='<i class="'+(fz?'fz':l?'d2':rc?'rc':'')+(ds===today()?' tdy':'')+'"'+(dim?' style="opacity:.15"':'')+' title="'+ds+(rc?' · riposo (streak salvo)':'')+'"></i>';
+    html+='<i class="'+(fz?'fz':l?'d2':rc?'rc':'')+(ds===today()?' tdy':'')+((S.run||{})[ds]?' rn':'')+'"'+(dim?' style="opacity:.15"':'')+' title="'+ds+(rc?' · riposo (streak salvo)':'')+'"></i>';
   }}
   document.getElementById('heat').innerHTML=html;
   /* freeze tag */
@@ -1540,6 +1721,8 @@ function renderSet(){
   if(document.getElementById('setUpper'))document.getElementById('setUpper').innerHTML='<option value="1"'+(uu===1?' selected':'')+'>🔥 +1 livello (partenza avanzata)</option><option value="0"'+(uu===0?' selected':'')+'>Normale (segue il piano)</option>';
   const k12=S.kb12?1:0;
   document.getElementById('setKb').innerHTML='<option value="0"'+(k12===0?' selected':'')+'>Solo 6 kg</option><option value="1"'+(k12===1?' selected':'')+'>6 kg + 12 kg</option>';
+  const tv=S.travel?1:0;
+  document.getElementById('setTravel').innerHTML='<option value="0"'+(tv===0?' selected':'')+'>🏋️ A casa (kettlebell)</option><option value="1"'+(tv===1?' selected':'')+'>🎒 In viaggio (corpo libero)</option>';
   const sn=S.snd?1:0;
   document.getElementById('setSnd').innerHTML='<option value="0"'+(sn===0?' selected':'')+'>🔇 Spenti (solo vibrazione)</option><option value="1"'+(sn===1?' selected':'')+'>🔔 Accesi</option>';
   const hm=S.hardMode!==0?1:0;
