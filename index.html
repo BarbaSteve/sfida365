@@ -268,6 +268,7 @@ summary .sub{display:block;font-size:12px;color:var(--mut);font-weight:600;margi
 .chk{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:46px;padding:0 12px;border-radius:12px;border:1px solid var(--line2);background:var(--card2);color:var(--txt);font-size:14px;font-weight:700;cursor:pointer}
 .chk.on{border-color:var(--ok);color:var(--ok);background:rgba(61,220,132,.1)}
 .chk.ez.on{border-color:var(--acc2);color:var(--acc2);background:var(--accSoft)}
+.chk.bad.on{border-color:var(--warn);color:var(--warn);background:rgba(255,207,63,.1)}
 .prop{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:10px}
 .prop b{display:block;font-size:15px}
 .prop .mut{margin:4px 0 10px;font-size:13px}
@@ -352,8 +353,12 @@ input.grow{min-width:0}
     <h2 style="margin:6px 0 4px">Com’è andata? 💪</h2>
     <div class="mut" style="font-size:14px;line-height:1.5;margin-bottom:6px">Quante ripetizioni hai fatto nell’<b>ultimo giro</b>? L’allenamento è già contato: questo serve solo a farti progredire.</div>
     <div id="doneRows"></div>
+    <div class="sect" style="margin-top:14px">Spalla e gomito oggi</div>
+    <div class="row" style="flex-wrap:wrap;gap:6px" id="shRow"></div>
+    <div class="row" style="flex-wrap:wrap;gap:6px;margin-top:6px" id="elRow"></div>
+    <div id="shWarn"></div>
     <div class="mut" style="font-size:12px;margin-top:8px">Verde = tetto della forchetta (si sale) · giallo = sotto il fondo.</div>
-    <button class="btn" style="margin-top:14px" onclick="doneSave()">Salva ripetizioni</button>
+    <button class="btn" id="doneBtn" style="margin-top:14px" onclick="doneSave()">Salva ripetizioni</button>
     <button class="lnk" style="width:100%" onclick="doneSkip()">Non ora</button>
   </div>
 </div>
@@ -499,14 +504,14 @@ input.grow{min-width:0}
   </div>
   <div id="startBar">
     <div class="row" style="margin-bottom:8px"><button class="btn sec small" style="flex:1" onclick="openMusic()">🎵 Musica</button><span class="mut" id="musicHint" style="font-size:12px;flex:2"></span></div>
-    <button class="btn" id="startBtn" onclick="startTimer()">▶ START — 20’ DI LAVORO</button>
+    <button class="btn" id="startBtn" onclick="startTimer()">▶ START</button>
     <div class="cue" id="previewNote" style="display:none;margin-top:8px"></div>
   </div>
 </div>
 
 <!-- ===================== TIMER ===================== -->
 <div id="tmr">
-  <div class="row"><button class="btn sec small" onclick="quitTimer()">✕ Esci</button><div class="grow"></div><span class="tag" id="tProg"></span><span class="tag hot" id="tRemain"></span></div>
+  <div class="row"><button class="btn sec small" onclick="quitTimer()">✕ Esci</button><button class="btn sec small" onclick="shStop()" aria-label="Mi fermo per la spalla">🩹 Spalla</button><div class="grow"></div><span class="tag" id="tProg"></span><span class="tag hot" id="tRemain"></span></div>
   <div class="tprog"><i id="tTotal" style="width:0%"></i></div>
   <div class="grow" style="display:flex;flex-direction:column;justify-content:center" id="tBody" onclick="if(seq[ti]&&seq[ti].open&&!event.target.closest('iframe,a,button'))roundBtn()">
     <div class="tphase" id="tPhase">LAVORO</div>
@@ -537,18 +542,22 @@ input.grow{min-width:0}
     <details>
       <summary>Come progredisce il piano</summary>
       <div class="mut" style="font-size:14px;line-height:1.55">
-        4 giri da 5 esercizi, circa 20 minuti di lavoro più riscaldamento (3') e defaticamento (2').<br><br>
-        <b style="color:var(--acc2)">Ripetizioni, non tempo.</b> Ogni esercizio ha una forchetta (es. 8–15): fai le ripetizioni senza cronometro, fermandoti quando te ne restano 1–2, tocchi FATTO e riposi 15". Le isometriche (plank, hollow, side plank, bottoms-up) restano a tempo e si tengono fino al bip.<br><br>
-        <b style="color:var(--ok)">Regola del 15.</b> A fine allenamento segni le ripetizioni dell’ultimo giro. Se arrivi al tetto della forchetta, l’app ti propone di salire: variante più dura, oppure dal 6 al 12 kg, ripartendo dal fondo della forchetta. Se non arrivi al fondo, ti propone di scendere. Decidi sempre tu.<br><br>
-        <b style="color:var(--blu)">Core & Fiato, test AMRAP ogni 4 settimane.</b> Il giorno Core & Fiato è quello dell’addome (crunch con kettlebell, addome basso, hollow, side plank, mountain climber). Una domenica su quattro diventa il test: un solo cronometro da 20 minuti e un giro fisso di 5 esercizi, quanti giri riesci? Il record resta in Progressi e al test successivo lo batti. Se la tecnica si sporca, rallenta.<br><br>
-        <b>Due kettlebell, ruoli chiari.</b> Il 12 fa i movimenti grandi (swing, squat, stacchi, rematore, floor press, curl); il 6 fa spalle e braccia piccole (estensioni, bottoms-up) e resta il ripiego quando il 12 è troppo. Le extrarotazioni restano sempre leggere: lì decide la spalla.
+        4 giri da 5 esercizi, circa 28–30 minuti con riscaldamento (3') e defaticamento (2'): da ora l'app misura la durata.<br><br>
+        <b style="color:var(--acc2)">Petto al centro, spalle protette.</b> Petto lunedì, mercoledì e venerdì, 8 serie per volta, mai due giorni di spinta di fila; tra le due spinte c'è sempre il rematore. Martedì, giovedì e sabato lavorano cuffia, scapole e braccia. Ogni riscaldamento ha le isometrie spalla al muro.<br><br>
+        <b style="color:var(--ok)">Ripetizioni e regola del 15.</b> Ogni esercizio ha una forchetta: ti fermi a 1–2 dal limite (2–3 sugli esercizi di stabilità), tocchi FATTO e riposi 15". A fine allenamento segni le ripetizioni dell'ultimo giro: al tetto della forchetta l'app propone di salire, sotto il fondo di scendere. Decidi sempre tu. Sugli esercizi di spalla le salite aspettano 14 giorni senza fastidi.<br><br>
+        <b style="color:var(--blu)">Spalla e gomito.</b> A fine allenamento segni come stanno. Se la spalla scivola durante l'allenamento, tocca 🩹 Spalla e fermati: la giornata conta comunque.<br><br>
+        <b>Due kettlebell, ruoli chiari.</b> Il 12 fa i movimenti grandi (rematore, floor press, squeeze, curl, squat, affondi, stacco); il bottoms-up resta sempre sul 6. Extrarotazioni solo con bottiglie d'acqua. Il test AMRAP è sospeso: al suo posto arriva il test del mese.
       </div>
     </details>
     <details>
       <summary>⚠️ Regole per le tue spalle</summary>
       <div class="saf" style="margin-top:0">
-        Niente spinte sopra la testa, niente snatch, niente dip. Mai portare il braccio in posizioni estreme sotto carico. Se senti la spalla "uscire" o instabile: fermati subito, salta l'esercizio (tasto ⏭) e passa al successivo. Dolore acuto = stop e giorno di recupero. Il giorno "Spalle Blindate" è dedicato a rinforzare la stabilità: è il più importante, non saltarlo.
+        <ul style="margin:0;padding-left:18px"><li style="margin-bottom:6px">Tutte e due le spalle sono instabili: niente posizioni a fine corsa, in nessuna direzione. Lavori sempre nella zona comoda, a velocità controllata.</li><li style="margin-bottom:6px">Mai: spinte sopra la testa, dip, trazioni alla sbarra, snatch, alzate Y-T, swing. Tiri solo in orizzontale, col gomito che si ferma alla linea del corpo.</li><li style="margin-bottom:6px">Push-up sempre con l'asciugamano arrotolato sotto lo sterno. Floor press e squeeze si fermano col gomito a terra. In alto spingi ancora un filo (scapole in avanti), senza bloccare di colpo.</li><li style="margin-bottom:6px">Kettlebell: due mani per portarlo sul petto e due per posarlo. Bottoms-up solo con il 6 kg. Extrarotazioni solo con bottiglie. Mai oltre i 12 kg.</li><li style="margin-bottom:6px">Esercizi di stabilità (extrarotazioni, Prone W, scap push-up, bottoms-up): ti fermi alla prima ripetizione meno pulita, con 2-3 ripetizioni in riserva.</li><li style="margin-bottom:6px">Niente allungamenti per la spalla: né petto al muro, né stipite, né braccia sopra la testa.</li><li style="margin-bottom:6px">Se il peso scappa verso l'esterno o senti la spalla "lenta", la serie finisce lì.</li><li style="margin-bottom:6px">Apprensione durante una spinta: scendi di una variante. Se torna, fai il floor press a due mani.</li><li style="margin-bottom:6px">A fine allenamento segna Spalla (ok, fastidio, scivolata) e Gomito. Se la spalla scivola durante l'allenamento, fermati subito e tocca il pulsante Spalla.</li><li style="margin-bottom:6px">Di notte dormi sulla schiena, o sul fianco abbracciando un cuscino con il braccio sotto l'altezza della spalla. Mai il braccio sotto il cuscino o sopra la testa.</li></ul>
       </div>
+    </details>
+    <details>
+      <summary>🚩 Quando fermarti e farti vedere</summary>
+      <div class="saf" style="margin-top:0;line-height:1.5">Fermati e fatti vedere da un fisioterapista esperto di spalla o da un ortopedico se:<br>- la spalla esce e devi rimetterla a posto, o resta fuori;<br>- senti formicolio, intorpidimento o il "braccio morto";<br>- hai dolore di notte, o ti svegli di nuovo con la spalla fuori sede;<br>- ti scivola 2 volte in 14 giorni, o ti scivola sempre più spesso nella vita di tutti i giorni;<br>- la scapola si stacca dalla schiena (scapola alata), o hai una debolezza che non passa in circa 2 settimane.<br>Anche senza questi segnali, ti sei già svegliato con la spalla fuori sede, e questo basta per prenotare una valutazione. Nel frattempo puoi aumentare le ripetizioni nella variante che fai, e dopo 2 settimane di "ok" aggiungere bottiglie allo zaino. I piedi rialzati e gli altri cambi di angolo nelle spinte aspettano la visita.<br>Alla visita chiedi:<br>- un test di ipermobilità generale (Beighton);<br>- se conta che riesci a far uscire la spalla apposta o in posizioni precise: in quel caso si lavora prima sul controllo del movimento, poi sulla forza;<br>- se conta che il braccio si senta "lento" mentre porti le borse della spesa (instabilità verso il basso);<br>- se serve un esame per escludere una lesione.</div>
     </details>
   </div>
 </div>
@@ -688,7 +697,7 @@ input.grow{min-width:0}
       <button class="btn sec small warn" style="margin-top:8px;width:100%" onclick="doImport()">⚠️ Importa (sostituisce i dati)</button>
     </details>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v37</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v38</div>
 </div>
 
 <div id="nav">
@@ -909,12 +918,12 @@ const REP={
 /* v35: bodyweight substitutes (no equipment at all) — same day, same muscles */
 const BW={floorpress:'pushup2',squeeze:'slowpush',triext:'tablext',curl:'selfcurl',row:'tablerow',deadlift:'bwrdl',rdl:'bwrdl',gobsquat:'bwsquat',swing:'squatjump',kbcrunch:'plankcore',carry:'birddog'};
 function isBW(ds){return !!(S.travel||(S.bwd&&S.bwd[ds]));}
-function bwEx(list,ds){if(!isBW(ds))return list;const out=[];list.forEach(id=>{let n=BW[id]||id;if(out.indexOf(n)>-1){const alt={pushup2:'slowpush',slowpush:'pushup',plankcore:'hollow',hollow:'lowerabs',birddog:'sideplank',bwrdl:'bridge',selfcurl:'tablerow'};n=alt[n]&&out.indexOf(alt[n])<0?alt[n]:n;}out.push(n);});return out;}
+function bwEx(list,ds){if(!isBW(ds))return list;const out=[];list.forEach(id=>{let n=BW[id]||id;if(out.indexOf(n)>-1){const alt={pushup:'slowpush',pushup2:'slowpush',slowpush:'pushup',plankcore:'hollow',hollow:'lowerabs',birddog:'sideplank',bwrdl:'bridge'};n=alt[n]&&out.indexOf(alt[n])<0?alt[n]:n;}out.push(n);});return out;}
 /* which kettlebell an exercise uses right now (6 or 12). 12 only if the user has it; a few start on the 6 for shoulder safety */
 const KB12_LATER=['triext','carry'];
 /* exercises whose level-1 variant is two-handed: the 6 kg one-arm -> 12 kg step goes through it */
 const TWOHAND={curl:1,floorpress:1};
-function kbFor(id){const sp=REP[id];if(!sp)return 0;const anyKb=sp.kb||(sp.v&&sp.v.some(x=>x.kb));if(!anyKb)return 0;if(!S.kb12)return 6;const x=S.kbx&&S.kbx[id];if(x===6||x===12)return x;return KB12_LATER.indexOf(id)>-1?6:12;}
+function kbFor(id){const sp=REP[id];if(!sp)return 0;const anyKb=sp.kb||(sp.v&&sp.v.some(x=>x.kb));if(!anyKb)return 0;if(KB6_ONLY.indexOf(id)>-1)return 6;if(!S.kb12)return 6;const x=S.kbx&&S.kbx[id];if(x===6||x===12)return x;return KB12_LATER.indexOf(id)>-1?6:12;}
 /* resolved target for exercise id at variant level lvl: {t,lo,hi,side,kb} */
 function specFor(id,lvl){
   const base=REP[id];if(!base)return {t:'iso',kb:0};
@@ -965,11 +974,12 @@ function cycDay(ds){const d=dsDiff(ds);return ((d%7)+7)%7;}
 /* rotation anchor (defaults to start date) and fixed recovery slot inside the 7-day cycle (default: day 7) */
 function rotDay(ds){const a=S.rot0||S.start;const d=Math.round((new Date(ds+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);return ((d%7)+7)%7;}
 function schedFor(ds){
-  const o=S.ovr&&S.ovr[ds];if(o!==undefined&&o!==null&&SCHED[o])return SCHED[o]; /* per-day override (swap) */
+  const T=ds<PLAN2?SCHED1:SCHED; /* v38: days before plan v2 keep the sessions that were actually done */
+  const o=S.ovr&&S.ovr[ds];if(o!==undefined&&o!==null&&T[o])return T[o]; /* per-day override (swap) */
   const c=rotDay(ds),rs=(S.recSlot===undefined||S.recSlot===null)?6:S.recSlot;
-  if(c===rs)return SCHED[0];
-  const t=c<rs?c:c-1;const base=SCHED[ROT[(t+(S.shift||0))%6]];
-  return (base===SCHED[7]&&amrapWeek(ds))?SCHED[5]:base;}
+  if(c===rs)return T[0];
+  const t=c<rs?c:c-1;const base=T[ROT[(t+(S.shift||0))%6]];
+  return (T===SCHED1&&base===T[7]&&amrapWeek(ds))?T[5]:base;}
 /* core & leg exercises start one level up when the boost is on (default on).
    swing excluded on purpose: its levels are a shoulder-safety progression, not leg strength */
 const CORE=['plankcore','hollow','sideplank','birddog','lowerabs','mtclimb','kbcrunch'];
@@ -978,7 +988,86 @@ const LEGS=['gobsquat','lunge','rdl','bridge','calf','deadlift','swing']; /* swi
 const UPPER=['pushup','floorpress','triext','row','curl','squeeze','pushup2','slowpush','tablext','selfcurl','tablerow'];
 /* variant level = week level + group boost + per-exercise delta earned with the "rule of 15" (S.rp[id].lvd) */
 const BW_LV={lunge:1,bridge:1,calf:1}; /* variants 2-3 of these use the kettlebell: in no-equipment mode stay on the bodyweight one */
-function lvFor(id,lv){if(window.__bwNow&&BW_LV[id])return BW_LV[id];const d=(S.rp&&S.rp[id]&&S.rp[id].lvd)||0;return Math.max(1,Math.min(3,lv+(((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1)||(S.upperUp!==0&&UPPER.indexOf(id)>-1))?1:0)+d));}
+/* ============ v38: PLAN v2 (from 2026-10-10) ============
+   Balanced week with chest focus, built for two unstable shoulders: no end range in any direction, no shoulder stretches,
+   stability work every day. Days before PLAN2 keep the old sessions, so history and an interrupted session still match. */
+const PLAN2='2026-10-10';
+const SCHED1={};Object.keys(SCHED).forEach(k=>{SCHED1[k]=Object.assign({},SCHED[k]);});
+Object.assign(SCHED[1],{t:'Petto & Dorso A',ic:'💪',ex:['pushup','row','squeeze','lunge','kbcrunch']});
+Object.assign(SCHED[4],{t:'Bicipiti & Cuffia',ic:'🔄',ex:['curl','scap','superman','ytw','sideplank']});
+Object.assign(SCHED[2],{t:'Petto & Dorso B',ic:'🏋️',ex:['floorpress','row','pushup','gobsquat','lowerabs']});
+Object.assign(SCHED[3],{t:'Spalle Blindate & Gambe',ic:'🛡️',ex:['carry','rdl','curl','scap','lowerabs']});
+Object.assign(SCHED[7],{t:'Petto & Dorso C',ic:'🎯',ex:['floorpress','row','squeeze','hollow','kbcrunch']});
+Object.assign(SCHED[6],{t:'Tricipiti & Cuffia',ic:'🔥',ex:['triext','carry','superman','ytw','hollow']});
+/* bottoms-up only ever with the 6; triceps extension at 12 kg stops at level 2 (no 1½) */
+const KB6_ONLY=['carry'];
+const CAP12={triext:2};
+/* exercises that load the shoulder: their level-ups wait for 14 days without discomfort */
+const SH=['pushup','floorpress','squeeze','slowpush','row','scap','carry','ytw','superman','sideplank','plankcore','triext'];
+/* at the top of level 3 the generic "slow down" is replaced by the lever that fits the exercise */
+const MAXHINT={pushup:'Aggiungi una bottiglia nello zaino (massimo 4). Con 4 bottiglie tieni: la prossima leva arriva dopo la visita.',row:'Tetto del 12 kg: tieni 10 per lato, pulite.',floorpress:'Pausa di 2 secondi col gomito a terra. Tetto del 12 kg: tieni 10 pulite per lato.',squeeze:'1 secondo di pausa col kettlebell appoggiato al petto.',ytw:'Passa alla bottiglia da 1,5 L, poi tieni: è il massimo.'};
+Object.assign(EX.pushup,{saf:'Profondità fissa: asciugamano arrotolato (circa 10 cm) sotto lo sterno, il petto lo sfiora e risali. Il gomito non sale mai sopra la linea della schiena. Gomiti a 30-45°, mai larghi. In alto spingi ancora un filo (scapole in avanti), senza bloccare di colpo. Se la spalla si sente “lenta”, fermati.',v:[
+ {n:'Push-up sulle ginocchia',s:['Ginocchia a terra, mani sotto le spalle, asciugamano arrotolato sotto lo sterno','Scendi in 2 secondi finché il petto sfiora l’asciugamano, gomiti a 30-45°','Risali e in alto spingi ancora un filo, scapole in avanti'],c:'Addome contratto, non far cadere i fianchi',yt:'push up ginocchia tutorial'},
+ {n:'Push-up standard',s:['Posizione di plank, mani sotto le spalle, asciugamano arrotolato sotto lo sterno','Scendi in 2 secondi finché il petto sfiora l’asciugamano: mai più giù','Risali spingendo forte e in alto spingi ancora un filo, scapole in avanti'],c:'Contano solo le ripetizioni che toccano l’asciugamano: la profondità resta sempre uguale',yt:'push up perfetto tutorial italiano'},
+ {n:'Push-up con zaino',s:['Zaino ben stretto con 2 bottiglie d’acqua da 1 litro, asciugamano arrotolato sotto lo sterno','Stessa esecuzione dello standard: scendi solo finché il petto sfiora l’asciugamano','In cima alla forchetta aggiungi una bottiglia, massimo 4. Mai il kettlebell nello zaino'],c:'Cambia il peso, mai la profondità: la spalla resta nell’angolo che conosce',yt:'weighted push up backpack'}]});
+EX.floorpress.saf='Esercizio IDEALE per spalle instabili: il pavimento ferma il gomito alla linea del busto. Due mani dentro, due mani fuori: porta il kettlebell sul petto con due mani prima di iniziare e prima di cambiare braccio. Se il peso scappa verso l’esterno, la serie finisce lì. In alto non bloccare di colpo.';
+Object.assign(EX.floorpress.v[1],{s:['Sdraiato, ginocchia piegate: porta il kettlebell sul petto con due mani, poi tienilo con una','Spingi su controllando che il peso non oscilli, l’altra mano a terra','Fai le ripetizioni con un braccio, riporta il peso sul petto con due mani e cambia'],c:'Se il peso scappa verso l’esterno, la serie è finita'});
+Object.assign(EX.floorpress.v[2],{s:['Come il livello 2, discesa in 3-4 secondi','Pausa di 1 secondo col gomito appoggiato a terra','Spinta decisa. Per cambiare braccio, due mani sul petto'],c:'Se il peso scappa verso l’esterno, la serie è finita'});
+Object.assign(EX.row,{saf:'Tira il gomito verso il fianco, MAI oltre la linea del corpo. In basso braccio disteso ma spalla attiva, mai appesa al peso. Discesa sempre controllata, mai di slancio. Massimo 12 kg.',v:[
+ {n:'Rematore 1 braccio appoggiato',s:['Mano e ginocchio sinistri su una sedia o un divano, schiena piatta','Kettlebell nella mano destra, braccio disteso ma spalla attiva','Tira il gomito verso il fianco, scapola indietro, scendi lento. Fai le ripetizioni con un braccio, poi con l’altro'],c:'Il gomito sfiora il fianco e si ferma sulla linea del corpo',yt:'rematore kettlebell un braccio tutorial'},
+ {n:'Rematore con fermo in alto',s:['Appoggiato come al livello 1, schiena piatta','Tira il gomito al fianco in 1 secondo e fermati 1 secondo stringendo la scapola','Scendi in 2 secondi senza lasciare la spalla appesa. Fai le ripetizioni con un braccio, poi con l’altro'],c:'Il fermo si fa col gomito sulla linea del corpo, non oltre',yt:'single arm kettlebell row pause'},
+ {n:'Rematore 1½ (metà alta)',s:['Tira il gomito al fianco, scendi solo a metà, ritira al fianco, poi scendi del tutto: questa è 1 ripetizione','Il gomito non supera mai la linea del corpo, la scapola lavora','Discesa controllata, spalla attiva in basso. Fai le ripetizioni con un braccio, poi con l’altro'],c:'Lavori nella metà alta, dove il dorsale si contrae e la spalla è più stabile',yt:'1.5 rep single arm row'}]});
+EX.superman.m='Scapole, schiena alta, deltoide posteriore';
+EX.superman.saf='Braccia lungo i fianchi o a W basso, mai avanti né sopra la testa. Nel Prone W i gomiti non salgono mai sopra la linea della schiena. Ti fermi alla prima ripetizione meno pulita (2-3 in riserva).';
+EX.superman.v[0].s[1]='Solleva petto e gambe da terra insieme: le braccia restano all’altezza del corpo, non salgono verso il soffitto';
+EX.superman.v[1].s[1]='Solleva petto e gambe e TIENI 3 secondi, glutei contratti: le braccia restano all’altezza del corpo';
+EX.superman.v[2]={n:'Prone W corto',s:['A pancia in giù, fronte su un asciugamano, gomiti piegati a 90° vicino ai fianchi, braccia a W sotto l’altezza delle spalle','Porta le scapole indietro e in basso, poi stacca gomiti e mani di 1-2 cm: i gomiti non salgono mai sopra la linea della schiena','Tieni 2 secondi e scendi lento'],c:'Movimento piccolo: lavorano le scapole, le braccia seguono',yt:'prone W exercise scapular'};
+EX.ytw.saf='IL rinforzo chiave per spalle instabili. Gomito SEMPRE appoggiato al fianco, con un asciugamano arrotolato in mezzo: è una piccola rotazione, mai un sollevamento, mai a braccio alzato. Fermati ben prima della fine del movimento. Solo bottiglie (0,5 → 1 → 1,5 L), mai il kettlebell. Ti fermi alla prima ripetizione meno pulita (2-3 in riserva).';
+EX.ytw.v[1]={n:'Extrarotazione sul fianco',s:['Sdraiato su un fianco, cuscino sotto la testa, asciugamano arrotolato tra gomito e fianco, bottiglia da 0,5 L in mano','Ruota l’avambraccio verso l’alto in 2 secondi senza staccare il gomito, e fermati ben prima della verticale','Scendi in 2 secondi. Fai le ripetizioni con un lato, poi con l’altro'],c:'Arco piccolo e lento: fermati prima di qualsiasi fastidio',yt:'side lying external rotation towel roll'};
+EX.ytw.v[2]={n:'Extrarotazione sul fianco con 1 L',s:['Come il livello 2, con una bottiglia da 1 L','Pausa di 1 secondo a metà corsa, mai a fine movimento','Due volte in cima alla forchetta: passa a 1,5 L, che è il massimo. Fai le ripetizioni con un lato, poi con l’altro'],c:'Più peso, stesso arco piccolo',yt:'side lying external rotation shoulder'};
+EX.scap.saf='Il TUO esercizio chiave: tiene la scapola al suo posto sotto il braccio. Movimento piccolo e controllato. Ti fermi alla prima ripetizione meno pulita (2-3 in riserva), non a 1-2 dal limite.';
+EX.scap.v[0].s=['Plank sulle ginocchia, braccia tese, mani sotto le spalle','Lascia avvicinare le scapole di 2-3 cm, senza far crollare il petto tra le spalle','Spingi il pavimento finché le scapole si aprono, senza forzare l’ultimo centimetro'];
+EX.scap.v[1].s=['Plank completo, braccia tese, mani sotto le spalle','Lascia avvicinare le scapole di 2-3 cm, senza far crollare il petto','Spingi finché le scapole si aprono, senza forzare'];
+EX.scap.v[2].s=['Come il livello 2','Pausa di 2 secondi a scapole aperte (in spinta), mai a scapole strette','Discesa breve e lenta'];
+EX.scap.v.forEach(v=>{v.c='Movimento piccolo: mai fino in fondo in nessuna delle due direzioni';});
+EX.carry.saf='La kettlebell CAPOVOLTA si autolimita: se la spalla non stabilizza, cade e basta. Solo 6 kg, sempre. Gomito a 90°, avambraccio verticale, MAI sopra la testa. Per cambiare mano porta il kettlebell al petto con due mani. Tieni l’altra mano pronta vicino alla sfera: se inizia a inclinarsi, fermala o abbassala. Ti fermi alla prima perdita di controllo (2-3 in riserva).';
+EX.carry.v.forEach(v=>{v.s=v.s.map(x=>x.replace('Cambia mano a metà tempo','A metà tempo, due mani al petto e cambia mano'));});
+EX.carry.v[2].c='Se si inclina, fermala con l’altra mano e riparti. Se perdi l’equilibrio, appoggia il piede, non la mano. Resta sul 6 kg';
+EX.triext.saf='Movimento solo del gomito: la spalla resta ferma a 90°. Col 12 kg resti al livello 2: niente 1½.';
+EX.triext.v.forEach(v=>{v.c='Gomiti verticali e fermi: se scivolano verso la testa, la serie è finita';});
+EX.slowpush.saf='Stessa regola dei push-up: asciugamano arrotolato sotto lo sterno, gomiti a 30-45°. Le pause si fanno col petto appoggiato.';
+EX.slowpush.v[0].s=['Scendi in 3 secondi fino all’asciugamano, 1 secondo col petto appoggiato, sali in 1','Corpo in linea per tutto il tempo','Se è troppo duro, sulle ginocchia con lo stesso ritmo'];
+EX.slowpush.v[1].s=['Discesa in 4 secondi, 2 di pausa col petto appoggiato sull’asciugamano, salita in 1','Mai più giù dell’asciugamano',''];
+EX.slowpush.v[2].s[0]='Scendi fino all’asciugamano, risali a metà, riscendi all’asciugamano, poi risali del tutto: 1 ripetizione';
+EX.tablext.v[0].s=['Mani sul bordo di un tavolo stabile, larghezza spalle, corpo inclinato e rigido','Piega solo i gomiti portando la fronte verso le mani: i gomiti restano davanti a te','La testa non scende mai sotto il bordo. Riestendi senza muovere le spalle'];
+EX.tablext.v[1].s=['Stessa esecuzione con il corpo più inclinato','Discesa in 3 secondi, la testa mai sotto il bordo','Estensione completa e pausa di 1 secondo'];
+EX.tablext.v.forEach(v=>{v.c='I gomiti restano davanti a te: se salgono verso la testa, la serie è finita';});
+EX.pushup2.saf='Piedi rialzati: più carico sul petto, ma anche più flessione della spalla. Solo dopo la valutazione della spalla, dal gradino basso, con l’asciugamano sotto lo sterno.';
+EX.birddog.saf='Solo gambe, mani a terra: il braccio teso in avanti è una posizione sopra la testa.';
+EX.swing.saf='Fuori dal piano: lo swing strappa sulla spalla in basso e in alto. Torna solo dopo la valutazione, e mai sopra l’ombelico.';
+EX.kbcrunch.v[1].s[1]='Solleva le scapole: le braccia restano perpendicolari al busto, il peso segue il busto';
+EX.kbcrunch.v[1].c='Braccia a 90° dal busto, mai verso la testa';
+EX.hollow.v[0].s[0]='Sdraiato, ginocchia piegate, mani incrociate sul petto';
+EX.lowerabs.v[2].s[0]='Sdraiato, gambe tese, mani a terra lungo i fianchi, palmi giù';
+EX.rdl.saf='Braccia lunghe ma spalla attiva: scapole giù e indietro, mai appesa al peso. Massimo 12 kg.';
+EX.rdl.v[2].c='Il braccio col peso resta attivo: se senti la spalla tirata verso il basso, passa al 6 kg o a due mani';
+EX.lunge.saf='Kettlebell al petto con due mani. Se perdi l’equilibrio, appoggia il piede, non la mano.';
+EX.sideplank.saf='Spingi il pavimento, spalla lontana dall’orecchio: non lasciarti cadere nella spalla. Se la spalla d’appoggio dà fastidio, resta sulle ginocchia.';
+REP.pushup={v:[{t:'rep',r:[8,15]},{t:'rep',r:[8,15]},{t:'rep',r:[6,12]}]};
+REP.row={v:[{t:'rep',kb:1,r6:[12,15],r12:[8,15],side:1},{t:'rep',kb:1,r6:[12,15],r12:[8,12],side:1},{t:'rep',kb:1,r6:[10,15],r12:[6,10],side:1}]};
+REP.ytw={v:[{t:'iso',side:1},{t:'rep',r:[8,12],side:1},{t:'rep',r:[8,12],side:1}]};
+VIDS.row[1]='f-TLy1csG3U';VIDS.row[2]='';VIDS.pushup[2]='';VIDS.ytw[2]='';
+/* no-equipment mode: no table row (traction at the bottom), no bird dog, no feet-elevated push-up */
+Object.assign(BW,{floorpress:'slowpush',squeeze:'pushup',row:'superman',carry:'sideplank'});
+Object.assign(BW_LV,{plankcore:2,tablext:1,pushup2:1});
+/* warm-up with shoulder isometrics every day; no end-range shoulder stretch anywhere */
+WARM.splice(0,WARM.length,{n:'Marcia sul posto veloce',d:45},{n:'Isometrie spalla al muro al 50%: gomito al fianco, fuori 8", dentro 8"',d:45,sd:1},{n:'Push-up al muro a metà: fermati a un palmo dal muro, poi spinta finale (scapole avanti)',d:45},{n:'Squat lenti, braccia avanti sotto le spalle',d:45});
+COOL.splice(0,COOL.length,{n:'Respirazione su asciugamano arrotolato lungo la schiena, mani sulla pancia',d:30},{n:'Allungamento flessori dell’anca in ginocchio, mani sul ginocchio',d:30,sd:1},{n:'Allungamento femorali da seduto, mani sulle cosce',d:30},{n:'Posizione del bambino, braccia lungo i fianchi',d:30});
+RECOV.splice(0,RECOV.length,{n:'Respirazione diaframmatica a pancia in su, ginocchia piegate',d:75},{n:'Gatto-mucca lento, ampiezza comoda',d:75},{n:'Spostamenti di peso a 4 zampe, piccoli e lenti',d:75},{n:'Isometrie spalla al muro leggere: fuori, dentro, di lato (30-50%)',d:75,sd:1},{n:'Rotazioni toraciche da seduto, braccia incrociate sul petto',d:75,sd:1},{n:'Allungamento flessori dell’anca in ginocchio, mani sul ginocchio',d:75,sd:1},{n:'Allungamento femorali da sdraiato, gamba appoggiata allo stipite',d:75,sd:1},{n:'Figura 4 da sdraiato, piede appoggiato al muro, mani libere',d:75,sd:1});
+function boostOf(id){return ((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1)||(S.upperUp!==0&&UPPER.indexOf(id)>-1))?1:0;}
+/* shoulder gate: no level-up on shoulder exercises within 14 days of a "fastidio" or "scivolata" */
+function shGateOpen(){for(let i=0;i<14;i++){const l=S.log[addD(today(),-i)];if(l&&l.sh&&l.sh!=='ok')return false;}return true;}
+function lvFor(id,lv){if(window.__bwNow&&BW_LV[id])return BW_LV[id];const d=(S.rp&&S.rp[id]&&S.rp[id].lvd)||0;const L=Math.max(1,Math.min(3,lv+boostOf(id)+d));return (CAP12[id]&&kbFor(id)===12)?Math.min(L,CAP12[id]):L;}
 
 const BADGES=[
  {id:'s3',ic:'🔥',n:'Scintilla',d:'3 giorni di fila',f:s=>s.best>=3},
@@ -1074,7 +1163,7 @@ function weekNum(){
   return Math.max(1,Math.floor((n-s)/(864e5*7))+1);
 }
 function phaseOf(w){const i=Math.floor((w-1)/4)%4;return PHASES[Math.min(3,i+(S.hardMode!==0?1:0))];}
-function levelOf(w){return Math.min(3,Math.floor((w-1)/16)+1);}
+function levelOf(w){return 1;} /* v38: no automatic jump by date; variants move only by the rule of 15 or by hand */
 
 /* xp */
 function lvlIdx(){let i=0;for(let k=0;k<TIERS.length;k++)if(S.xp>=TIERS[k].xp)i=k;return i;}
@@ -1109,7 +1198,7 @@ function render(){
   hero.classList.remove('danger');fl.classList.remove('pulse');
   if(doneToday){msg.innerHTML='✅ Fatto anche oggi. Sei una roccia.';}
   else if(isRecDay(t)&&today()>=S.start){msg.innerHTML='🧘 Giorno di recupero: lo streak è al sicuro comunque. Se fai i 20 minuti di mobilità, la spalla ringrazia e prendi gli XP.';}
-  else if(st>0&&hr>=18){hero.classList.add('danger');fl.classList.add('pulse');msg.innerHTML='<b style="color:var(--bad)">⚠️ Lo streak di '+st+' giorni MUORE a mezzanotte!</b><br>Ti bastano 20 minuti. Ora.';}
+  else if(st>0&&hr>=18){hero.classList.add('danger');fl.classList.add('pulse');msg.innerHTML='<b style="color:var(--bad)">⚠️ Lo streak di '+st+' giorni MUORE a mezzanotte!</b><br>Bastano 30 minuti. Ora.';}
   else if(st>0){msg.innerHTML='Oggi non ti sei ancora allenato. Non spezzare la catena.';}
   else{msg.innerHTML='Ogni leggenda inizia dal giorno 1. Inizia oggi.';}
   /* freeze offer */
@@ -1189,7 +1278,7 @@ function openWorkout(ds,keep){
       document.getElementById('wTags').innerHTML='<span class="tag hot">AMRAP 20’</span> <span class="tag">'+(bw?'🎒 corpo libero':(S.kb12?'12 kg':'6 kg'))+'</span> <span class="tag">'+(best?'Da battere: '+best+' giri':'Prima volta: fai il tuo record')+'</span>';
     }else{
       document.getElementById('wSub').textContent='4 giri × 5 esercizi · fermati a 1–2 dal limite, tocca FATTO, '+RR+'" di recupero.';
-      document.getElementById('wTags').innerHTML='<span class="tag hot">A ripetizioni</span> <span class="tag">'+(bw?'🎒 corpo libero':(S.kb12?'6 + 12 kg':'solo 6 kg'))+'</span> <span class="tag">~25’ totali</span>';
+      document.getElementById('wTags').innerHTML='<span class="tag hot">A ripetizioni</span> <span class="tag">'+(bw?'🎒 corpo libero':(S.kb12?'6 + 12 kg':'solo 6 kg'))+'</span> <span class="tag">~30’ totali</span>';
     }
     list.innerHTML=sc.ex.map((id,ix)=>{
       const L=lvFor(id,lv),e=EX[id],v=e.v[L-1],sp=isA?{t:'rep',lo:sc.amrap[id],hi:sc.amrap[id],side:!!(REP[id].side||(REP[id].v&&REP[id].v[L-1].side)),kb:kbFor(id)}:specFor(id,L),lr=isA?null:lastRep(id,L);
@@ -1201,8 +1290,8 @@ function openWorkout(ds,keep){
       '<div class="saf">🛡️ '+e.saf+'</div>'+
       /* v28: manual adjust (kettlebell & variant) without waiting for the end-of-workout rule */
       (isA?'':'<div class="exadj"><span class="mut">Regola tu:</span>'+
-        (REP[id]&&(REP[id].kb||(REP[id].v&&REP[id].v.some(x=>x.kb)))&&S.kb12?'<button class="chk'+(sp.kb===6?' on':'')+'" onclick="adjEx(\''+id+'\',\'kb\',6)">6 kg</button><button class="chk'+(sp.kb===12?' on':'')+'" onclick="adjEx(\''+id+'\',\'kb\',12)">12 kg</button>':'')+
-        '<span class="step"><button onclick="adjEx(\''+id+'\',\'lv\',-1)" aria-label="variante più facile"'+(L<=1?' disabled':'')+'>−</button><b style="font-size:14px;min-width:52px">Liv. '+L+'</b><button onclick="adjEx(\''+id+'\',\'lv\',1)" aria-label="variante più dura"'+(L>=3?' disabled':'')+'>+</button></span></div>')+
+        (REP[id]&&(REP[id].kb||(REP[id].v&&REP[id].v.some(x=>x.kb)))&&S.kb12&&KB6_ONLY.indexOf(id)<0?'<button class="chk'+(sp.kb===6?' on':'')+'" onclick="adjEx(\''+id+'\',\'kb\',6)">6 kg</button><button class="chk'+(sp.kb===12?' on':'')+'" onclick="adjEx(\''+id+'\',\'kb\',12)">12 kg</button>':'')+
+        '<span class="step"><button onclick="adjEx(\''+id+'\',\'lv\',-1)" aria-label="variante più facile"'+(L<=1?' disabled':'')+'>−</button><b style="font-size:14px;min-width:52px">Liv. '+L+'</b><button onclick="adjEx(\''+id+'\',\'lv\',1)" aria-label="variante più dura"'+(L>=3||(CAP12[id]&&sp.kb===12&&L>=CAP12[id])?' disabled':'')+'>+</button></span></div>')+
       '<div class="vid" data-v="'+((VIDS[id]||[])[lvFor(id,lv)-1]||'')+'"></div>'+
       '<a class="ytb" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(v.yt)+'">🔎 Altri video su YouTube</a></details>';
     }).join('');
@@ -1368,7 +1457,7 @@ async function doResume(){
 function openSummary(){
   const m=window.__sum;if(!m)return;
   const sc=schedFor(today());
-  document.getElementById('sumTitle').textContent=m.first?'Allenamento completato 🎉':'Doppia razione 💪';
+  document.getElementById('sumTitle').textContent=window.__shStop?'Fermo per la spalla 🩹':m.first?'Allenamento completato 🎉':'Doppia razione 💪';
   document.getElementById('sumSub').textContent=sc.ic+' '+sc.t+(m.first?'':' · già contato per oggi');
   const li=lvlIdx(),T0=TIERS[li],T1=TIERS[li+1];
   let h=(m.first?'<div class="sumxp"><b>+'+m.gain+' XP</b><span>'+T0.n+(T1?' · '+(T1.xp-S.xp)+' XP a '+T1.n:'')+'</span></div><div class="xpbar"><i style="width:'+(T1?Math.min(100,(S.xp-T0.xp)/(T1.xp-T0.xp)*100):100)+'%"></i></div>':'')+
@@ -1380,13 +1469,14 @@ function openSummary(){
   else if(m.type==='w'&&!m.amrap&&m.tot)h+='<div class="mut" style="margin-top:8px;font-size:13px">Nessun record oggi: normale, i record arrivano a ondate. La costanza è il record vero.</div>';
   if(m.amrap&&m.rounds>0&&m.rounds>=m.best)h+='<div class="verd ok">🏆 Nuovo record AMRAP: '+m.rounds+' giri. Prossimo test tra 4 settimane.</div>';
   if(window.__lvup){h+='<div class="verd info" style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:60px;height:68px">'+avatarSVG(window.__lvup.st)+'</div><div><b>Nuovo livello: '+window.__lvup.n+'</b><div class="mut" style="font-size:12px">Il tuo guerriero è cresciuto.</div></div></div>';window.__lvup=null;}
+  if(window.__sh&&window.__sh!=='ok')h+='<div class="verd warn" style="margin-top:10px">'+(window.__sh==='scivolata'?'Spalla scivolata: oggi basta così. ':'Fastidio alla spalla: ')+SH_FLAGS+'</div>';
   const props=window.__props||[];
   if(props.length){const ask=props.some(p=>p.act);
     h+='<div class="sect" style="margin-top:14px">📈 Regola del 15'+(ask?' · decidi tu':'')+'</div>'+props.map((p,i)=>'<div class="prop" id="pp_'+i+'"><b>'+EX[p.id].ic+' '+p.h+'</b><div class="mut">'+p.txt+'</div>'+(p.act?'<div class="row"><button class="btn sec small" onclick="propNo('+i+')">Non ancora</button><button class="btn small" onclick="propYes('+i+')">Sì, dalla prossima</button></div>':'')+'</div>').join('');}
   document.getElementById('sumBody').innerHTML=h;
   document.getElementById('summary').classList.add('on');document.getElementById('summary').scrollTop=0;
 }
-function closeSummary(){document.getElementById('summary').classList.remove('on');window.__sum=null;window.__props=[];}
+function closeSummary(){document.getElementById('summary').classList.remove('on');window.__sum=null;window.__props=[];window.__shStop=0;window.__sh='ok';}
 /* v35: no-equipment toggle for one day */
 function toggleBW(){const ds=window.__wds||today();if(S.travel){toast('Modalità viaggio attiva per tutti i giorni: la spegni in Impostazioni.');return;}S.bwd=S.bwd||{};S.bwd[ds]=S.bwd[ds]?0:1;save();render();openWorkout(ds,true);toast(S.bwd[ds]?'🎒 Oggi a corpo libero.':'🏋️ Torni al kettlebell.');}
 function setTravel(v){S.travel=parseInt(v)?1:0;save();render();toast(S.travel?'🎒 Modalità viaggio: tutti gli allenamenti a corpo libero.':'🏋️ Modalità viaggio spenta.');}
@@ -1411,10 +1501,10 @@ function openExSheet(id){
   document.getElementById('exTitle').textContent=e.ic+' '+e.v[L-1].n;
   document.getElementById('exSub').textContent='Ora: '+specTxt(sp)+(sp.kb?' · '+sp.kb+' kg':'')+' · Liv. '+L;
   const hist=(r.hist||[]).slice(-8).reverse();
-  const canKb=REP[id]&&(REP[id].kb||(REP[id].v&&REP[id].v.some(x=>x.kb)))&&S.kb12;
+  const canKb=REP[id]&&(REP[id].kb||(REP[id].v&&REP[id].v.some(x=>x.kb)))&&S.kb12&&KB6_ONLY.indexOf(id)<0;
   document.getElementById('exBody').innerHTML='<div class="exadj" style="border-top:0;padding-top:0"><span class="mut">Dalla prossima volta:</span>'+
     (canKb?'<button class="chk'+(sp.kb===6?' on':'')+'" onclick="adjEx(\''+id+'\',\'kb\',6)">6 kg</button><button class="chk'+(sp.kb===12?' on':'')+'" onclick="adjEx(\''+id+'\',\'kb\',12)">12 kg</button>':'')+
-    '<span class="step"><button onclick="adjEx(\''+id+'\',\'lv\',-1)" aria-label="variante più facile"'+(L<=1?' disabled':'')+'>−</button><b style="font-size:14px;min-width:52px">Liv. '+L+'</b><button onclick="adjEx(\''+id+'\',\'lv\',1)" aria-label="variante più dura"'+(L>=3?' disabled':'')+'>+</button></span></div>'+
+    '<span class="step"><button onclick="adjEx(\''+id+'\',\'lv\',-1)" aria-label="variante più facile"'+(L<=1?' disabled':'')+'>−</button><b style="font-size:14px;min-width:52px">Liv. '+L+'</b><button onclick="adjEx(\''+id+'\',\'lv\',1)" aria-label="variante più dura"'+(L>=3||(CAP12[id]&&sp.kb===12&&L>=CAP12[id])?' disabled':'')+'>+</button></span></div>'+
     '<div class="sect">Storico (ultimo giro)</div>'+(hist.length?hist.map(h=>'<div class="prrow"><div class="dn"><b>'+dlab(h[0])+'</b><span>'+(h[2]?h[2]+' kg · ':'')+'Liv. '+h[3]+'</span></div><span class="pr" style="color:var(--txt)">'+(sp.t==='iso'?(h[1]?'✓':'✗'):h[1]+' rip.')+'</span></div>').join(''):'<div class="mut">Ancora nessun dato.</div>');
   window.__exs=id;document.getElementById('exSheet').classList.add('on');
 }
@@ -1434,7 +1524,7 @@ function openSwap(ds){
   document.getElementById('swTitle').textContent='Cambia · '+(ds===today()?'oggi':dlab(ds));
   /* same session within 2 days either side: say it, so two back days in a row are a choice, not an accident */
   const near=k=>{const out=[];for(const d of [-2,-1,1,2]){const x=addD(ds,d);if(schedFor(x)===SCHED[k])out.push(dlab(x));}return out;};
-  document.getElementById('swList').innerHTML=[1,2,3,4,7,6,5,0].map(k=>{const sc=SCHED[k],n=near(k);
+  document.getElementById('swList').innerHTML=[1,2,3,4,7,6,0].map(k=>{const sc=SCHED[k],n=near(k);
     return '<button class="chbtn'+(sc===cur?' cur':'')+'" onclick="swapDayFor(\''+ds+'\','+k+')"><span class="ci">'+sc.ic+'</span><span class="grow">'+sc.t+(sc===base?' <span class="tag" style="font-size:11px">da piano</span>':'')+(n.length?'<small>anche '+n.join(', ')+'</small>':'')+'</span>'+(sc===cur?'<span class="tag hot">ora</span>':'')+'</button>';}).join('')+
     (isOvr?'<button class="btn sec" style="margin-top:6px" onclick="swapDayFor(\''+ds+'\',null)">↩︎ Torna al piano ('+base.t+')</button>':'');
   document.getElementById('swapSheet').classList.add('on');document.getElementById('swapSheet').scrollTop=0;
@@ -1560,6 +1650,8 @@ function tick(){
 }
 function pauseT(){paused=!paused;saveRun();document.getElementById('tPause').textContent=paused?'▶ Riprendi':'⏸ Pausa';document.getElementById('tmr').classList.toggle('paused',paused);}
 function skipT(){nextStep();}
+/* v38: the shoulder slipped or hurts: stop now, the day still counts, the done sheet asks only shoulder and elbow */
+function shStop(){if(!confirm('Ti fermi per la spalla? L’allenamento di oggi conta comunque.'))return;window.__sh='scivolata';window.__shStop=1;finishT();}
 function quitTimer(){if(!confirm('Uscire? L’allenamento non verrà contato.'))return;clearRun();endT();}
 function endT(){clearInterval(tH);document.getElementById('tmr').classList.remove('on');try{wl&&wl.release();}catch(e){}wl=null;}
 function finishT(){
@@ -1580,6 +1672,7 @@ function finishT(){
   if(first){
     const isW=seqMeta.type==='w';
     S.log[t]={t:seqMeta.type};if(seqMeta.amrap)S.log[t].rounds=rounds;
+    if(runStart)S.log[t].dur=Math.max(1,Math.round((Date.now()-runStart)/60000)); /* v38: real session length */
     st=calcStreak();
     gain=(isW?50:30)+Math.min(30,st);
     S.log[t].xp=gain;
@@ -1590,7 +1683,7 @@ function finishT(){
   }
   window.__sum={dur:runStart?Math.max(1,Math.round((Date.now()-runStart)/60000)):null,type:seqMeta.type,amrap:!!seqMeta.amrap,rounds:rounds,st:st,gain:gain,first:first,prs:[],tot:0,best:S.amrapBest||0};
   const celebrate=()=>{
-    if(first){
+    if(first&&!window.__shStop){
       confetti();
       beep(880,.3);setTimeout(()=>beep(1100,.3),200);setTimeout(()=>beep(1320,.45),400);
     }else{save();}
@@ -1615,14 +1708,23 @@ function openDone(cb){
   }).join('');
   seqMeta.ex.forEach(id=>doneColor(id));
   window.__doneAt=Date.now();window.__props=[];
+  if(!window.__shStop)window.__sh='ok';window.__el='ok';shDraw();
+  document.getElementById('doneRows').style.display=window.__shStop?'none':'';document.getElementById('doneBtn').textContent=window.__shStop?'Salva':'Salva ripetizioni';
   document.getElementById('done').classList.add('on');document.getElementById('done').scrollTop=0;
 }
 function doneAdj(id,d){const v=doneVals[id];v.n=Math.max(0,Math.min(99,v.n+d));document.getElementById('dv_'+id).textContent=v.n;doneColor(id);}
 function doneColor(id){const v=doneVals[id];if(!v||v.iso)return;const el=document.getElementById('dv_'+id);el.className=v.n>=v.sp.hi?'hi':v.n<v.sp.lo?'lo':'';}
 function doneTog(id,k){const v=doneVals[id];v[k]=v[k]?0:1;document.getElementById((k==='ok'?'dk_':'dz_')+id).classList.toggle('on',!!v[k]);if(k==='easy'&&v.easy&&!v.ok){v.ok=1;document.getElementById('dk_'+id).classList.add('on');}}
-function doneSkip(){if(Date.now()-(window.__doneAt||0)<800)return;document.getElementById('done').classList.remove('on');const cb=doneCb;doneCb=null;cb&&cb();}
+const SH_FLAGS='🚩 Se la spalla è uscita e hai dovuto rimetterla a posto, se senti formicolio o il “braccio morto”, o se ti succede 2 volte in 14 giorni: fermati e prenota una visita (ortopedico o fisioterapista esperto di spalla).';
+function shDraw(){const sh=window.__sh||'ok',el=window.__el||'ok';
+  document.getElementById('shRow').innerHTML=[['ok','✓ Spalla ok'],['fastidio','Fastidio'],['scivolata','Scivolata']].map(x=>'<button class="chk'+(x[0]!=='ok'?' bad':'')+(sh===x[0]?' on':'')+'" onclick="window.__sh=\''+x[0]+'\';shDraw()">'+x[1]+'</button>').join('');
+  document.getElementById('elRow').innerHTML=[['ok','✓ Gomito ok'],['fastidio','Fastidio al gomito']].map(x=>'<button class="chk'+(x[0]!=='ok'?' bad':'')+(el===x[0]?' on':'')+'" onclick="window.__el=\''+x[0]+'\';shDraw()">'+x[1]+'</button>').join('');
+  document.getElementById('shWarn').innerHTML=sh==='scivolata'?'<div class="verd warn">Oggi niente proposte di livello, e per 14 giorni gli esercizi di spalla non salgono. '+SH_FLAGS+'</div>':sh==='fastidio'?'<div class="verd info">Per 14 giorni gli esercizi di spalla non salgono di livello. Se il fastidio torna, scendi di una variante sulle spinte.</div>':'';}
+function shSave(){const l=S.log[today()];if(l){l.sh=window.__sh||'ok';l.el=window.__el||'ok';}}
+function doneSkip(){if(Date.now()-(window.__doneAt||0)<800)return;shSave();save();document.getElementById('done').classList.remove('on');const cb=doneCb;doneCb=null;cb&&cb();}
 function doneSave(){
   if(Date.now()-(window.__doneAt||0)<800)return;
+  if(window.__shStop){window.__props=[];window.__doneAt=0;doneSkip();return;} /* stopped for the shoulder: no reps, no proposals */
   const t=today(),lv=seqMeta.lv;S.rp=S.rp||{};
   const reps={};
   seqMeta.ex.forEach(id=>{
@@ -1630,7 +1732,7 @@ function doneSave(){
     const n=v.iso?(v.ok?1:0):v.n;
     const r=S.rp[id]||{};
     /* personal record check (same kettlebell & variant) */
-    if(!v.iso&&window.__sum){const prev=(r.hist||[]).filter(h=>h[2]===kb&&h[3]===L&&h[0]!==t).map(h=>h[1]);const pb=prev.length?Math.max(...prev):null;
+    if(!v.iso&&window.__sum){const prev=(r.hist||[]).filter(h=>h[2]===kb&&h[3]===L&&h[0]!==t&&(!r.cut||h[0]>=r.cut)).map(h=>h[1]);const pb=prev.length?Math.max(...prev):null;
       if(pb!==null&&n>pb)window.__sum.prs.push({id,n,pb,L});window.__sum.tot+=n*4;}
     r.n=n;r.at=t;r.kb=kb;r.lv=L;r.lvd=r.lvd||0;
     r.hist=(r.hist||[]);r.hist.push([t,n,kb,L]);while(r.hist.length>60)r.hist.shift();
@@ -1638,19 +1740,23 @@ function doneSave(){
   });
   if(S.log[t])S.log[t].reps=reps;
   save();
-  /* rule of 15 */
-  const props=[];
+  /* rule of 15 — v38: shoulder exercises go up only with the shoulder gate open; a slip today means no proposals at all */
+  const props=[],gate=shGateOpen()&&(window.__sh||'ok')==='ok',elbowOk=(window.__el||'ok')==='ok';
+  if((window.__sh||'ok')==='scivolata'){window.__props=[];window.__doneAt=0;doneSkip();return;}
   seqMeta.ex.forEach(id=>{
     const v=doneVals[id],L=lvFor(id,lv),sp=specFor(id,L),e=EX[id],nm=e.v[L-1].n;
     const up=v.iso?!!v.easy:v.n>=sp.hi, down=v.iso?!v.ok:v.n<sp.lo;
-    if(up){
+    if(up&&((SH.indexOf(id)>-1&&!gate)||(!elbowOk&&(id==='curl'||id==='triext')))){
+      props.push({id,act:null,h:nm,txt:'Pronto a salire, ma prima '+(elbowOk?'la spalla: aspetta 14 giorni senza fastidi.':'il gomito: oggi resti qui.')});
+    }else if(up){
       if(sp.kb===6&&S.kb12&&TWOHAND[id]&&L>1){
         /* 6 kg one-arm -> 12 kg two-hands: the natural step (12 kg one-arm doubles the load at once) */
         const b=REP[id].v?REP[id].v[0]:REP[id];props.push({id,act:'kb12dn',L:L,h:nm,txt:'Passa al 12 kg con la variante a due mani ('+e.v[0].n+'). Obiettivo: '+(b.r12?b.r12[0]+'–'+b.r12[1]:'tieni')+'. Il 12 a un braccio arriverà dopo.'});}
       else if(sp.kb===6&&S.kb12&&KB12_LATER.indexOf(id)<0){const b=REP[id].v?REP[id].v[L-1]:REP[id];props.push({id,act:'kb12',h:nm,txt:'Passa al 12 kg. Nuovo obiettivo: '+(b.r12?b.r12[0]+'–'+b.r12[1]:'tieni')+(sp.side?' per lato':'')+'.'});}
+      else if(CAP12[id]&&sp.kb===12&&L>=CAP12[id])props.push({id,act:null,h:nm,txt:'Tetto col 12 kg: resta qui e punta a 10 pulite.'});
       else if(L<3)props.push({id,act:'lvup',h:nm,txt:'Sali di variante → '+e.v[L].n+'. Riparti dal fondo della forchetta.'});
-      else props.push({id,act:null,h:nm,txt:'Sei al massimo della progressione: rendilo più duro rallentando la discesa (3–4 secondi) o con 1 secondo di pausa.'});
-    }else if(down){
+      else props.push({id,act:null,h:nm,txt:MAXHINT[id]||'Sei al massimo della progressione: rendilo più duro rallentando la discesa (3–4 secondi) o con 1 secondo di pausa.'});
+    }else if(down&&!(id==='pushup'&&seqMeta.ex.indexOf('pushup')>0)){ /* push-up after other presses reads low by fatigue, not regression */
       if(sp.kb===12&&TWOHAND[id]&&L>1)props.push({id,act:'kb12dn',L:L,h:nm,txt:'Sotto la forchetta col 12 a un braccio: passa alla variante a due mani ('+e.v[0].n+') tenendo il 12 kg. Se anche così non arrivi a 6, la prossima volta ti propongo il 6 kg.'});
       else if(sp.kb===12)props.push({id,act:'kb6',h:nm,txt:'Oggi sotto la forchetta: torna al 6 kg su questo esercizio, la regola del 15 ti riporterà al 12.'});
       else if(L>1)props.push({id,act:'lvdown',h:nm,txt:'Sotto la forchetta: scendi di variante → '+e.v[L-2].n+'.'});
@@ -1873,7 +1979,7 @@ function renderRepProg(){
   document.getElementById('repRows').innerHTML=ids.map(id=>{
     const r=rp[id],e=EX[id];
     /* only the points comparable with the current setup (same level & kettlebell) */
-    const cur=r.hist.filter(h=>h[2]===(r.kb||0)&&h[3]===r.lv);
+    const cur=r.hist.filter(h=>h[2]===(r.kb||0)&&h[3]===r.lv&&(!r.cut||h[0]>=r.cut));
     const pts=cur.slice(-8),vals=pts.map(h=>h[1]);
     const sp=specFor(id,r.lv||1),iso=sp.t==='iso';
     const last=vals[vals.length-1],prev=vals.length>1?vals[vals.length-2]:null;
@@ -2119,6 +2225,12 @@ if(!S.mig2&&(S.start==='2026-08-24'||S.start==='2026-08-26')&&today()>='2026-09-
   S.start='2026-08-24';if(S.ovr&&S.ovr['2026-09-05']===0)delete S.ovr['2026-09-05'];S.rot0='2026-09-08';S.recSlot=4;S.shift=0;S.mig2=1;save();}
 /* v38: anchor the rotation to Monday 2026-10-05 (session 1 on Monday, recovery on Sunday): the 10-06 backup had lost the anchor */
 if(!S.rot0&&S.start==='2026-09-01'){S.rot0='2026-10-05';S.recSlot=6;S.shift=0;save();}
+/* v38: plan v2 migration — clamp per-exercise level deltas, new baselines where the movement changed, drop pins equal to the plan */
+if(!S.mig38){S.rp=S.rp||{};
+  Object.keys(S.rp).forEach(id=>{const r=S.rp[id],b=1+boostOf(id);r.lvd=Math.max(1-b,Math.min(3-b,r.lvd||0));});
+  ['pushup','row','superman','ytw'].forEach(id=>{const r=S.rp[id];if(r){delete r.n;r.cut=PLAN2;}});
+  Object.keys(S.ovr||{}).forEach(d=>{if(d>=PLAN2&&S.ovr[d]!==null&&S.ovr[d]!==undefined&&SCHED[S.ovr[d]]===baseFor(d))S.ovr[d]=null;});
+  S.mig38=1;save();}
 if(S.shift===null||S.shift===undefined)renderChooser();
 render();
 reconcile();
