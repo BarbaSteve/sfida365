@@ -225,7 +225,7 @@ input,textarea,select{width:100%;background:var(--card2);border:1px solid var(--
 textarea{min-height:110px;font-size:12px}
 label.f{display:block;color:var(--mut);font-size:12px;font-weight:700;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.06em}
 /* misc */
-#toast{position:fixed;bottom:calc(var(--nav) + var(--sab) + 12px);left:16px;right:16px;max-width:520px;margin:0 auto;background:var(--card2);border:1px solid var(--acc);color:var(--txt);padding:13px 16px;border-radius:12px;z-index:200;display:none;font-size:14px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+#toast{pointer-events:none;position:fixed;bottom:calc(var(--nav) + var(--sab) + 12px);left:16px;right:16px;max-width:520px;margin:0 auto;background:var(--card2);border:1px solid var(--acc);color:var(--txt);padding:13px 16px;border-radius:12px;z-index:200;display:none;font-size:14px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.4)}
 #conf{position:fixed;inset:0;pointer-events:none;z-index:300}
 .wkrow{display:flex;gap:10px;padding:12px 6px;border-bottom:1px solid var(--line);font-size:14px;align-items:center;min-height:48px;border-radius:8px}
 .wkrow:last-child{border:none}
@@ -302,7 +302,7 @@ input.grow{min-width:0}
 #tmr.sides .tclock{font-size:40px;color:var(--mut);margin:2px 0}
 .tsides>div{flex:1;position:relative;height:52px;border-radius:14px;background:var(--card2);overflow:hidden;border:2px solid transparent}
 .tsides i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--acc);transition:width 1s linear}
-.tsides>div+div i{background:var(--blu)}
+.tsides>div+div i{background:var(--acc2)}
 .tsides span{position:relative;display:flex;height:100%;align-items:center;justify-content:center;font-weight:900;font-size:17px;letter-spacing:.08em;color:var(--txt)}
 .tsides>div.on{border-color:var(--txt)}
 .tsides>div.done{opacity:.5}
@@ -318,7 +318,12 @@ input.grow{min-width:0}
 .btn.warn{color:var(--bad);border-color:rgba(255,92,92,.45)}
 .wkrow .dt{font-size:12px;color:var(--mut);width:40px;flex:none}
 .wkrow .wn{flex:1;min-width:0}
-.wkrow .cbtn{flex:none;min-height:36px;padding:0 10px;font-size:13px}
+.wkrow .cbtn{flex:none;min-height:44px;min-width:44px;padding:0 10px;font-size:13px}
+.tcue{text-align:center;font-size:20px;font-weight:800;color:var(--txt);margin:10px 0 2px;line-height:1.25}
+#tmr .tstop{flex:none;min-height:44px;border-color:rgba(255,207,63,.6);color:var(--warn)}
+.stoprow{display:flex;align-items:center;gap:12px;width:100%;min-height:64px;margin-bottom:10px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--txt);font-size:16px;font-weight:700;padding:12px 14px;text-align:left;cursor:pointer}
+.stoprow small{display:block;font-size:12px;color:var(--mut);font-weight:600;margin-top:2px}
+.stoprow.warn{border-color:rgba(255,207,63,.6)}
 .chbtn small{display:block;font-size:12px;color:var(--mut);font-weight:600;margin-top:2px}
 .chbtn.cur{border-color:var(--acc)}
 .sumxp{text-align:center;margin:14px 0 6px}
@@ -350,14 +355,16 @@ input.grow{min-width:0}
 <!-- end-of-workout sheet: reps of the last round + rule-of-15 proposals -->
 <div id="done">
   <div id="doneA">
-    <h2 style="margin:6px 0 4px">Com’è andata? 💪</h2>
-    <div class="mut" style="font-size:14px;line-height:1.5;margin-bottom:6px">Quante ripetizioni hai fatto nell’<b>ultimo giro</b>? L’allenamento è già contato: questo serve solo a farti progredire.</div>
-    <div id="doneRows"></div>
-    <div class="sect" style="margin-top:14px">Spalla e gomito oggi</div>
+    <h2 style="margin:6px 0 4px" id="doneH">Com’è andata? 💪</h2>
+    <div class="sect" style="margin-top:10px">Spalla e gomito oggi</div>
     <div class="row" style="flex-wrap:wrap;gap:6px" id="shRow"></div>
     <div class="row" style="flex-wrap:wrap;gap:6px;margin-top:6px" id="elRow"></div>
     <div id="shWarn"></div>
+    <div id="doneRepsBox">
+    <div class="mut" style="font-size:14px;line-height:1.5;margin:14px 0 6px">Quante ripetizioni hai fatto nell’<b>ultimo giro</b>? L’allenamento è già contato: questo serve solo a farti progredire.</div>
+    <div id="doneRows"></div>
     <div class="mut" style="font-size:12px;margin-top:8px">Verde = tetto della forchetta (si sale) · giallo = sotto il fondo.</div>
+    </div>
     <button class="btn" id="doneBtn" style="margin-top:14px" onclick="doneSave()">Salva ripetizioni</button>
     <button class="lnk" style="width:100%" onclick="doneSkip()">Non ora</button>
   </div>
@@ -377,7 +384,7 @@ input.grow{min-width:0}
   <div class="mut" id="sumSub" style="font-size:14px"></div>
   <div id="sumBody"></div>
   <button class="btn" style="margin-top:14px" onclick="closeSummary()">Fatto ✓</button>
-  <button class="lnk" style="width:100%" onclick="closeSummary();pickPhoto()">📸 Aggiungi la foto di oggi</button>
+  <button class="lnk" id="sumPhoto" style="width:100%" onclick="closeSummary();pickPhoto()">📸 Aggiungi la foto di oggi</button>
 </div>
 <!-- run log (v35) -->
 <div id="runsheet" class="sheet">
@@ -389,6 +396,14 @@ input.grow{min-width:0}
   <input id="runKm" type="number" inputmode="decimal" step="0.1" min="0" max="100" placeholder="es. 5.2">
   <button class="btn" style="margin-top:16px" onclick="saveRunLog()">Salva corsa</button>
   <button class="lnk bad" id="runDel" style="width:100%;margin-top:14px;display:none" onclick="delRun()">Rimuovi la corsa di oggi</button>
+</div>
+<!-- v38: one stop sheet (no more Esci next to Spalla) -->
+<div id="stopSheet" class="sheet" style="z-index:230">
+  <h2 style="margin:6px 0 12px">Ti fermi?</h2>
+  <button class="stoprow" onclick="stopChoice('go')">▶<span>Continua<small>Il timer riparte da dove eri</small></span></button>
+  <button class="stoprow warn" onclick="stopChoice('slip')">🩹<span>Spalla scivolata: mi fermo<small>La giornata conta comunque</small></span></button>
+  <button class="stoprow" onclick="stopChoice('ache')">⚠️<span>Fastidio o apprensione: salto questa serie<small>Lo segni a fine allenamento</small></span></button>
+  <button class="stoprow" onclick="stopChoice('quit')">✕<span>Esci senza contare<small>L’allenamento di oggi non viene registrato</small></span></button>
 </div>
 <!-- resume an interrupted workout -->
 <div id="resume" class="sheet">
@@ -409,7 +424,7 @@ input.grow{min-width:0}
   <div class="row" style="margin-bottom:6px"><h2 class="grow" style="margin:0">⚖️ Peso di oggi</h2><button class="btn sec small" onclick="closeQW()">✕</button></div>
   <div class="wrow">
     <button class="wbtn" onclick="qwAdj(-0.1)" aria-label="meno">−</button>
-    <input id="qwIn" type="number" inputmode="decimal" step="0.1" min="30" max="250" placeholder="0,0" style="flex:1;min-width:0;text-align:center;font-size:36px;font-weight:900;height:56px">
+    <input id="qwIn" type="text" inputmode="decimal" step="0.1" min="30" max="250" placeholder="0,0" style="flex:1;min-width:0;text-align:center;font-size:36px;font-weight:900;height:56px">
     <span class="wunit">kg</span>
     <button class="wbtn" onclick="qwAdj(0.1)" aria-label="più">+</button>
   </div>
@@ -474,7 +489,7 @@ input.grow{min-width:0}
         <div class="mut" id="xpTxt" style="font-size:12px"></div>
       </div>
     </div>
-    <details style="margin-top:8px"><summary style="min-height:36px;padding:6px 0;font-size:13px;color:var(--mut)">Tutti i livelli</summary><div id="tierList"></div></details>
+    <details style="margin-top:8px"><summary style="min-height:44px;padding:6px 0;font-size:13px;color:var(--mut)">Tutti i livelli</summary><div id="tierList"></div></details>
   </div>
 </div>
 
@@ -511,7 +526,7 @@ input.grow{min-width:0}
 
 <!-- ===================== TIMER ===================== -->
 <div id="tmr">
-  <div class="row"><button class="btn sec small" onclick="quitTimer()">✕ Esci</button><button class="btn sec small" onclick="shStop()" aria-label="Mi fermo per la spalla">🩹 Spalla</button><div class="grow"></div><span class="tag" id="tProg"></span><span class="tag hot" id="tRemain"></span></div>
+  <div class="row"><button class="iconbtn" onclick="openStop()" aria-label="Fermati">✕</button><div class="grow"></div><span class="tag" id="tProg"></span><span class="tag hot" id="tRemain"></span><button class="btn sec small tstop" onclick="openStop()" aria-label="Mi fermo per la spalla">🩹 Spalla</button></div>
   <div class="tprog"><i id="tTotal" style="width:0%"></i></div>
   <div class="grow" style="display:flex;flex-direction:column;justify-content:center" id="tBody" onclick="if(seq[ti]&&seq[ti].open&&!event.target.closest('iframe,a,button'))roundBtn()">
     <div class="tphase" id="tPhase">LAVORO</div>
@@ -526,7 +541,7 @@ input.grow{min-width:0}
   <button class="btn tdone" id="tRound" style="display:none" onclick="roundBtn()">FATTO ✓</button>
   <div class="row tfoot">
     <button class="btn sec small" id="tPause" onclick="pauseT()">⏸ Pausa</button>
-    <button class="btn sec small" onclick="skipT()">⏭ Salta esercizio</button>
+    <button class="btn sec small" id="tSkip" onclick="skipT()">⏭ Salta serie</button>
   </div>
 </div>
 
@@ -555,9 +570,15 @@ input.grow{min-width:0}
         <ul style="margin:0;padding-left:18px"><li style="margin-bottom:6px">Tutte e due le spalle sono instabili: niente posizioni a fine corsa, in nessuna direzione. Lavori sempre nella zona comoda, a velocità controllata.</li><li style="margin-bottom:6px">Mai: spinte sopra la testa, dip, trazioni alla sbarra, snatch, alzate Y-T, swing. Tiri solo in orizzontale, col gomito che si ferma alla linea del corpo.</li><li style="margin-bottom:6px">Push-up sempre con l'asciugamano arrotolato sotto lo sterno. Floor press e squeeze si fermano col gomito a terra. In alto spingi ancora un filo (scapole in avanti), senza bloccare di colpo.</li><li style="margin-bottom:6px">Kettlebell: due mani per portarlo sul petto e due per posarlo. Bottoms-up solo con il 6 kg. Extrarotazioni solo con bottiglie. Mai oltre i 12 kg.</li><li style="margin-bottom:6px">Esercizi di stabilità (extrarotazioni, Prone W, scap push-up, bottoms-up): ti fermi alla prima ripetizione meno pulita, con 2-3 ripetizioni in riserva.</li><li style="margin-bottom:6px">Niente allungamenti per la spalla: né petto al muro, né stipite, né braccia sopra la testa.</li><li style="margin-bottom:6px">Se il peso scappa verso l'esterno o senti la spalla "lenta", la serie finisce lì.</li><li style="margin-bottom:6px">Apprensione durante una spinta: scendi di una variante. Se torna, fai il floor press a due mani.</li><li style="margin-bottom:6px">A fine allenamento segna Spalla (ok, fastidio, scivolata) e Gomito. Se la spalla scivola durante l'allenamento, fermati subito e tocca il pulsante Spalla.</li><li style="margin-bottom:6px">Di notte dormi sulla schiena, o sul fianco abbracciando un cuscino con il braccio sotto l'altezza della spalla. Mai il braccio sotto il cuscino o sopra la testa.</li></ul>
       </div>
     </details>
-    <details>
+    <details id="flagsCard">
       <summary>🚩 Quando fermarti e farti vedere</summary>
-      <div class="saf" style="margin-top:0;line-height:1.5">Fermati e fatti vedere da un fisioterapista esperto di spalla o da un ortopedico se:<br>- la spalla esce e devi rimetterla a posto, o resta fuori;<br>- senti formicolio, intorpidimento o il "braccio morto";<br>- hai dolore di notte, o ti svegli di nuovo con la spalla fuori sede;<br>- ti scivola 2 volte in 14 giorni, o ti scivola sempre più spesso nella vita di tutti i giorni;<br>- la scapola si stacca dalla schiena (scapola alata), o hai una debolezza che non passa in circa 2 settimane.<br>Anche senza questi segnali, ti sei già svegliato con la spalla fuori sede, e questo basta per prenotare una valutazione. Nel frattempo puoi aumentare le ripetizioni nella variante che fai, e dopo 2 settimane di "ok" aggiungere bottiglie allo zaino. I piedi rialzati e gli altri cambi di angolo nelle spinte aspettano la visita.<br>Alla visita chiedi:<br>- un test di ipermobilità generale (Beighton);<br>- se conta che riesci a far uscire la spalla apposta o in posizioni precise: in quel caso si lavora prima sul controllo del movimento, poi sulla forza;<br>- se conta che il braccio si senta "lento" mentre porti le borse della spesa (instabilità verso il basso);<br>- se serve un esame per escludere una lesione.</div>
+      <div class="saf" style="margin-top:0;line-height:1.5">
+        <b>Hai già un motivo per farti vedere: ti sei svegliato con la spalla fuori sede. Prenota una valutazione</b> (ortopedico o fisiatra della spalla, poi fisioterapista).<br><br>
+        <b style="color:var(--bad)">Subito al pronto soccorso</b> se la spalla resta fuori sede, o se il braccio è intorpidito, freddo o senza forza per più di qualche minuto.<br><br>
+        <b>Prenota una visita</b> se la spalla esce e devi rimetterla a posto, se ti scivola 2 volte in 14 giorni o sempre più spesso nella vita di tutti i giorni, se hai dolore di notte, formicolio, la scapola che si stacca dalla schiena, o una debolezza che non passa in circa 2 settimane.
+      </div>
+      <details style="margin-top:8px"><summary style="min-height:44px">Nel frattempo</summary><div class="mut" style="font-size:14px;line-height:1.5">Puoi aumentare le ripetizioni nella variante che fai e, dopo 2 settimane di “ok”, aggiungere bottiglie allo zaino. Piedi rialzati e altri cambi di angolo nelle spinte aspettano la visita.</div></details>
+      <details><summary style="min-height:44px">Alla visita chiedi</summary><div class="mut" style="font-size:14px;line-height:1.5">In che direzione esce (avanti, dietro, in basso) · un test di ipermobilità (Beighton) · se conta che il braccio si senta “lento” portando le borse della spesa · se serve un esame per escludere una lesione · che esercizi puoi caricare e come progredire.</div></details>
     </details>
   </div>
 </div>
@@ -645,7 +666,7 @@ input.grow{min-width:0}
     <select id="setShift" onchange="setShift(this.value)"></select>
     <label class="f" for="setKb">Kettlebell disponibili</label>
     <select id="setKb" onchange="setKb(this.value)"></select>
-    <div class="mut" style="margin-top:8px">Col 12 kg attivo i movimenti grandi (swing, squat, stacchi, rematore, floor press, curl) passano al 12 con forchette più basse. Le extrarotazioni restano sempre leggere. Se un giorno hai solo il 6, spegnilo: i progressi non si toccano.</div>
+    <div class="mut" style="margin-top:8px">Col 12 kg attivo i movimenti grandi (rematore, floor press, squeeze, curl, squat, affondi, stacco) passano al 12 con forchette più basse. Il bottoms-up resta sempre sul 6. Le extrarotazioni restano sempre leggere. Se un giorno hai solo il 6, spegnilo: i progressi non si toccano.</div>
     <label class="f" for="setTravel">Modalità viaggio (solo corpo libero)</label>
     <select id="setTravel" onchange="setTravel(this.value)"></select>
     <div class="mut" style="margin-top:8px">Quando sei via: ogni allenamento viene tradotto a corpo libero finché non la spegni. Per un giorno solo usa l’interruttore nell’allenamento.</div>
@@ -1004,11 +1025,16 @@ const KB6_ONLY=['carry'];
 const CAP12={triext:2};
 /* exercises that load the shoulder: their level-ups wait for 14 days without discomfort */
 const SH=['pushup','floorpress','squeeze','slowpush','row','scap','carry','ytw','superman','sideplank','plankcore','triext'];
+/* stability exercises stop at the first less clean rep (2-3 in reserve), not 1-2 from failure */
+const STAB=['scap','ytw','superman','carry','sideplank','plankcore'];
+/* one short cue per exercise, shown big in the timer when it matters (mid-set, 1-2 m from the phone) */
+const CUE={pushup:'Petto sull’asciugamano, mai più giù',slowpush:'Petto sull’asciugamano, mai più giù',floorpress:'Cambio braccio: due mani sul petto',squeeze:'Kettlebell stretto, gomiti a terra in basso',row:'Gomito al fianco, mai oltre',ytw:'Gomito al fianco · stop prima della verticale',carry:'Solo 6 kg · cambio a due mani',scap:'Piccolo: mai fino in fondo',superman:'Gomiti sotto la linea della schiena',triext:'Gomiti fermi e verticali',sideplank:'Spingi il pavimento, spalla giù',lunge:'Se perdi l’equilibrio, giù il piede',rdl:'Spalla attiva, mai appesa',kbcrunch:'Braccia a 90° dal busto',curl:'Gomito fermo al fianco',gobsquat:'Kettlebell al petto, schiena dritta',lowerabs:'Lombare a terra',hollow:'Lombare premuta a terra',bptri:'Gomiti fermi e verticali',bprow:'Gomito al fianco, mai oltre'};
+function cueFor(id,L){const v=EX[id]&&EX[id].v[(L||1)-1];let c=CUE[id]||'';if(v&&/1½/.test(v.n))c+=(c?' · ':'')+(id==='row'?'su, giù a metà, su, giù tutto = 1':'giù, su a metà, giù, su tutto = 1');if(id==='ytw')c+=L>=3?' · bottiglia 1 L':' · bottiglia 0,5 L';return c;}
 /* at the top of level 3 the generic "slow down" is replaced by the lever that fits the exercise */
 const MAXHINT={pushup:'Aggiungi una bottiglia nello zaino (massimo 4). Con 4 bottiglie tieni: la prossima leva arriva dopo la visita.',row:'Tetto del 12 kg: tieni 10 per lato, pulite.',floorpress:'Pausa di 2 secondi col gomito a terra. Tetto del 12 kg: tieni 10 pulite per lato.',squeeze:'1 secondo di pausa col kettlebell appoggiato al petto.',ytw:'Passa alla bottiglia da 1,5 L, poi tieni: è il massimo.'};
 Object.assign(EX.pushup,{saf:'Profondità fissa: asciugamano arrotolato (circa 10 cm) sotto lo sterno, il petto lo sfiora e risali. Il gomito non sale mai sopra la linea della schiena. Gomiti a 30-45°, mai larghi. In alto spingi ancora un filo (scapole in avanti), senza bloccare di colpo. Se la spalla si sente “lenta”, fermati.',v:[
  {n:'Push-up sulle ginocchia',s:['Ginocchia a terra, mani sotto le spalle, asciugamano arrotolato sotto lo sterno','Scendi in 2 secondi finché il petto sfiora l’asciugamano, gomiti a 30-45°','Risali e in alto spingi ancora un filo, scapole in avanti'],c:'Addome contratto, non far cadere i fianchi',yt:'push up ginocchia tutorial'},
- {n:'Push-up standard',s:['Posizione di plank, mani sotto le spalle, asciugamano arrotolato sotto lo sterno','Scendi in 2 secondi finché il petto sfiora l’asciugamano: mai più giù','Risali spingendo forte e in alto spingi ancora un filo, scapole in avanti'],c:'Contano solo le ripetizioni che toccano l’asciugamano: la profondità resta sempre uguale',yt:'push up perfetto tutorial italiano'},
+ {n:'Push-up all’asciugamano',s:['Posizione di plank, mani sotto le spalle, asciugamano arrotolato sotto lo sterno','Scendi in 2 secondi finché il petto sfiora l’asciugamano: mai più giù','Risali spingendo forte e in alto spingi ancora un filo, scapole in avanti'],c:'Contano solo le ripetizioni che toccano l’asciugamano: la profondità resta sempre uguale',yt:'push up perfetto tutorial italiano'},
  {n:'Push-up con zaino',s:['Zaino ben stretto con 2 bottiglie d’acqua da 1 litro, asciugamano arrotolato sotto lo sterno','Stessa esecuzione dello standard: scendi solo finché il petto sfiora l’asciugamano','In cima alla forchetta aggiungi una bottiglia, massimo 4. Mai il kettlebell nello zaino'],c:'Cambia il peso, mai la profondità: la spalla resta nell’angolo che conosce',yt:'weighted push up backpack'}]});
 EX.floorpress.saf='Esercizio IDEALE per spalle instabili: il pavimento ferma il gomito alla linea del busto. Due mani dentro, due mani fuori: porta il kettlebell sul petto con due mani prima di iniziare e prima di cambiare braccio. Se il peso scappa verso l’esterno, la serie finisce lì. In alto non bloccare di colpo.';
 Object.assign(EX.floorpress.v[1],{s:['Sdraiato, ginocchia piegate: porta il kettlebell sul petto con due mani, poi tienilo con una','Spingi su controllando che il peso non oscilli, l’altra mano a terra','Fai le ripetizioni con un braccio, riporta il peso sul petto con due mani e cambia'],c:'Se il peso scappa verso l’esterno, la serie è finita'});
@@ -1057,12 +1083,23 @@ REP.pushup={v:[{t:'rep',r:[8,15]},{t:'rep',r:[8,15]},{t:'rep',r:[6,12]}]};
 REP.row={v:[{t:'rep',kb:1,r6:[12,15],r12:[8,15],side:1},{t:'rep',kb:1,r6:[12,15],r12:[8,12],side:1},{t:'rep',kb:1,r6:[10,15],r12:[6,10],side:1}]};
 REP.ytw={v:[{t:'iso',side:1},{t:'rep',r:[8,12],side:1},{t:'rep',r:[8,12],side:1}]};
 VIDS.row[1]='f-TLy1csG3U';VIDS.row[2]='';VIDS.pushup[2]='';VIDS.ytw[2]='';
-/* no-equipment mode: no table row (traction at the bottom), no bird dog, no feet-elevated push-up */
-Object.assign(BW,{floorpress:'slowpush',squeeze:'pushup',row:'superman',carry:'sideplank'});
+/* no-equipment mode: no table row (traction at the bottom), no bird dog, no feet-elevated push-up; triceps and row with a backpack */
+EX.bptri={ic:'🎒',m:'Tricipiti',saf:'Come l’estensione a terra: gomiti verticali e fermi, la spalla non si muove. Zaino con bottiglie, massimo 4 litri.',v:[
+ {n:'Estensione a terra con zaino',s:['Sdraiato, ginocchia piegate, zaino con 2 bottiglie da 1 L tenuto per le spallacce sopra il petto','Piega solo i gomiti portando lo zaino verso la fronte','Riestendi senza muovere le spalle'],c:'Gomiti fermi e verticali',yt:'lying triceps extension backpack'},
+ {n:'Estensione con zaino lenta + pausa',s:['Come il livello 1, con 3 bottiglie','Discesa in 3 secondi, pausa di 1 secondo','Riestendi senza muovere le spalle'],c:'Gomiti fermi e verticali',yt:'lying triceps extension slow'},
+ {n:'Estensione con zaino 1½',s:['Zaino con 4 bottiglie','Giù, su a metà, giù, su tutto: 1 ripetizione','Gomiti sempre verticali'],c:'Gomiti fermi e verticali',yt:'triceps extension 1.5 reps'}]};
+EX.bprow={ic:'🎒',m:'Dorsali, bicipiti',saf:'Tira il gomito al fianco, mai oltre la linea del corpo. In basso spalla attiva, mai appesa allo zaino.',v:[
+ {n:'Rematore con zaino appoggiato',s:['Mano e ginocchio su una sedia, zaino con 2-3 bottiglie nell’altra mano','Tira il gomito verso il fianco, scapola indietro','Scendi lento. Fai le ripetizioni con un braccio, poi con l’altro'],c:'Gomito al fianco, mai oltre',yt:'one arm backpack row'},
+ {n:'Rematore con zaino, fermo in alto',s:['Come il livello 1, con 3-4 bottiglie','1 secondo di fermo col gomito sulla linea del corpo','Scendi in 2 secondi. Un braccio, poi l’altro'],c:'Gomito al fianco, mai oltre',yt:'backpack row pause'},
+ {n:'Rematore con zaino 1½',s:['Zaino con 4 bottiglie','Su al fianco, giù a metà, su, giù tutto: 1 ripetizione','Un braccio, poi l’altro'],c:'Gomito al fianco, mai oltre',yt:'1.5 rep row'}]};
+REP.bptri={v:[{t:'rep',r:[10,15]},{t:'rep',r:[8,12]},{t:'rep',r:[8,12]}]};
+REP.bprow={v:[{t:'rep',r:[12,15],side:1},{t:'rep',r:[10,15],side:1},{t:'rep',r:[8,12],side:1}]};
+Object.assign(BW,{triext:'bptri'});
+Object.assign(BW,{floorpress:'slowpush',squeeze:'pushup',row:'bprow',carry:'sideplank'});
 Object.assign(BW_LV,{plankcore:2,tablext:1,pushup2:1});
 /* warm-up with shoulder isometrics every day; no end-range shoulder stretch anywhere */
 WARM.splice(0,WARM.length,{n:'Marcia sul posto veloce',d:45},{n:'Isometrie spalla al muro al 50%: gomito al fianco, fuori 8", dentro 8"',d:45,sd:1},{n:'Push-up al muro a metà: fermati a un palmo dal muro, poi spinta finale (scapole avanti)',d:45},{n:'Squat lenti, braccia avanti sotto le spalle',d:45});
-COOL.splice(0,COOL.length,{n:'Respirazione su asciugamano arrotolato lungo la schiena, mani sulla pancia',d:30},{n:'Allungamento flessori dell’anca in ginocchio, mani sul ginocchio',d:30,sd:1},{n:'Allungamento femorali da seduto, mani sulle cosce',d:30},{n:'Posizione del bambino, braccia lungo i fianchi',d:30});
+COOL.splice(0,COOL.length,{n:'Respirazione a pancia in su, ginocchia piegate, gomiti a terra',d:30},{n:'Allungamento flessori dell’anca in ginocchio, mani sul ginocchio',d:30,sd:1},{n:'Allungamento femorali da seduto, mani sulle cosce',d:30},{n:'Posizione del bambino, braccia lungo i fianchi',d:30});
 RECOV.splice(0,RECOV.length,{n:'Respirazione diaframmatica a pancia in su, ginocchia piegate',d:75},{n:'Gatto-mucca lento, ampiezza comoda',d:75},{n:'Spostamenti di peso a 4 zampe, piccoli e lenti',d:75},{n:'Isometrie spalla al muro leggere: fuori, dentro, di lato (30-50%)',d:75,sd:1},{n:'Rotazioni toraciche da seduto, braccia incrociate sul petto',d:75,sd:1},{n:'Allungamento flessori dell’anca in ginocchio, mani sul ginocchio',d:75,sd:1},{n:'Allungamento femorali da sdraiato, gamba appoggiata allo stipite',d:75,sd:1},{n:'Figura 4 da sdraiato, piede appoggiato al muro, mani libere',d:75,sd:1});
 function boostOf(id){return ((S.coreUp!==0&&CORE.indexOf(id)>-1)||(S.legsUp!==0&&LEGS.indexOf(id)>-1)||(S.upperUp!==0&&UPPER.indexOf(id)>-1))?1:0;}
 /* shoulder gate: no level-up on shoulder exercises within 14 days of a "fastidio" or "scivolata" */
@@ -1196,7 +1233,7 @@ function render(){
   const msg=document.getElementById('streakMsg');
   const hr=new Date().getHours();
   hero.classList.remove('danger');fl.classList.remove('pulse');
-  if(doneToday){msg.innerHTML='✅ Fatto anche oggi. Sei una roccia.';}
+  if(doneToday){msg.innerHTML=S.log[t].sh==='scivolata'?'🩹 Oggi ti sei fermato per la spalla: la giornata conta.':'✅ Fatto anche oggi. Sei una roccia.';}
   else if(isRecDay(t)&&today()>=S.start){msg.innerHTML='🧘 Giorno di recupero: lo streak è al sicuro comunque. Se fai i 20 minuti di mobilità, la spalla ringrazia e prendi gli XP.';}
   else if(st>0&&hr>=18){hero.classList.add('danger');fl.classList.add('pulse');msg.innerHTML='<b style="color:var(--bad)">⚠️ Lo streak di '+st+' giorni MUORE a mezzanotte!</b><br>Bastano 30 minuti. Ora.';}
   else if(st>0){msg.innerHTML='Oggi non ti sei ancora allenato. Non spezzare la catena.';}
@@ -1222,10 +1259,11 @@ function render(){
   const w=weekNum(),ph=phaseOf(w),lv=levelOf(w),sc=schedFor(today()),isRec=!sc.ex;
   document.getElementById('weekTag').textContent='Sett. '+Math.min(w,52)+'/52';
   document.getElementById('todayTitle').textContent=sc.ic+' '+sc.t;
-  document.getElementById('todaySub').innerHTML=isRec?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':sc.amrap?'AMRAP: un cronometro da 20’, quanti giri riesci? '+(S.amrapBest?'<b style="color:var(--acc2)">Da battere: '+S.amrapBest+' giri</b>':'<b style="color:var(--acc2)">Prima volta: fai il tuo record</b>'):'4 giri × 5 esercizi <b style="color:var(--acc2)">a ripetizioni</b> · '+(isBW(today())?'🎒 corpo libero':(S.kb12?'6 + 12 kg':'6 kg'))+' · fermati a 1–2 dal limite';
-  document.getElementById('todayDoneBox').innerHTML=doneToday?'<div class="cue" style="margin-top:10px">✅ Completato oggi! Puoi rifarlo per piacere, ma lo streak è già al sicuro.</div><button class="btn sec small" style="margin-top:10px" onclick="pickPhoto()">📸 Foto progresso di oggi</button>':'';
+  document.getElementById('todaySub').innerHTML=isRec?'20 minuti di mobilità dolce: conta per lo streak e le tue spalle ringraziano.':sc.amrap?'AMRAP: un cronometro da 20’, quanti giri riesci? '+(S.amrapBest?'<b style="color:var(--acc2)">Da battere: '+S.amrapBest+' giri</b>':'<b style="color:var(--acc2)">Prima volta: fai il tuo record</b>'):'4 giri × 5 esercizi <b style="color:var(--acc2)">a ripetizioni</b> · '+(isBW(today())?'🎒 corpo libero':(S.kb12?'6 + 12 kg':'6 kg'))+' · fermati a 1–2 dal limite (2–3 sulla stabilità)';
+  const slipToday=doneToday&&S.log[t].sh==='scivolata';
+  document.getElementById('todayDoneBox').innerHTML=slipToday?'<div class="verd warn" style="margin-top:10px">🩹 Spalla scivolata oggi. Braccio a riposo, niente allungamenti.'+(slips14()>=2?' <b>'+slips14()+'ª scivolata in 14 giorni: prenota la visita.</b>':'')+flagsLink()+'</div>'+(schedFor(addD(t,1)).ex?'<button class="btn sec small" style="margin-top:10px;width:100%" onclick="swapDayFor(addD(today(),1),0)">Domani: recupero al posto di '+schedFor(addD(t,1)).t+'</button>':''):doneToday?'<div class="cue" style="margin-top:10px">✅ Completato oggi! Puoi rifarlo per piacere, ma lo streak è già al sicuro.</div><button class="btn sec small" style="margin-top:10px" onclick="pickPhoto()">📸 Foto progresso di oggi</button>':'';
   document.getElementById('goBtn').textContent=doneToday?'↻ Rifallo (facoltativo)':isRec?'🧘 START RECUPERO (20’)':sc.amrap?'⚡ START TEST AMRAP':'▶ START ALLENAMENTO';
-  document.getElementById('goBtn').className=doneToday?'btn sec':'btn';
+  document.getElementById('goBtn').className=doneToday?'btn sec':'btn';document.getElementById('goBtn').style.display=slipToday?'none':'';
   document.getElementById('todayChg').style.display=(S.ovr&&S.ovr[t]!==undefined&&S.ovr[t]!==null)?'':'none';
   /* weekly ring: training days done this week (Mon–Sun), recovery day excluded from the target */
   try{const mon=addD(t,-((new Date(t+'T12:00:00').getDay()+6)%7));let done=0,goal=0;for(let i=0;i<7;i++){const ds=addD(mon,i);const r=isRecDay(ds);if(!r)goal++;if(S.log[ds]&&!r)done++;}
@@ -1277,7 +1315,7 @@ function openWorkout(ds,keep){
       document.getElementById('wSub').textContent='Un cronometro da 20’: completa il giro, tocca +1 GIRO e riparti. Tecnica sporca = rallenta.';
       document.getElementById('wTags').innerHTML='<span class="tag hot">AMRAP 20’</span> <span class="tag">'+(bw?'🎒 corpo libero':(S.kb12?'12 kg':'6 kg'))+'</span> <span class="tag">'+(best?'Da battere: '+best+' giri':'Prima volta: fai il tuo record')+'</span>';
     }else{
-      document.getElementById('wSub').textContent='4 giri × 5 esercizi · fermati a 1–2 dal limite, tocca FATTO, '+RR+'" di recupero.';
+      document.getElementById('wSub').textContent='4 giri × 5 esercizi · fermati a 1–2 dal limite (2–3 sulla stabilità), tocca FATTO, '+RR+'" di recupero.';
       document.getElementById('wTags').innerHTML='<span class="tag hot">A ripetizioni</span> <span class="tag">'+(bw?'🎒 corpo libero':(S.kb12?'6 + 12 kg':'solo 6 kg'))+'</span> <span class="tag">~30’ totali</span>';
     }
     list.innerHTML=sc.ex.map((id,ix)=>{
@@ -1291,7 +1329,7 @@ function openWorkout(ds,keep){
       /* v28: manual adjust (kettlebell & variant) without waiting for the end-of-workout rule */
       (isA?'':'<div class="exadj"><span class="mut">Regola tu:</span>'+
         (REP[id]&&(REP[id].kb||(REP[id].v&&REP[id].v.some(x=>x.kb)))&&S.kb12&&KB6_ONLY.indexOf(id)<0?'<button class="chk'+(sp.kb===6?' on':'')+'" onclick="adjEx(\''+id+'\',\'kb\',6)">6 kg</button><button class="chk'+(sp.kb===12?' on':'')+'" onclick="adjEx(\''+id+'\',\'kb\',12)">12 kg</button>':'')+
-        '<span class="step"><button onclick="adjEx(\''+id+'\',\'lv\',-1)" aria-label="variante più facile"'+(L<=1?' disabled':'')+'>−</button><b style="font-size:14px;min-width:52px">Liv. '+L+'</b><button onclick="adjEx(\''+id+'\',\'lv\',1)" aria-label="variante più dura"'+(L>=3||(CAP12[id]&&sp.kb===12&&L>=CAP12[id])?' disabled':'')+'>+</button></span></div>')+
+        '<span class="step"><button onclick="adjEx(\''+id+'\',\'lv\',-1)" aria-label="variante più facile"'+(L<=1?' disabled':'')+'>−</button><b style="font-size:14px;min-width:52px">Liv. '+L+'</b><button onclick="adjEx(\''+id+'\',\'lv\',1)" aria-label="variante più dura"'+(L>=3||(CAP12[id]&&sp.kb===12&&L>=CAP12[id])?' disabled':'')+'>+</button></span>'+(CAP12[id]&&sp.kb===12?'<div class="mut" style="width:100%;font-size:12px;margin-top:4px">Col 12 kg il massimo è Liv. '+CAP12[id]+'. Per il Liv. 3 scegli 6 kg.</div>':'')+'</div>')+
       '<div class="vid" data-v="'+((VIDS[id]||[])[lvFor(id,lv)-1]||'')+'"></div>'+
       '<a class="ytb" target="_blank" rel="noopener" href="https://www.youtube.com/results?search_query='+encodeURIComponent(v.yt)+'">🔎 Altri video su YouTube</a></details>';
     }).join('');
@@ -1318,7 +1356,7 @@ function openWorkout(ds,keep){
       /* rep exercises are open-ended: no countdown, the user taps FATTO when the reps are done (d = estimate for the total-time bar) */
       seq.push({n:v.n,d:RW,ph:'work',lab:'LAVORO · GIRO '+g+'/4',id:id,sp:sp,lv:L,open:sp.t==='rep',sides:sp.t==='iso'&&sp.side,ei:i+1,en:sc.ex.length});
       const nsp=nid?specFor(nid,lvFor(nid,lv)):null;
-      seq.push({n:'Recupero',d:RR,ph:'rest',lab:'RECUPERO',nsp:nsp,vid:nid?(VIDS[nid]||[])[lvFor(nid,lv)-1]:null,nx:sc.ex[i+1]?EX[sc.ex[i+1]].v[lvFor(sc.ex[i+1],lv)-1].n:(g<4?'Nuovo giro: '+EX[sc.ex[0]].v[lvFor(sc.ex[0],lv)-1].n:'Defaticamento')});
+      seq.push({n:'Recupero',d:RR,ph:'rest',lab:'RECUPERO',nsp:nsp,nid:nid,nlv:nid?lvFor(nid,lv):null,vid:nid?(VIDS[nid]||[])[lvFor(nid,lv)-1]:null,nx:sc.ex[i+1]?EX[sc.ex[i+1]].v[lvFor(sc.ex[i+1],lv)-1].n:(g<4?'Nuovo giro: '+EX[sc.ex[0]].v[lvFor(sc.ex[0],lv)-1].n:'Defaticamento')});
     });
     COOL.forEach(x=>seq.push({n:x.n,d:x.d,sides:x.sd,ph:'warm',lab:'DEFATICAMENTO'}));
     seqMeta={type:'w',ex:sc.ex.slice(),lv:lv};
@@ -1327,6 +1365,7 @@ function openWorkout(ds,keep){
   /* swap menu: which session is assigned to this day */
   const isOvr=S.ovr&&S.ovr[ds]!==undefined&&S.ovr[ds]!==null;
   document.getElementById('swapBtn').textContent=isOvr?'🔁 Cambiato':'🔁 Cambia';
+  document.getElementById('swapBtn').style.display=ds<today()?'none':'';
   /* browsing another day: preview only, START hidden */
   const isToday=ds===today();
   const dnames=['Dom','Lun','Mar','Mer','Gio','Ven','Sab'];
@@ -1336,10 +1375,10 @@ function openWorkout(ds,keep){
   pn.style.display=isToday?'none':'block';
   pn.textContent='👀 Anteprima: potrai avviarlo solo quel giorno. Sfoglia con ‹ ›';
   try{renderMusic();}catch(e){}
-  const bb=document.getElementById('bwBtn');if(bb){const on=isBW(ds);bb.textContent='🎒 Senza attrezzi'+(on?' ✓':'');bb.classList.toggle('on',on);bb.style.display=isRec?'none':'';document.getElementById('bwHint').style.display=isRec?'none':'';if(S.travel){bb.textContent='🎒 Viaggio (Impostazioni)';}}
+  const bb=document.getElementById('bwBtn');if(bb){const on=isBW(ds);bb.textContent='🎒 Senza attrezzi'+(on?' ✓':'');bb.classList.toggle('on',on);bb.style.display=(isRec||ds<today())?'none':'';document.getElementById('bwHint').style.display=isRec?'none':'';if(S.travel){bb.textContent='🎒 Viaggio (Impostazioni)';}}
   show('work',keep);
 }
-function workBack(){const f=window.__from;show(f&&f!=='work'?f:'home');}
+function workBack(){const f=window.__from;show(f&&f!=='work'?f:'home',true);}
 /* ============ AVATAR (v35): an original little warrior that evolves with the tier ============ */
 function avatarSVG(st){
   st=Math.max(0,Math.min(5,st||0));
@@ -1460,6 +1499,10 @@ function openSummary(){
   document.getElementById('sumTitle').textContent=window.__shStop?'Fermo per la spalla 🩹':m.first?'Allenamento completato 🎉':'Doppia razione 💪';
   document.getElementById('sumSub').textContent=sc.ic+' '+sc.t+(m.first?'':' · già contato per oggi');
   const li=lvlIdx(),T0=TIERS[li],T1=TIERS[li+1];
+  if(window.__shStop){document.getElementById('sumSub').textContent=sc.ic+' '+sc.t;document.getElementById('sumPhoto').style.display='none';
+    document.getElementById('sumBody').innerHTML='<div class="mut" style="margin:10px 0">'+(m.first?'+'+m.gain+' XP · ':'')+'la giornata conta. Braccio a riposo, niente allungamenti.</div><div class="verd warn">'+(slips14()>=2?'<b>'+slips14()+'ª scivolata in 14 giorni: prenota la visita.</b> ':'')+SH_FLAGS+flagsLink()+'</div>';
+    document.getElementById('summary').classList.add('on');document.getElementById('summary').scrollTop=0;return;}
+  document.getElementById('sumPhoto').style.display='';
   let h=(m.first?'<div class="sumxp"><b>+'+m.gain+' XP</b><span>'+T0.n+(T1?' · '+(T1.xp-S.xp)+' XP a '+T1.n:'')+'</span></div><div class="xpbar"><i style="width:'+(T1?Math.min(100,(S.xp-T0.xp)/(T1.xp-T0.xp)*100):100)+'%"></i></div>':'')+
     '<div class="sumgrid">'+
     '<div class="bstat"><span>Durata</span><b>'+(m.dur?m.dur+'’':'—')+'</b></div>'+
@@ -1469,16 +1512,17 @@ function openSummary(){
   else if(m.type==='w'&&!m.amrap&&m.tot)h+='<div class="mut" style="margin-top:8px;font-size:13px">Nessun record oggi: normale, i record arrivano a ondate. La costanza è il record vero.</div>';
   if(m.amrap&&m.rounds>0&&m.rounds>=m.best)h+='<div class="verd ok">🏆 Nuovo record AMRAP: '+m.rounds+' giri. Prossimo test tra 4 settimane.</div>';
   if(window.__lvup){h+='<div class="verd info" style="display:flex;align-items:center;gap:10px"><div class="avatar" style="width:60px;height:68px">'+avatarSVG(window.__lvup.st)+'</div><div><b>Nuovo livello: '+window.__lvup.n+'</b><div class="mut" style="font-size:12px">Il tuo guerriero è cresciuto.</div></div></div>';window.__lvup=null;}
-  if(window.__sh&&window.__sh!=='ok')h+='<div class="verd warn" style="margin-top:10px">'+(window.__sh==='scivolata'?'Spalla scivolata: oggi basta così. ':'Fastidio alla spalla: ')+SH_FLAGS+'</div>';
+  if(window.__sh==='scivolata')h+='<div class="verd warn" style="margin-top:10px">Spalla scivolata: '+(slips14()>=2?'<b>'+slips14()+'ª in 14 giorni, prenota la visita.</b> ':'')+SH_FLAGS+flagsLink()+'</div>';
+  else if(window.__sh==='fastidio')h+='<div class="verd info" style="margin-top:10px">Fastidio alla spalla segnato: per 14 giorni gli esercizi di spalla non salgono.</div>';
   const props=window.__props||[];
   if(props.length){const ask=props.some(p=>p.act);
     h+='<div class="sect" style="margin-top:14px">📈 Regola del 15'+(ask?' · decidi tu':'')+'</div>'+props.map((p,i)=>'<div class="prop" id="pp_'+i+'"><b>'+EX[p.id].ic+' '+p.h+'</b><div class="mut">'+p.txt+'</div>'+(p.act?'<div class="row"><button class="btn sec small" onclick="propNo('+i+')">Non ancora</button><button class="btn small" onclick="propYes('+i+')">Sì, dalla prossima</button></div>':'')+'</div>').join('');}
   document.getElementById('sumBody').innerHTML=h;
   document.getElementById('summary').classList.add('on');document.getElementById('summary').scrollTop=0;
 }
-function closeSummary(){document.getElementById('summary').classList.remove('on');window.__sum=null;window.__props=[];window.__shStop=0;window.__sh='ok';}
+function closeSummary(){document.getElementById('summary').classList.remove('on');window.__sum=null;window.__props=[];window.__shStop=0;window.__sh='ok';window.__shFl=null;}
 /* v35: no-equipment toggle for one day */
-function toggleBW(){const ds=window.__wds||today();if(S.travel){toast('Modalità viaggio attiva per tutti i giorni: la spegni in Impostazioni.');return;}S.bwd=S.bwd||{};S.bwd[ds]=S.bwd[ds]?0:1;save();render();openWorkout(ds,true);toast(S.bwd[ds]?'🎒 Oggi a corpo libero.':'🏋️ Torni al kettlebell.');}
+function toggleBW(){const ds=window.__wds||today();if(S.travel){toast('Modalità viaggio attiva per tutti i giorni: la spegni in Impostazioni.');return;}S.bwd=S.bwd||{};S.bwd[ds]=S.bwd[ds]?0:1;save();render();openWorkout(ds,true);toast(S.bwd[ds]?'🎒 '+(ds===today()?'Oggi':dlab(ds))+' a corpo libero.':'🏋️ '+(ds===today()?'Oggi':dlab(ds))+' col kettlebell.');}
 function setTravel(v){S.travel=parseInt(v)?1:0;save();render();toast(S.travel?'🎒 Modalità viaggio: tutti gli allenamenti a corpo libero.':'🏋️ Modalità viaggio spenta.');}
 /* v34: one-tap start from Home */
 function homeStart(){openWorkout(today());if(today()<S.start){return;}setTimeout(()=>startTimer(),60);}
@@ -1486,7 +1530,7 @@ function homeStart(){openWorkout(today());if(today()<S.start){return;}setTimeout
 function adjEx(id,what,v){
   S.rp=S.rp||{};S.kbx=S.kbx||{};const r=S.rp[id]||(S.rp[id]={lvd:0});
   const ds=window.__exs===id?today():(window.__wds||today()),w=Math.max(1,Math.floor(dsDiff(ds)/7)+1),lv=levelOf(w),L=lvFor(id,lv);
-  if(what==='kb'){S.kbx[id]=v;toast('🏋️ '+EX[id].v[L-1].n+': '+v+' kg dalla prossima volta.');}
+  if(what==='kb'){S.kbx[id]=v;const L2=lvFor(id,lv);toast('🏋️ '+EX[id].v[L2-1].n+': '+v+' kg dalla prossima volta.'+(CAP12[id]&&v===12&&L>L2?' Col 12 kg il massimo è Liv. '+CAP12[id]+'.':''));}
   else{const nL=Math.max(1,Math.min(3,L+v));if(nL===L)return;r.lvd=(r.lvd||0)+(nL-L);toast((v>0?'⬆️ ':'⬇️ ')+EX[id].v[nL-1].n+' dalla prossima volta.');}
   save();
   if(window.__exs===id){openExSheet(id);return;}
@@ -1504,8 +1548,9 @@ function openExSheet(id){
   const canKb=REP[id]&&(REP[id].kb||(REP[id].v&&REP[id].v.some(x=>x.kb)))&&S.kb12&&KB6_ONLY.indexOf(id)<0;
   document.getElementById('exBody').innerHTML='<div class="exadj" style="border-top:0;padding-top:0"><span class="mut">Dalla prossima volta:</span>'+
     (canKb?'<button class="chk'+(sp.kb===6?' on':'')+'" onclick="adjEx(\''+id+'\',\'kb\',6)">6 kg</button><button class="chk'+(sp.kb===12?' on':'')+'" onclick="adjEx(\''+id+'\',\'kb\',12)">12 kg</button>':'')+
-    '<span class="step"><button onclick="adjEx(\''+id+'\',\'lv\',-1)" aria-label="variante più facile"'+(L<=1?' disabled':'')+'>−</button><b style="font-size:14px;min-width:52px">Liv. '+L+'</b><button onclick="adjEx(\''+id+'\',\'lv\',1)" aria-label="variante più dura"'+(L>=3||(CAP12[id]&&sp.kb===12&&L>=CAP12[id])?' disabled':'')+'>+</button></span></div>'+
-    '<div class="sect">Storico (ultimo giro)</div>'+(hist.length?hist.map(h=>'<div class="prrow"><div class="dn"><b>'+dlab(h[0])+'</b><span>'+(h[2]?h[2]+' kg · ':'')+'Liv. '+h[3]+'</span></div><span class="pr" style="color:var(--txt)">'+(sp.t==='iso'?(h[1]?'✓':'✗'):h[1]+' rip.')+'</span></div>').join(''):'<div class="mut">Ancora nessun dato.</div>');
+    '<span class="step"><button onclick="adjEx(\''+id+'\',\'lv\',-1)" aria-label="variante più facile"'+(L<=1?' disabled':'')+'>−</button><b style="font-size:14px;min-width:52px">Liv. '+L+'</b><button onclick="adjEx(\''+id+'\',\'lv\',1)" aria-label="variante più dura"'+(L>=3||(CAP12[id]&&sp.kb===12&&L>=CAP12[id])?' disabled':'')+'>+</button></span>'+(CAP12[id]&&sp.kb===12?'<div class="mut" style="width:100%;font-size:12px;margin-top:4px">Col 12 kg il massimo è Liv. '+CAP12[id]+'. Per il Liv. 3 scegli 6 kg.</div>':'')+'</div>'+
+    '<div class="sect">Storico (ultimo giro)</div>'+(hist.length?hist.map((h,i)=>{const hs=specFor(id,h[3]),div=r.cut&&h[0]<r.cut&&(i===0||hist[i-1][0]>=r.cut)?'<div class="mut" style="padding:8px 0;font-size:12px;border-bottom:1px dashed var(--line)">Nuovo movimento dal '+r.cut.slice(8,10)+'/'+r.cut.slice(5,7)+': i numeri prima non si confrontano</div>':'';
+      return div+'<div class="prrow"'+(r.cut&&h[0]<r.cut?' style="opacity:.55"':'')+'><div class="dn"><b>'+dlab(h[0])+'</b><span>'+(h[2]?h[2]+' kg · ':'')+'Liv. '+h[3]+(hs.t==='iso'?'':' · '+hs.lo+'–'+hs.hi)+'</span></div><span class="pr" style="color:var(--txt)">'+(hs.t==='iso'?(h[1]?'✓':'✗'):h[1]+' rip.')+'</span></div>';}).join(''):'<div class="mut">Ancora nessun dato.</div>');
   window.__exs=id;document.getElementById('exSheet').classList.add('on');
 }
 function closeExSheet(){document.getElementById('exSheet').classList.remove('on');window.__exs=null;if((document.querySelector('.screen.on')||{}).id==='s-prog')renderRepProg();}
@@ -1513,7 +1558,9 @@ function fmt1(v){return (Math.round(v*10)/10).toFixed(1).replace('.',',');}
 function openQW(){const b=B(),t=today(),cur=(b.w.find(x=>x[0]===t)||lastOf(b.w)||[0,75])[1];document.getElementById('qwIn').value=(+cur).toFixed(1);document.getElementById('wsheet').classList.add('on');}
 function closeQW(){document.getElementById('wsheet').classList.remove('on');}
 function qwAdj(d){const el=document.getElementById('qwIn');const v=parseFloat(String(el.value).replace(',','.'))||75;el.value=(Math.round((v+d)*10)/10).toFixed(1);}
-function saveQW(){document.getElementById('bwIn').value=String(document.getElementById('qwIn').value).replace(',','.');saveWeight();closeQW();}
+function saveQW(){const v=parseFloat(String(document.getElementById('qwIn').value).replace(',','.'));if(!(v>=30&&v<=250)){toast('Inserisci un peso valido, es. 85,4.');return;}
+  const last=(lastOf(B().w)||[])[1];if(last&&Math.abs(v-last)>2&&!confirm('Rispetto all’ultima pesata ('+fmt1(last)+' kg) sono '+fmt1(Math.abs(v-last))+' kg di differenza. Confermi '+fmt1(v)+' kg?'))return;
+  document.getElementById('bwIn').value=String(v);saveWeight();closeQW();}
 function browseDay(d){openWorkout(addD(window.__wds||today(),d));}
 /* v36: change one day's session from a sheet (Home, Piano, preview). Only that day changes. */
 const DNS=['dom','lun','mar','mer','gio','ven','sab'];
@@ -1524,8 +1571,9 @@ function openSwap(ds){
   document.getElementById('swTitle').textContent='Cambia · '+(ds===today()?'oggi':dlab(ds));
   /* same session within 2 days either side: say it, so two back days in a row are a choice, not an accident */
   const near=k=>{const out=[];for(const d of [-2,-1,1,2]){const x=addD(ds,d);if(schedFor(x)===SCHED[k])out.push(dlab(x));}return out;};
+  const PUSH=[1,2,7],push=k=>PUSH.indexOf(k)>-1?[-1,1].map(d=>addD(ds,d)).filter(x=>PUSH.some(p=>schedFor(x)===SCHED[p])).map(dlab):[];
   document.getElementById('swList').innerHTML=[1,2,3,4,7,6,0].map(k=>{const sc=SCHED[k],n=near(k);
-    return '<button class="chbtn'+(sc===cur?' cur':'')+'" onclick="swapDayFor(\''+ds+'\','+k+')"><span class="ci">'+sc.ic+'</span><span class="grow">'+sc.t+(sc===base?' <span class="tag" style="font-size:11px">da piano</span>':'')+(n.length?'<small>anche '+n.join(', ')+'</small>':'')+'</span>'+(sc===cur?'<span class="tag hot">ora</span>':'')+'</button>';}).join('')+
+    return '<button class="chbtn'+(sc===cur?' cur':'')+'" onclick="swapDayFor(\''+ds+'\','+k+')"><span class="ci">'+sc.ic+'</span><span class="grow">'+sc.t+(sc===base?' <span class="tag" style="font-size:11px">da piano</span>':'')+(n.length?'<small>anche '+n.join(', ')+'</small>':'')+(push(k).length?'<small style="color:var(--warn)">⚠️ spinta anche '+push(k).join(', ')+': 2 giorni di fila</small>':'')+'</span>'+(sc===cur?'<span class="tag hot">ora</span>':'')+'</button>';}).join('')+
     (isOvr?'<button class="btn sec" style="margin-top:6px" onclick="swapDayFor(\''+ds+'\',null)">↩︎ Torna al piano ('+base.t+')</button>':'');
   document.getElementById('swapSheet').classList.add('on');document.getElementById('swapSheet').scrollTop=0;
 }
@@ -1577,7 +1625,7 @@ function sideHalf(d){return Math.floor((d-3)/2);}
 function flash(){const t=document.getElementById('tmr');t.classList.remove('flash');void t.offsetWidth;t.classList.add('flash');}
 async function startTimer(){
   if(!seq.length)return;
-  ti=0;paused=false;rounds=0;clearRun();runStart=Date.now();mixAudio();
+  ti=0;paused=false;rounds=0;clearRun();runStart=Date.now();mixAudio();window.__shFl=null;window.__shStop=0;
   document.getElementById('tmr').classList.add('on');
   await lockScreen();
   beep(880,.2);setStep();tick();
@@ -1587,6 +1635,7 @@ function setStep(){
   window.__stepAt=Date.now();
   const tm=document.getElementById('tmr'),tg=document.getElementById('tTgt');
   const isRep=s.ph==='work'&&s.sp&&s.open;tm.classList.toggle('open',!!isRep);tm.classList.toggle('sides',!!s.sides);
+  document.getElementById('tSkip').textContent=s.ph==='rest'?'⏭ Salta recupero':s.ph==='work'||s.ph==='amrap'?'⏭ Salta serie':'⏭ Avanti';
   tg.innerHTML=isRep?'<b>'+s.sp.lo+'–'+s.sp.hi+'</b><span>'+(s.sp.side?'per lato':'ripetizioni')+(s.sp.kb?' · '+s.sp.kb+' kg':'')+'</span>':'';
   const b=document.getElementById('tBody');b.className='grow '+s.ph;b.style.display='flex';b.style.flexDirection='column';b.style.justifyContent='center';
   document.getElementById('tPhase').textContent=s.ph==='rest'?'RECUPERO · PROSSIMO ESERCIZIO':s.lab;
@@ -1602,10 +1651,10 @@ function setStep(){
   }else if(s.ph==='work'&&s.sp){
     const lr=lastRep(s.id,s.lv);
     tn.innerHTML=s.sp.t==='iso'
-      ?'<span class="tgt">⏱ Tieni fino a fine tempo</span>'+(s.sp.kb?'<span class="tgt">🏋️ '+s.sp.kb+' kg</span>':'')
-      :(lr!==null?'<span class="tgt">ultima volta '+lr+'</span>':'')+'<div class="mut" style="margin-top:6px">Fermati a 1–2 dal limite, poi FATTO</div>';
+      ?'<div class="tcue">'+cueFor(s.id,s.lv)+'</div><span class="tgt">'+(STAB.indexOf(s.id)>-1?'⏱ Se perdi il controllo, posa e aspetta la fine':'⏱ Tieni fino a fine tempo')+'</span>'+(s.sp.kb?'<span class="tgt">🏋️ '+s.sp.kb+' kg</span>':'')
+      :'<div class="tcue">'+cueFor(s.id,s.lv)+'</div>'+(lr!==null?'<span class="tgt">ultima volta '+lr+'</span>':'')+'<div class="mut" style="margin-top:6px;font-size:15px">'+(STAB.indexOf(s.id)>-1?'Fermati alla prima ripetizione meno pulita (2–3 in riserva)':'Fermati a 1–2 dal limite')+', poi FATTO</div>';
   }else if(s.ph==='rest'&&s.nsp){
-    tn.innerHTML='<span class="tgt">🎯 '+specTxt(s.nsp)+'</span>'+(s.nsp.kb?'<span class="tgt">🏋️ '+s.nsp.kb+' kg</span>':'')+'<div class="mut" style="margin-top:6px">Respira · sotto il video</div>';
+    tn.innerHTML='<span class="tgt">🎯 '+specTxt(s.nsp)+'</span>'+(s.nsp.kb?'<span class="tgt" style="font-size:20px">🏋️ '+s.nsp.kb+' kg</span>':'')+(s.nid?'<div class="tcue">'+cueFor(s.nid,s.nlv)+'</div>':'')+'<div class="mut" style="margin-top:6px">Respira'+(s.vid?' · sotto il video':'')+'</div>';
   }else tn.textContent=s.ph==='rest'?'😮‍💨 Respira':(s.nx?'🏁 Prossima: 1ª ripetuta — '+s.nx+' (video sotto)':(seq[ti+1]?'Dopo: '+(seq[ti+1].ph==='rest'?'recupero':seq[ti+1].n):'Ultimo esercizio!'));
   const gm=s.lab.match(/GIRO (\d\/\d)/);document.getElementById('tProg').textContent=gm?'Giro '+gm[1]+(s.ei?' · es. '+s.ei+'/'+s.en:''):(s.lab.charAt(0)+s.lab.slice(1).toLowerCase());
   /* autoplay (muted) video of the NEXT exercise during rest */
@@ -1623,7 +1672,8 @@ function drawT(){
   if(s.sides){const el=s.d-tLeft,h=sideHalf(s.d),sg=document.querySelectorAll('#tSides>div');
     sg[0].firstChild.style.width=Math.min(100,el/h*100)+'%';sg[1].firstChild.style.width=Math.max(0,Math.min(100,(el-h-3)/(s.d-h-3)*100))+'%';
     sg[0].className=el<h?'on':'done';sg[1].className=el>=h+3?'on':'';
-    document.getElementById('tTgt').innerHTML=(el>=h&&el<h+3)?'<b>⇄ CAMBIA</b><span>'+(s.id==='carry'?'due mani al petto, poi cambia mano':'passa al lato 2')+'</span>':el<h?'<b>LATO 1</b><span>cambi tra '+(h-el)+'"</span>':'<b style="color:var(--blu)">LATO 2</b><span>fino a fine tempo</span>';}
+    sg[0].lastChild.textContent=el<h?'LATO 1 · '+(h-el)+'″':'LATO 1 ✓';sg[1].lastChild.textContent=el>=h+3?'LATO 2 · '+tLeft+'″':'LATO 2';
+    document.getElementById('tTgt').innerHTML=(el>=h&&el<h+3)?'<b>⇄ CAMBIA</b><span>'+(s.id==='carry'?'due mani al petto, poi cambia mano':'passa al lato 2')+'</span>':el<h?'<b>LATO 1</b><span>cambi tra '+(h-el)+'"</span>':'<b style="color:var(--acc2)">LATO 2</b><span>fino a fine tempo</span>';}
   let tot=0,done=0;for(let i=0;i<seq.length;i++){tot+=seq[i].d;if(i<ti)done+=seq[i].d;}done+=s.open?Math.min(s.d,tLeft):s.d-tLeft;
   document.getElementById('tTotal').style.width=(done/tot*100)+'%';
   const rem=Math.max(0,tot-done),est=seq.some(x=>x.open);document.getElementById('tRemain').textContent=(est?'~':'-')+Math.floor(rem/60)+':'+String(rem%60).padStart(2,'0');
@@ -1651,7 +1701,15 @@ function tick(){
 function pauseT(){paused=!paused;saveRun();document.getElementById('tPause').textContent=paused?'▶ Riprendi':'⏸ Pausa';document.getElementById('tmr').classList.toggle('paused',paused);}
 function skipT(){nextStep();}
 /* v38: the shoulder slipped or hurts: stop now, the day still counts, the done sheet asks only shoulder and elbow */
-function shStop(){if(!confirm('Ti fermi per la spalla? L’allenamento di oggi conta comunque.'))return;window.__sh='scivolata';window.__shStop=1;finishT();}
+function shStop(){window.__sh='scivolata';window.__shStop=1;finishT();}
+let stopWasPaused=false;
+function openStop(){stopWasPaused=paused;if(!paused)pauseT();document.getElementById('stopSheet').classList.add('on');}
+function stopChoice(k){document.getElementById('stopSheet').classList.remove('on');
+  if(k==='go'){if(!stopWasPaused&&paused)pauseT();return;}
+  if(paused)pauseT();
+  if(k==='slip')shStop();
+  else if(k==='ache'){window.__shFl='fastidio';skipT();toast('Serie saltata. A fine allenamento segna il fastidio.');}
+  else if(k==='quit'){clearRun();endT();}}
 function quitTimer(){if(!confirm('Uscire? L’allenamento non verrà contato.'))return;clearRun();endT();}
 function endT(){clearInterval(tH);document.getElementById('tmr').classList.remove('on');try{wl&&wl.release();}catch(e){}wl=null;}
 function finishT(){
@@ -1689,7 +1747,7 @@ function finishT(){
     }else{save();}
     render();show('home');openSummary();
   };
-  if(seqMeta.type==='w'&&seqMeta.ex)openDone(celebrate);else celebrate();
+  if((seqMeta.type==='w'&&seqMeta.ex)||window.__shStop)openDone(celebrate);else celebrate();
 }
 
 /* ============ END-OF-WORKOUT SHEET (v22) ============ */
@@ -1697,7 +1755,7 @@ let doneCb=null,doneVals={};
 function openDone(cb){
   doneCb=cb;doneVals={};
   const lv=seqMeta.lv;
-  document.getElementById('doneRows').innerHTML=seqMeta.ex.map(id=>{
+  document.getElementById('doneRows').innerHTML=window.__shStop||!seqMeta.ex?'':seqMeta.ex.map(id=>{
     const L=lvFor(id,lv),e=EX[id],v=e.v[L-1],sp=specFor(id,L),lr=lastRep(id,L);
     if(sp.t==='iso'){
       doneVals[id]={iso:1,ok:1,easy:0};
@@ -1706,24 +1764,31 @@ function openDone(cb){
     const n=lr!==null?lr:sp.lo;doneVals[id]={n:n,sp:sp};
     return '<div class="drow"><div class="dn"><b>'+e.ic+' '+v.n+'</b><span>'+sp.lo+'–'+sp.hi+(sp.side?' per lato':'')+(sp.kb?' · '+sp.kb+' kg':'')+(lr!==null?' · ultima '+lr:'')+'</span></div><div class="step"><button onclick="doneAdj(\''+id+'\',-1)" aria-label="meno">−</button><b id="dv_'+id+'">'+n+'</b><button onclick="doneAdj(\''+id+'\',1)" aria-label="più">+</button></div></div>';
   }).join('');
-  seqMeta.ex.forEach(id=>doneColor(id));
+  (window.__shStop||!seqMeta.ex?[]:seqMeta.ex).forEach(id=>doneColor(id));
   window.__doneAt=Date.now();window.__props=[];
-  if(!window.__shStop)window.__sh='ok';window.__el='ok';shDraw();
-  document.getElementById('doneRows').style.display=window.__shStop?'none':'';document.getElementById('doneBtn').textContent=window.__shStop?'Salva':'Salva ripetizioni';
+  window.__sh=window.__shStop?'scivolata':(window.__shFl||'ok');window.__el='ok';window.__shTouched=!!(window.__shStop||window.__shFl);shDraw();
+  document.getElementById('doneRepsBox').style.display=window.__shStop?'none':'';document.getElementById('doneBtn').textContent=window.__shStop?'Salva':'Salva ripetizioni';
+  document.getElementById('doneH').textContent=window.__shStop?'Spalla: come sta?':'Com’è andata? 💪';
   document.getElementById('done').classList.add('on');document.getElementById('done').scrollTop=0;
 }
 function doneAdj(id,d){const v=doneVals[id];v.n=Math.max(0,Math.min(99,v.n+d));document.getElementById('dv_'+id).textContent=v.n;doneColor(id);}
 function doneColor(id){const v=doneVals[id];if(!v||v.iso)return;const el=document.getElementById('dv_'+id);el.className=v.n>=v.sp.hi?'hi':v.n<v.sp.lo?'lo':'';}
 function doneTog(id,k){const v=doneVals[id];v[k]=v[k]?0:1;document.getElementById((k==='ok'?'dk_':'dz_')+id).classList.toggle('on',!!v[k]);if(k==='easy'&&v.easy&&!v.ok){v.ok=1;document.getElementById('dk_'+id).classList.add('on');}}
-const SH_FLAGS='🚩 Se la spalla è uscita e hai dovuto rimetterla a posto, se senti formicolio o il “braccio morto”, o se ti succede 2 volte in 14 giorni: fermati e prenota una visita (ortopedico o fisioterapista esperto di spalla).';
+const SH_FLAGS='🚩 Spalla rimasta fuori sede, o braccio intorpidito, freddo o senza forza per più di qualche minuto: pronto soccorso. Seconda scivolata in 14 giorni: prenota una visita.';
+function slips14(){let n=0;for(let i=0;i<14;i++){const l=S.log[addD(today(),-i)];if(l&&l.sh==='scivolata')n++;}return n;}
+function flagsLink(){return ' <a href="#" style="color:var(--acc2);font-weight:700" onclick="event.preventDefault();openFlags()">Tutti i segnali ›</a>';}
+function openFlags(){try{closeSummary();}catch(e){}document.getElementById('done').classList.remove('on');show('plan');const d=document.getElementById('flagsCard');if(d){d.open=true;setTimeout(()=>d.scrollIntoView({block:'start'}),60);}}
 function shDraw(){const sh=window.__sh||'ok',el=window.__el||'ok';
-  document.getElementById('shRow').innerHTML=[['ok','✓ Spalla ok'],['fastidio','Fastidio'],['scivolata','Scivolata']].map(x=>'<button class="chk'+(x[0]!=='ok'?' bad':'')+(sh===x[0]?' on':'')+'" onclick="window.__sh=\''+x[0]+'\';shDraw()">'+x[1]+'</button>').join('');
-  document.getElementById('elRow').innerHTML=[['ok','✓ Gomito ok'],['fastidio','Fastidio al gomito']].map(x=>'<button class="chk'+(x[0]!=='ok'?' bad':'')+(el===x[0]?' on':'')+'" onclick="window.__el=\''+x[0]+'\';shDraw()">'+x[1]+'</button>').join('');
-  document.getElementById('shWarn').innerHTML=sh==='scivolata'?'<div class="verd warn">Oggi niente proposte di livello, e per 14 giorni gli esercizi di spalla non salgono. '+SH_FLAGS+'</div>':sh==='fastidio'?'<div class="verd info">Per 14 giorni gli esercizi di spalla non salgono di livello. Se il fastidio torna, scendi di una variante sulle spinte.</div>':'';}
-function shSave(){const l=S.log[today()];if(l){l.sh=window.__sh||'ok';l.el=window.__el||'ok';}}
+  document.getElementById('shRow').innerHTML=[['ok','Spalla ok'],['fastidio','Fastidio'],['scivolata','Scivolata (anche stanotte)']].map(x=>'<button class="chk'+(x[0]!=='ok'?' bad':'')+(sh===x[0]?' on':'')+'" onclick="window.__sh=\''+x[0]+'\';window.__shTouched=1;shDraw()">'+(sh===x[0]?'✓ ':'')+x[1]+'</button>').join('');
+  document.getElementById('elRow').innerHTML=[['ok','Gomito ok'],['fastidio','Fastidio al gomito']].map(x=>'<button class="chk'+(x[0]!=='ok'?' bad':'')+(el===x[0]?' on':'')+'" onclick="window.__el=\''+x[0]+'\';window.__shTouched=1;shDraw()">'+(el===x[0]?'✓ ':'')+x[1]+'</button>').join('');
+  const n=slips14()+(sh==='scivolata'&&!(S.log[today()]&&S.log[today()].sh==='scivolata')?1:0);
+  document.getElementById('shWarn').innerHTML=sh==='scivolata'?'<div class="verd warn">'+(n>=2?'<b>'+n+'ª scivolata in 14 giorni: prenota la visita.</b> ':'')+'Oggi niente proposte di livello, e per 14 giorni gli esercizi di spalla non salgono. '+SH_FLAGS+flagsLink()+'</div>':sh==='fastidio'?'<div class="verd info">Per 14 giorni gli esercizi di spalla non salgono di livello. Se torna, scendi di una variante sulle spinte.</div>':'';
+  if(el==='fastidio')document.getElementById('shWarn').innerHTML+='<div class="mut" style="margin-top:6px;font-size:13px">Curl ed estensioni non salgono finché il gomito non è ok.</div>';}
+function shSave(force){const l=S.log[today()];if(l&&(force||window.__shTouched||!l.sh)){l.sh=window.__sh||'ok';l.el=window.__el||'ok';}}
 function doneSkip(){if(Date.now()-(window.__doneAt||0)<800)return;shSave();save();document.getElementById('done').classList.remove('on');const cb=doneCb;doneCb=null;cb&&cb();}
 function doneSave(){
   if(Date.now()-(window.__doneAt||0)<800)return;
+  window.__shTouched=1;
   if(window.__shStop){window.__props=[];window.__doneAt=0;doneSkip();return;} /* stopped for the shoulder: no reps, no proposals */
   const t=today(),lv=seqMeta.lv;S.rp=S.rp||{};
   const reps={};
@@ -1801,7 +1866,7 @@ function renderPlan(){
     const dt=new Date(ds+'T12:00:00');
     const s=schedFor(ds);
     const isT=ds===today(),chg=S.ovr&&S.ovr[ds]!==undefined&&S.ovr[ds]!==null,done=!!S.log[ds];
-    return '<div class="wkrow" onclick="openWorkout(\''+ds+'\')" style="cursor:pointer'+(isT?';color:var(--acc2)':'')+'"><span class="dd">'+names[dt.getDay()]+'</span><span class="dt">'+ds.slice(8,10)+'/'+ds.slice(5,7)+'</span><span class="wn">'+s.ic+' '+s.t+(done?' ✅':'')+(chg?' <small style="color:var(--blu);font-weight:700">· cambiato</small>':'')+(isT?' <span class="tag hot" style="font-size:11px">oggi</span>':'')+'</span>'+(ds>=today()?'<button class="chk cbtn" onclick="event.stopPropagation();openSwap(\''+ds+'\')" aria-label="Cambia">🔁</button>':'')+'</div>';
+    return '<div class="wkrow" onclick="openWorkout(\''+ds+'\')" style="cursor:pointer'+(isT?';color:var(--acc2)':'')+'"><span class="dd">'+names[dt.getDay()]+'</span><span class="dt">'+ds.slice(8,10)+'/'+ds.slice(5,7)+'</span><span class="wn">'+s.ic+' '+s.t+(done?' ✅'+(S.log[ds].dur?' '+S.log[ds].dur+'′':''):'')+(chg?' <small style="color:var(--blu);font-weight:700">· cambiato</small>':'')+(isT?' <span class="tag hot" style="font-size:11px">oggi</span>':'')+'</span>'+(ds>=today()?'<button class="chk cbtn" onclick="event.stopPropagation();openSwap(\''+ds+'\')" aria-label="Cambia">🔁</button>':'')+'</div>';
   }).join('');
 }
 function planWeek(d){window.__pw=(window.__pw||0)+d;renderPlan();}
@@ -1972,11 +2037,12 @@ function renderRepProg(){
   const rp=S.rp||{},ids=Object.keys(rp).filter(k=>EX[k]&&rp[k].hist&&rp[k].hist.length);
   const am=S.amHist||[];
   document.getElementById('repTag').textContent=ids.length?ids.length+' esercizi':'';
-  document.getElementById('amrapBox').innerHTML=am.length?'<div class="amrec"><div><b>⚡ Test AMRAP'+(nextAmrap()?' · prossimo '+dlab(nextAmrap()):'')+'</b><span class="mut">ultimi: '+am.slice(-5).map(x=>x[1]).join(' · ')+' giri</span></div><div class="big">'+(S.amrapBest||0)+'<small>record</small></div></div>':'';
+  document.getElementById('amrapBox').innerHTML=am.length&&nextAmrap()?'<div class="amrec"><div><b>⚡ Test AMRAP'+(nextAmrap()?' · prossimo '+dlab(nextAmrap()):'')+'</b><span class="mut">ultimi: '+am.slice(-5).map(x=>x[1]).join(' · ')+' giri</span></div><div class="big">'+(S.amrapBest||0)+'<small>record</small></div></div>':'';
   if(!ids.length){document.getElementById('repRows').innerHTML='<div class="empty"><b>📈</b>Dopo il primo allenamento a ripetizioni qui vedi, esercizio per esercizio, se stai salendo.</div>';return;}
-  /* order: most recently trained first */
+  /* order: most recently trained first; v38: exercises no longer in the plan go in a collapsed list without controls */
   ids.sort((a,b)=>(rp[b].at||'').localeCompare(rp[a].at||''));
-  document.getElementById('repRows').innerHTML=ids.map(id=>{
+  const inPlan={};[1,2,3,4,6,7].forEach(k=>SCHED[k].ex.forEach(x=>inPlan[x]=1));
+  const rowOf=id=>{
     const r=rp[id],e=EX[id];
     /* only the points comparable with the current setup (same level & kettlebell) */
     const cur=r.hist.filter(h=>h[2]===(r.kb||0)&&h[3]===r.lv&&(!r.cut||h[0]>=r.cut));
@@ -1988,8 +2054,10 @@ function renderRepProg(){
     const bars=iso?'<span class="mut" style="font-size:12px">'+pts.map(h=>h[1]?'✓':'✗').join(' ')+'</span>':'<div class="spark">'+vals.map(v=>'<i style="height:'+Math.max(12,Math.round(v/mx*100))+'%;background:'+(v>=sp.hi?'var(--ok)':v<sp.lo?'var(--warn)':'var(--acc)')+'" title="'+v+'"></i>').join('')+'</div>';
     /* bar dates live in the row subtitle (last session) and in the adjust sheet (history) */
     const nm=e.v[Math.min(3,Math.max(1,r.lv||1))-1].n;
-    return '<div class="rrow" onclick="openExSheet(\''+id+'\')"><div class="dn"><b>'+e.ic+' '+nm+'</b><span>'+(iso?'tenuta':sp.lo+'–'+sp.hi+(sp.side?'/lato':''))+(r.kb?' · '+r.kb+' kg':'')+(iso?'':' · '+vals.slice(-4).join(' → '))+(r.at?' · '+r.at.slice(8,10)+'/'+r.at.slice(5,7):'')+'</span></div>'+bars+'<span class="tr">'+tr+'</span><span class="mut">›</span></div>';
-  }).join('');
+    return '<div class="rrow" onclick="openExSheet(\''+id+'\')"><div class="dn"><b>'+e.ic+' '+nm+'</b><span>'+(iso?'tenuta':sp.lo+'–'+sp.hi+(sp.side?'/lato':''))+(r.kb?' · '+r.kb+' kg':'')+(iso||!vals.length?'':' · '+vals.slice(-4).join(' → '))+(r.at?' · '+r.at.slice(8,10)+'/'+r.at.slice(5,7):'')+'</span></div>'+bars+'<span class="tr">'+tr+'</span>'+(inPlan[id]?'<span class="mut">›</span>':'')+'</div>';
+  };
+  const ins=ids.filter(id=>inPlan[id]),outs=ids.filter(id=>!inPlan[id]);
+  document.getElementById('repRows').innerHTML=ins.map(rowOf).join('')+(outs.length?'<details style="margin-top:6px"><summary style="min-height:44px;font-size:13px;color:var(--mut)">Fuori dal piano ('+outs.length+')</summary>'+outs.map(id=>rowOf(id).replace(/ onclick="openExSheet\([^)]*\)"/,' style="cursor:default"')).join('')+'</details>':'');
 }
 function renderSet(){
   document.getElementById('setStart').value=S.start;
