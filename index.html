@@ -292,6 +292,19 @@ input.grow{min-width:0}
 #tmr.open .ring{display:none}
 .tdone{min-height:84px;font-size:24px;letter-spacing:.02em;margin-bottom:10px}
 .tfoot .btn.small{flex:1;min-height:44px}
+/* v37: timed holds done one side at a time: a two-part bar says which side and when to switch, no need to read the clock */
+.tsides{display:none;gap:8px;margin:16px 0}
+#tmr.sides .tsides{display:flex}
+#tmr.sides .ring{display:none}
+#tmr.sides .ttgt{display:block}
+#tmr.sides .ttgt b{font-size:60px}
+#tmr.sides .tclock{font-size:40px;color:var(--mut);margin:2px 0}
+.tsides>div{flex:1;position:relative;height:52px;border-radius:14px;background:var(--card2);overflow:hidden;border:2px solid transparent}
+.tsides i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--acc);transition:width 1s linear}
+.tsides>div+div i{background:var(--blu)}
+.tsides span{position:relative;display:flex;height:100%;align-items:center;justify-content:center;font-weight:900;font-size:17px;letter-spacing:.08em;color:var(--txt)}
+.tsides>div.on{border-color:var(--txt)}
+.tsides>div.done{opacity:.5}
 #tmr.flash{animation:tflash .5s ease-out}
 @keyframes tflash{0%{background:#3a2a10}100%{background:var(--bg)}}
 @media (prefers-reduced-motion:reduce){#tmr.flash{animation:none;box-shadow:inset 0 0 0 6px var(--acc)}}
@@ -501,6 +514,7 @@ input.grow{min-width:0}
     <div class="ttgt" id="tTgt"></div>
     <div class="tclock" id="tClock">0:30</div>
     <div class="ring"><i id="tRing" style="width:100%"></i></div>
+    <div class="tsides" id="tSides"><div><i></i><span>LATO 1</span></div><div><i></i><span>LATO 2</span></div></div>
     <div class="tnext" id="tNext"></div>
     <div class="vid" id="tVid" style="display:none;margin-top:14px"></div>
   </div>
@@ -674,7 +688,7 @@ input.grow{min-width:0}
       <button class="btn sec small warn" style="margin-top:8px;width:100%" onclick="doImport()">⚠️ Importa (sostituisce i dati)</button>
     </details>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v36</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v37</div>
 </div>
 
 <div id="nav">
@@ -915,14 +929,14 @@ function lastRep(id,L){const r=S.rp&&S.rp[id];if(!r||r.n===undefined||r.n===null
 
 /* warmup & cooldown (fixed) */
 const WARM=[{n:'Marcia sul posto veloce',d:45},{n:'Circonduzioni scapole + braccia (piccole)',d:45},{n:'Cat-cow (gatto-mucca)',d:45},{n:'Squat a corpo libero lenti',d:45}];
-const COOL=[{n:'Allungamento pettorale al muro (dolce)',d:30},{n:'Allungamento quadricipite in piedi',d:30},{n:'Allungamento femorali',d:30},{n:'Respirazione profonda',d:30}];
+const COOL=[{n:'Allungamento pettorale al muro (dolce)',d:30,sd:1},{n:'Allungamento quadricipite in piedi',d:30,sd:1},{n:'Allungamento femorali',d:30},{n:'Respirazione profonda',d:30}];
 
 /* recovery day sequence (Sunday) */
 const RECOV=[
- {n:'Pendolo di Codman (braccio rilassato che oscilla)',d:75},{n:'Cat-cow lento',d:75},
- {n:'Apertura pettorale sullo stipite (DOLCE, sotto la soglia)',d:75},{n:'Rotazioni toraciche a terra',d:75},
- {n:'Allungamento flessori dell’anca',d:75},{n:'Allungamento femorali',d:75},
- {n:'Figura 4 (glutei)',d:75},{n:'Posizione del bambino + respirazione',d:75}];
+ {n:'Pendolo di Codman (braccio rilassato che oscilla)',d:75,sd:1},{n:'Cat-cow lento',d:75},
+ {n:'Apertura pettorale sullo stipite (DOLCE, sotto la soglia)',d:75},{n:'Rotazioni toraciche a terra',d:75,sd:1},
+ {n:'Allungamento flessori dell’anca',d:75,sd:1},{n:'Allungamento femorali',d:75},
+ {n:'Figura 4 (glutei)',d:75,sd:1},{n:'Posizione del bambino + respirazione',d:75}];
 
 /* weekly schedule: getDay() -> workout */
 const SCHED={
@@ -1165,8 +1179,8 @@ function openWorkout(ds,keep){
     document.getElementById('wSub').textContent='2 giri × 8 posizioni da 75". Respira, allunga, non forzare mai.';
     document.getElementById('wTags').innerHTML='<span class="tag hot">Recupero attivo</span> <span class="tag">20 min</span>';
     list.innerHTML=RECOV.map(x=>'<div class="exli"><div class="nm">🧘 '+x.n+'</div><div class="mut">'+x.d+'" per posizione</div></div>').join('');
-    seq=[];RECOV.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'MOBILITÀ'}));
-    RECOV.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'MOBILITÀ · GIRO 2'}));
+    seq=[];RECOV.forEach(x=>seq.push({n:x.n,d:x.d,sides:x.sd,ph:'warm',lab:'MOBILITÀ'}));
+    RECOV.forEach(x=>seq.push({n:x.n,d:x.d,sides:x.sd,ph:'warm',lab:'MOBILITÀ · GIRO 2'}));
     seqMeta={type:'r'};
   }else{
     const isA=!!sc.amrap,best=S.amrapBest||0;
@@ -1199,25 +1213,25 @@ function openWorkout(ds,keep){
       if(h&&h.dataset.v&&!h.dataset.done){h.dataset.done=1;h.innerHTML='<iframe src="https://www.youtube-nocookie.com/embed/'+h.dataset.v+'?rel=0&playsinline=1" title="Video esercizio" loading="lazy" allow="fullscreen; picture-in-picture" allowfullscreen></iframe>';}
     }));
     seq=[];
-    WARM.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'RISCALDAMENTO'}));
+    WARM.forEach(x=>seq.push({n:x.n,d:x.d,sides:x.sd,ph:'warm',lab:'RISCALDAMENTO'}));
     /* last warmup step announces the first work exercise, with its video */
     const f0=sc.ex[0],fL=lvFor(f0,lv),lw=seq[seq.length-1];
     lw.nx=EX[f0].v[fL-1].n;lw.vid=(VIDS[f0]||[])[fL-1];
     if(isA){
       /* one 20' block; the round list is rendered by setStep */
       seq.push({n:'AMRAP',d:1200,ph:'amrap',lab:'AMRAP · 20 MINUTI',ex:sc.ex.map(id=>{const L=lvFor(id,lv);return {id,n:EX[id].v[L-1].n,r:sc.amrap[id],side:!!(REP[id].side||(REP[id].v&&REP[id].v[L-1].side)),kb:kbFor(id)};})});
-      COOL.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'DEFATICAMENTO'}));
+      COOL.forEach(x=>seq.push({n:x.n,d:x.d,sides:x.sd,ph:'warm',lab:'DEFATICAMENTO'}));
       seqMeta={type:'w',amrap:1};
     }else{
     for(let g=1;g<=4;g++)sc.ex.forEach((id,i)=>{
       const L=lvFor(id,lv),v=EX[id].v[L-1],sp=specFor(id,L);
       const nid=sc.ex[i+1]||(g<4?sc.ex[0]:null);
       /* rep exercises are open-ended: no countdown, the user taps FATTO when the reps are done (d = estimate for the total-time bar) */
-      seq.push({n:v.n,d:RW,ph:'work',lab:'LAVORO · GIRO '+g+'/4',id:id,sp:sp,lv:L,open:sp.t==='rep',ei:i+1,en:sc.ex.length});
+      seq.push({n:v.n,d:RW,ph:'work',lab:'LAVORO · GIRO '+g+'/4',id:id,sp:sp,lv:L,open:sp.t==='rep',sides:sp.t==='iso'&&sp.side,ei:i+1,en:sc.ex.length});
       const nsp=nid?specFor(nid,lvFor(nid,lv)):null;
       seq.push({n:'Recupero',d:RR,ph:'rest',lab:'RECUPERO',nsp:nsp,vid:nid?(VIDS[nid]||[])[lvFor(nid,lv)-1]:null,nx:sc.ex[i+1]?EX[sc.ex[i+1]].v[lvFor(sc.ex[i+1],lv)-1].n:(g<4?'Nuovo giro: '+EX[sc.ex[0]].v[lvFor(sc.ex[0],lv)-1].n:'Defaticamento')});
     });
-    COOL.forEach(x=>seq.push({n:x.n,d:x.d,ph:'warm',lab:'DEFATICAMENTO'}));
+    COOL.forEach(x=>seq.push({n:x.n,d:x.d,sides:x.sd,ph:'warm',lab:'DEFATICAMENTO'}));
     seqMeta={type:'w',ex:sc.ex.slice(),lv:lv};
     }
   }
@@ -1480,7 +1494,7 @@ function setStep(){
   const s=seq[ti];tLeft=s.open?0:s.d; /* open steps count UP */
   window.__stepAt=Date.now();
   const tm=document.getElementById('tmr'),tg=document.getElementById('tTgt');
-  const isRep=s.ph==='work'&&s.sp&&s.open;tm.classList.toggle('open',!!isRep);
+  const isRep=s.ph==='work'&&s.sp&&s.open;tm.classList.toggle('open',!!isRep);tm.classList.toggle('sides',!!s.sides);
   tg.innerHTML=isRep?'<b>'+s.sp.lo+'–'+s.sp.hi+'</b><span>'+(s.sp.side?'per lato':'ripetizioni')+(s.sp.kb?' · '+s.sp.kb+' kg':'')+'</span>':'';
   const b=document.getElementById('tBody');b.className='grow '+s.ph;b.style.display='flex';b.style.flexDirection='column';b.style.justifyContent='center';
   document.getElementById('tPhase').textContent=s.ph==='rest'?'RECUPERO · PROSSIMO ESERCIZIO':s.lab;
@@ -1496,7 +1510,7 @@ function setStep(){
   }else if(s.ph==='work'&&s.sp){
     const lr=lastRep(s.id,s.lv);
     tn.innerHTML=s.sp.t==='iso'
-      ?'<span class="tgt">⏱ Tieni fino a fine tempo'+(s.sp.side?' · cambia lato a metà':'')+'</span>'+(s.sp.kb?'<span class="tgt">🏋️ '+s.sp.kb+' kg</span>':'')
+      ?'<span class="tgt">⏱ Tieni fino a fine tempo</span>'+(s.sp.kb?'<span class="tgt">🏋️ '+s.sp.kb+' kg</span>':'')
       :(lr!==null?'<span class="tgt">ultima volta '+lr+'</span>':'')+'<div class="mut" style="margin-top:6px">Fermati a 1–2 dal limite, poi FATTO</div>';
   }else if(s.ph==='rest'&&s.nsp){
     tn.innerHTML='<span class="tgt">🎯 '+specTxt(s.nsp)+'</span>'+(s.nsp.kb?'<span class="tgt">🏋️ '+s.nsp.kb+' kg</span>':'')+'<div class="mut" style="margin-top:6px">Respira · sotto il video</div>';
@@ -1514,6 +1528,10 @@ function drawT(){
   const s=seq[ti];
   document.getElementById('tClock').textContent=Math.floor(tLeft/60)+':'+String(tLeft%60).padStart(2,'0');
   document.getElementById('tRing').style.width=(s.open?Math.min(100,tLeft/60*100):tLeft/s.d*100)+'%';
+  if(s.sides){const el=s.d-tLeft,h=Math.floor(s.d/2),sg=document.querySelectorAll('#tSides>div');
+    sg[0].firstChild.style.width=Math.min(100,el/h*100)+'%';sg[1].firstChild.style.width=Math.max(0,Math.min(100,(el-h)/(s.d-h)*100))+'%';
+    sg[0].className=el<h?'on':'done';sg[1].className=el>=h?'on':'';
+    document.getElementById('tTgt').innerHTML=(el>=h&&el<h+3)?'<b>⇄ CAMBIA</b><span>passa al lato 2</span>':el<h?'<b>LATO 1</b><span>cambi tra '+(h-el)+'"</span>':'<b style="color:var(--blu)">LATO 2</b><span>fino a fine tempo</span>';}
   let tot=0,done=0;for(let i=0;i<seq.length;i++){tot+=seq[i].d;if(i<ti)done+=seq[i].d;}done+=s.open?Math.min(s.d,tLeft):s.d-tLeft;
   document.getElementById('tTotal').style.width=(done/tot*100)+'%';
   const rem=Math.max(0,tot-done),est=seq.some(x=>x.open);document.getElementById('tRemain').textContent=(est?'~':'-')+Math.floor(rem/60)+':'+String(rem%60).padStart(2,'0');
@@ -1524,6 +1542,9 @@ function tick(){
     if(paused)return;
     if(seq[ti].open){tLeft++;drawT();if(tLeft%5===0)saveRun();return;} /* open step: count up, wait for FATTO */
     tLeft--;if(tLeft%5===0)saveRun();
+    if(seq[ti].sides){const el=seq[ti].d-tLeft,h=Math.floor(seq[ti].d/2);
+      if(el===h){beep(990,.25,.95);flash();if(navigator.vibrate)navigator.vibrate([120,80,120]);}
+      else if(el>=h-3&&el<h){beep(660,.1,.4);flash();}}
     if(tLeft<=3&&tLeft>0){const nw=seq[ti+1]&&seq[ti+1].ph==='work';beep(nw?880:660,.12,nw?.95:.3);if(nw||seq[ti].ph==='work')flash();}
     if(tLeft<=0){
       ti++;
