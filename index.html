@@ -1375,16 +1375,16 @@ function openWorkout(ds,keep){
 }
 function workBack(){const f=window.__from;show(f&&f!=='work'?f:'home',true);}
 /* ============ AVATAR (v39): pixel-art fighters by Luiz Melo (CC0), a different one per stage ============
-   files are idle sprite sheets cropped to the character (assets/avatar/*.png): n frames of w x h px. ht = shown height. */
+   files are idle sprite sheets cropped to the character (assets/avatar/*.png): n frames of w x h px, shown at one pixel density. */
 const AVATARS=[
- {f:'mw1',n:6,w:45,h:81,ht:92,g:null},
- {f:'mw3',n:10,w:26,h:38,ht:96,g:'rgba(77,163,255,.45)'},
- {f:'mh2',n:4,w:33,h:56,ht:100,g:'rgba(255,190,60,.55)'},
- {f:'mh1',n:8,w:37,h:52,ht:104,g:'rgba(255,200,60,.85)'},
- {f:'mh3',n:10,w:44,h:41,ht:104,g:'rgba(200,215,255,.75)'},
- {f:'fw',n:10,w:40,h:45,ht:110,g:'rgba(255,250,235,.95)'}];
+ {f:'mw2',n:8,w:26,h:41,g:null},
+ {f:'mw3',n:10,w:26,h:38,g:'rgba(77,163,255,.45)'},
+ {f:'mh3',n:10,w:44,h:41,g:'rgba(255,190,60,.6)'},
+ {f:'fw',n:10,w:40,h:45,g:'rgba(255,200,60,.85)'},
+ {f:'mh2',n:4,w:33,h:56,g:'rgba(200,215,255,.8)'},
+ {f:'mh1',n:8,w:37,h:52,g:'rgba(255,250,235,.95)'}];
 function avatarHTML(st,box){
-  const a=AVATARS[Math.max(0,Math.min(5,st||0))],b=box||1,k=Math.min(a.ht/a.h,112/a.w)*b;
+  const a=AVATARS[Math.max(0,Math.min(5,st||0))],b=box||1,k=Math.min(2.4,112/a.w)*b;
   const W=Math.round(a.w*k),H=Math.round(a.h*k),SW=W*a.n;
   return (a.g?'<div class="avglow" style="--ag:'+a.g+'"></div>':'')+'<div class="spr" role="img" aria-label="Il tuo guerriero" style="width:'+W+'px;height:'+H+'px;background-image:url(assets/avatar/'+a.f+'.png);background-size:'+SW+'px '+H+'px;--sw:'+SW+'px;--sn:'+a.n+';--sd:'+(a.n*0.12).toFixed(2)+'s"></div>';
 }
