@@ -1482,6 +1482,8 @@ function oscBeep(f,dur,vol){try{AC=AC||new (window.AudioContext||window.webkitAu
 function mixAudio(){try{if(navigator.audioSession)navigator.audioSession.type='ambient';}catch(e){}}
 async function lockScreen(){try{if(document.getElementById('tmr').classList.contains('on')&&document.visibilityState==='visible')wl=await navigator.wakeLock.request('screen');}catch(e){}}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')lockScreen();});
+/* one-side holds: side 1, then 3" to switch, then side 2 of the same length */
+function sideHalf(d){return Math.floor((d-3)/2);}
 function flash(){const t=document.getElementById('tmr');t.classList.remove('flash');void t.offsetWidth;t.classList.add('flash');}
 async function startTimer(){
   if(!seq.length)return;
@@ -1528,10 +1530,10 @@ function drawT(){
   const s=seq[ti];
   document.getElementById('tClock').textContent=Math.floor(tLeft/60)+':'+String(tLeft%60).padStart(2,'0');
   document.getElementById('tRing').style.width=(s.open?Math.min(100,tLeft/60*100):tLeft/s.d*100)+'%';
-  if(s.sides){const el=s.d-tLeft,h=Math.floor(s.d/2),sg=document.querySelectorAll('#tSides>div');
-    sg[0].firstChild.style.width=Math.min(100,el/h*100)+'%';sg[1].firstChild.style.width=Math.max(0,Math.min(100,(el-h)/(s.d-h)*100))+'%';
-    sg[0].className=el<h?'on':'done';sg[1].className=el>=h?'on':'';
-    document.getElementById('tTgt').innerHTML=(el>=h&&el<h+3)?'<b>⇄ CAMBIA</b><span>passa al lato 2</span>':el<h?'<b>LATO 1</b><span>cambi tra '+(h-el)+'"</span>':'<b style="color:var(--blu)">LATO 2</b><span>fino a fine tempo</span>';}
+  if(s.sides){const el=s.d-tLeft,h=sideHalf(s.d),sg=document.querySelectorAll('#tSides>div');
+    sg[0].firstChild.style.width=Math.min(100,el/h*100)+'%';sg[1].firstChild.style.width=Math.max(0,Math.min(100,(el-h-3)/(s.d-h-3)*100))+'%';
+    sg[0].className=el<h?'on':'done';sg[1].className=el>=h+3?'on':'';
+    document.getElementById('tTgt').innerHTML=(el>=h&&el<h+3)?'<b>⇄ CAMBIA</b><span>'+(s.id==='carry'?'due mani al petto, poi cambia mano':'passa al lato 2')+'</span>':el<h?'<b>LATO 1</b><span>cambi tra '+(h-el)+'"</span>':'<b style="color:var(--blu)">LATO 2</b><span>fino a fine tempo</span>';}
   let tot=0,done=0;for(let i=0;i<seq.length;i++){tot+=seq[i].d;if(i<ti)done+=seq[i].d;}done+=s.open?Math.min(s.d,tLeft):s.d-tLeft;
   document.getElementById('tTotal').style.width=(done/tot*100)+'%';
   const rem=Math.max(0,tot-done),est=seq.some(x=>x.open);document.getElementById('tRemain').textContent=(est?'~':'-')+Math.floor(rem/60)+':'+String(rem%60).padStart(2,'0');
@@ -1542,7 +1544,7 @@ function tick(){
     if(paused)return;
     if(seq[ti].open){tLeft++;drawT();if(tLeft%5===0)saveRun();return;} /* open step: count up, wait for FATTO */
     tLeft--;if(tLeft%5===0)saveRun();
-    if(seq[ti].sides){const el=seq[ti].d-tLeft,h=Math.floor(seq[ti].d/2);
+    if(seq[ti].sides){const el=seq[ti].d-tLeft,h=sideHalf(seq[ti].d);
       if(el===h){beep(990,.25,.95);flash();if(navigator.vibrate)navigator.vibrate([120,80,120]);}
       else if(el>=h-3&&el<h){beep(660,.1,.4);flash();}}
     if(tLeft<=3&&tLeft>0){const nw=seq[ti+1]&&seq[ti+1].ph==='work';beep(nw?880:660,.12,nw?.95:.3);if(nw||seq[ti].ph==='work')flash();}
@@ -1645,7 +1647,7 @@ function doneSave(){
       if(sp.kb===6&&S.kb12&&TWOHAND[id]&&L>1){
         /* 6 kg one-arm -> 12 kg two-hands: the natural step (12 kg one-arm doubles the load at once) */
         const b=REP[id].v?REP[id].v[0]:REP[id];props.push({id,act:'kb12dn',L:L,h:nm,txt:'Passa al 12 kg con la variante a due mani ('+e.v[0].n+'). Obiettivo: '+(b.r12?b.r12[0]+'–'+b.r12[1]:'tieni')+'. Il 12 a un braccio arriverà dopo.'});}
-      else if(sp.kb===6&&S.kb12){const b=REP[id].v?REP[id].v[L-1]:REP[id];props.push({id,act:'kb12',h:nm,txt:'Passa al 12 kg. Nuovo obiettivo: '+(b.r12?b.r12[0]+'–'+b.r12[1]:'tieni')+(sp.side?' per lato':'')+'.'});}
+      else if(sp.kb===6&&S.kb12&&KB12_LATER.indexOf(id)<0){const b=REP[id].v?REP[id].v[L-1]:REP[id];props.push({id,act:'kb12',h:nm,txt:'Passa al 12 kg. Nuovo obiettivo: '+(b.r12?b.r12[0]+'–'+b.r12[1]:'tieni')+(sp.side?' per lato':'')+'.'});}
       else if(L<3)props.push({id,act:'lvup',h:nm,txt:'Sali di variante → '+e.v[L].n+'. Riparti dal fondo della forchetta.'});
       else props.push({id,act:null,h:nm,txt:'Sei al massimo della progressione: rendilo più duro rallentando la discesa (3–4 secondi) o con 1 secondo di pausa.'});
     }else if(down){
@@ -2115,6 +2117,8 @@ load();
    Start date stays 24/08 (weeks, phases and heatmap untouched). Also reverts the earlier v18 tweak if it ran. */
 if(!S.mig2&&(S.start==='2026-08-24'||S.start==='2026-08-26')&&today()>='2026-09-05'&&today()<='2026-09-12'){
   S.start='2026-08-24';if(S.ovr&&S.ovr['2026-09-05']===0)delete S.ovr['2026-09-05'];S.rot0='2026-09-08';S.recSlot=4;S.shift=0;S.mig2=1;save();}
+/* v38: anchor the rotation to Monday 2026-10-05 (session 1 on Monday, recovery on Sunday): the 10-06 backup had lost the anchor */
+if(!S.rot0&&S.start==='2026-09-01'){S.rot0='2026-10-05';S.recSlot=6;S.shift=0;save();}
 if(S.shift===null||S.shift===undefined)renderChooser();
 render();
 reconcile();
