@@ -553,7 +553,7 @@ input.grow{min-width:0}
       <summary>Come progredisce il piano</summary>
       <div class="mut" style="font-size:14px;line-height:1.55">
         4 giri da 5 esercizi, circa 28–30 minuti con riscaldamento (3') e defaticamento (2'): da ora l'app misura la durata.<br><br>
-        <b style="color:var(--acc2)">Petto al centro, spalle protette.</b> Petto lunedì, mercoledì e venerdì, 8 serie per volta, mai due giorni di spinta di fila; tra le due spinte c'è sempre il rematore. Martedì, giovedì e sabato lavorano cuffia, scapole e braccia. Ogni riscaldamento ha le isometrie spalla al muro.<br><br>
+        <b style="color:var(--acc2)">Petto al centro, spalle protette.</b> Petto lunedì, mercoledì e venerdì, 8 serie per volta, mai due giorni di spinta di fila; tra le due spinte c'è sempre il rematore. Martedì, giovedì e sabato lavorano cuffia, scapole e braccia (niente Prone W: la posizione ricorda quella delle uscite notturne). Ogni riscaldamento ha le isometrie spalla al muro.<br><br>
         <b style="color:var(--ok)">Ripetizioni e regola del 15.</b> Ogni esercizio ha una forchetta: ti fermi a 1–2 dal limite (2–3 sugli esercizi di stabilità), tocchi FATTO e riposi 15". A fine allenamento segni le ripetizioni dell'ultimo giro: al tetto della forchetta l'app propone di salire, sotto il fondo di scendere. Decidi sempre tu. Sugli esercizi di spalla le salite aspettano 14 giorni senza fastidi.<br><br>
         <b style="color:var(--blu)">Spalla e gomito.</b> A fine allenamento segni come stanno. Se la spalla scivola durante l'allenamento, tocca 🩹 Spalla e fermati: la giornata conta comunque.<br><br>
         <b>Due kettlebell, ruoli chiari.</b> Il 12 fa i movimenti grandi (rematore, floor press, squeeze, curl, squat, affondi, stacco); il bottoms-up resta sempre sul 6. Extrarotazioni solo con bottiglie d'acqua. Il test AMRAP è sospeso: al suo posto arriva il test del mese.
@@ -713,7 +713,7 @@ input.grow{min-width:0}
       <button class="btn sec small warn" style="margin-top:8px;width:100%" onclick="doImport()">⚠️ Importa (sostituisce i dati)</button>
     </details>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v39 · personaggi di Luiz Melo (CC0)</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v40 · personaggi di Luiz Melo (CC0)</div>
 </div>
 
 <div id="nav">
@@ -1010,21 +1010,27 @@ const BW_LV={lunge:1,bridge:1,calf:1}; /* variants 2-3 of these use the kettlebe
 const PLAN2='2026-10-10';
 const SCHED1={};Object.keys(SCHED).forEach(k=>{SCHED1[k]=Object.assign({},SCHED[k]);});
 Object.assign(SCHED[1],{t:'Petto & Dorso A',ic:'💪',ex:['pushup','row','squeeze','lunge','kbcrunch']});
-Object.assign(SCHED[4],{t:'Bicipiti & Cuffia',ic:'🔄',ex:['curl','scap','superman','ytw','sideplank']});
+Object.assign(SCHED[4],{t:'Bicipiti & Cuffia',ic:'🔄',ex:['curl','scap','scapsq','ytw','sideplank']});
 Object.assign(SCHED[2],{t:'Petto & Dorso B',ic:'🏋️',ex:['floorpress','row','pushup','gobsquat','lowerabs']});
 Object.assign(SCHED[3],{t:'Spalle Blindate & Gambe',ic:'🛡️',ex:['carry','rdl','curl','scap','lowerabs']});
 Object.assign(SCHED[7],{t:'Petto & Dorso C',ic:'🎯',ex:['floorpress','row','squeeze','hollow','kbcrunch']});
-Object.assign(SCHED[6],{t:'Tricipiti & Cuffia',ic:'🔥',ex:['triext','carry','superman','ytw','hollow']});
+Object.assign(SCHED[6],{t:'Tricipiti & Cuffia',ic:'🔥',ex:['triext','carry','scapsq','ytw','hollow']});
+/* v40: Prone W out (Stefano, 2026-10-13: the position reminds him of the night dislocations). Same muscles with the arm at the side */
+EX.scapsq={ic:'🤏',m:'Scapole, schiena alta, deltoide posteriore',saf:'Gomiti SEMPRE incollati ai fianchi, si fermano sulla linea del corpo: il braccio non si apre e non va indietro oltre il busto. Ti fermi alla prima ripetizione meno pulita (2-3 in riserva).',v:[
+ {n:'Stretta di scapole con bottiglie',s:['In piedi, busto inclinato in avanti a circa 45°, ginocchia morbide, una bottiglia da 0,5 L per mano','Porta indietro i gomiti incollati ai fianchi fino alla linea del corpo, stringendo le scapole','Tieni 1 secondo e torna lento'],c:'Lavorano le scapole: i gomiti non superano mai la linea del corpo',yt:'bent over scapular retraction elbows close'},
+ {n:'Stretta di scapole con 1 L',s:['Come il livello 1, con bottiglie da 1 L','Gomiti incollati ai fianchi, fino alla linea del corpo','Tieni 1 secondo e torna lento'],c:'Più peso, stesso movimento piccolo',yt:'bent over row scapular squeeze'},
+ {n:'Stretta di scapole con pausa',s:['Bottiglie da 1 L','Tieni 2 secondi a scapole strette','Torna in 2 secondi'],c:'La pausa si fa sulla linea del corpo, mai oltre',yt:'scapular retraction hold'}]};
+REP.scapsq={v:[{t:'rep',r:[10,15]},{t:'rep',r:[10,15]},{t:'rep',r:[8,12]}]};
 /* bottoms-up only ever with the 6; triceps extension at 12 kg stops at level 2 (no 1½) */
 const KB6_ONLY=['carry'];
 const CAP12={triext:2};
 /* exercises that load the shoulder: their level-ups wait for 14 days without discomfort */
-const SH=['pushup','floorpress','squeeze','slowpush','row','scap','carry','ytw','superman','sideplank','plankcore','triext'];
+const SH=['scapsq','pushup','floorpress','squeeze','slowpush','row','scap','carry','ytw','superman','sideplank','plankcore','triext'];
 /* stability exercises stop at the first less clean rep (2-3 in reserve), not 1-2 from failure */
-const STAB=['scap','ytw','superman','carry','sideplank','plankcore'];
+const STAB=['scapsq','scap','ytw','superman','carry','sideplank','plankcore'];
 /* one short cue per exercise, shown big in the timer when it matters (mid-set, 1-2 m from the phone) */
-const CUE={pushup:'Petto sull’asciugamano, mai più giù',slowpush:'Petto sull’asciugamano, mai più giù',floorpress:'Cambio braccio: due mani sul petto',squeeze:'Kettlebell stretto, gomiti a terra in basso',row:'Gomito al fianco, mai oltre',ytw:'Gomito al fianco · stop prima della verticale',carry:'Solo 6 kg · cambio a due mani',scap:'Piccolo: mai fino in fondo',superman:'Gomiti sotto la linea della schiena',triext:'Gomiti fermi e verticali',sideplank:'Spingi il pavimento, spalla giù',lunge:'Se perdi l’equilibrio, giù il piede',rdl:'Spalla attiva, mai appesa',kbcrunch:'Braccia a 90° dal busto',curl:'Gomito fermo al fianco',gobsquat:'Kettlebell al petto, schiena dritta',lowerabs:'Lombare a terra',hollow:'Lombare premuta a terra',bptri:'Gomiti fermi e verticali',bprow:'Gomito al fianco, mai oltre'};
-function cueFor(id,L){const v=EX[id]&&EX[id].v[(L||1)-1];let c=CUE[id]||'';if(v&&/1½/.test(v.n))c+=(c?' · ':'')+(id==='row'?'su, giù a metà, su, giù tutto = 1':'giù, su a metà, giù, su tutto = 1');if(id==='ytw')c+=L>=3?' · bottiglia 1 L':' · bottiglia 0,5 L';return c;}
+const CUE={scapsq:'Gomiti ai fianchi, mai oltre il corpo',pushup:'Petto sull’asciugamano, mai più giù',slowpush:'Petto sull’asciugamano, mai più giù',floorpress:'Cambio braccio: due mani sul petto',squeeze:'Kettlebell stretto, gomiti a terra in basso',row:'Gomito al fianco, mai oltre',ytw:'Gomito al fianco · stop prima della verticale',carry:'Solo 6 kg · cambio a due mani',scap:'Piccolo: mai fino in fondo',superman:'Gomiti sotto la linea della schiena',triext:'Gomiti fermi e verticali',sideplank:'Spingi il pavimento, spalla giù',lunge:'Se perdi l’equilibrio, giù il piede',rdl:'Spalla attiva, mai appesa',kbcrunch:'Braccia a 90° dal busto',curl:'Gomito fermo al fianco',gobsquat:'Kettlebell al petto, schiena dritta',lowerabs:'Lombare a terra',hollow:'Lombare premuta a terra',bptri:'Gomiti fermi e verticali',bprow:'Gomito al fianco, mai oltre'};
+function cueFor(id,L){if(id==='scapsq')return CUE.scapsq+(L>=2?' · bottiglie 1 L':' · bottiglie 0,5 L');const v=EX[id]&&EX[id].v[(L||1)-1];let c=CUE[id]||'';if(v&&/1½/.test(v.n))c+=(c?' · ':'')+(id==='row'?'su, giù a metà, su, giù tutto = 1':'giù, su a metà, giù, su tutto = 1');if(id==='ytw')c+=L>=3?' · bottiglia 1 L':' · bottiglia 0,5 L';return c;}
 /* at the top of level 3 the generic "slow down" is replaced by the lever that fits the exercise */
 const MAXHINT={pushup:'Aggiungi una bottiglia nello zaino (massimo 4). Con 4 bottiglie tieni: la prossima leva arriva dopo la visita.',row:'Tetto del 12 kg: tieni 10 per lato, pulite.',floorpress:'Pausa di 2 secondi col gomito a terra. Tetto del 12 kg: tieni 10 pulite per lato.',squeeze:'1 secondo di pausa col kettlebell appoggiato al petto.',ytw:'Passa alla bottiglia da 1,5 L, poi tieni: è il massimo.'};
 Object.assign(EX.pushup,{saf:'Profondità fissa: asciugamano arrotolato (circa 10 cm) sotto lo sterno, il petto lo sfiora e risali. Il gomito non sale mai sopra la linea della schiena. Gomiti a 30-45°, mai larghi. In alto spingi ancora un filo (scapole in avanti), senza bloccare di colpo. Se la spalla si sente “lenta”, fermati.',v:[
