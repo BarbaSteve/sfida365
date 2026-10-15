@@ -713,7 +713,7 @@ input.grow{min-width:0}
       <button class="btn sec small warn" style="margin-top:8px;width:100%" onclick="doImport()">⚠️ Importa (sostituisce i dati)</button>
     </details>
   </div>
-  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v40 · personaggi di Luiz Melo (CC0)</div>
+  <div class="mut" style="text-align:center;margin:18px 0 6px">Sfida 365 · v41 · personaggi di Luiz Melo (CC0)</div>
 </div>
 
 <div id="nav">
@@ -1021,6 +1021,14 @@ EX.scapsq={ic:'🤏',m:'Scapole, schiena alta, deltoide posteriore',saf:'Gomiti 
  {n:'Stretta di scapole con 1 L',s:['Come il livello 1, con bottiglie da 1 L','Gomiti incollati ai fianchi, fino alla linea del corpo','Tieni 1 secondo e torna lento'],c:'Più peso, stesso movimento piccolo',yt:'bent over row scapular squeeze'},
  {n:'Stretta di scapole con pausa',s:['Bottiglie da 1 L','Tieni 2 secondi a scapole strette','Torna in 2 secondi'],c:'La pausa si fa sulla linea del corpo, mai oltre',yt:'scapular retraction hold'}]};
 REP.scapsq={v:[{t:'rep',r:[10,15]},{t:'rep',r:[10,15]},{t:'rep',r:[8,12]}]};
+/* v41: two hands -> one arm with the 12 doubled the load per arm in one step (Stefano: 12-15 two-hand, 0 one-arm).
+   Level 2 is now the one-arm negative (up with two hands, down with one): it builds the missing strength. */
+EX.curl.v=[EX.curl.v[0],
+ {n:'Curl negativo 1 braccio',s:['Sali con due mani portando il kettlebell al petto','Togli una mano e scendi con un braccio solo in 3-4 secondi','Fai le ripetizioni con un braccio, poi con l’altro'],c:'La salita è a due mani: tutto il lavoro è nella discesa lenta',yt:'single arm negative curl eccentric'},
+ EX.curl.v[1]];
+EX.curl.v[2].c='Quando arrivi qui, i negativi hanno fatto il loro lavoro: niente slancio';
+REP.curl={v:[{t:'rep',kb:1,r6:[12,15],r12:[6,12]},{t:'rep',kb:1,r6:[8,12],r12:[4,8],side:1},{t:'rep',kb:1,r6:[10,15],r12:[5,10],side:1}]};
+VIDS.curl=[VIDS.curl[0],'',VIDS.curl[1]];
 /* bottoms-up only ever with the 6; triceps extension at 12 kg stops at level 2 (no 1½) */
 const KB6_ONLY=['carry'];
 const CAP12={triext:2};
@@ -1029,8 +1037,8 @@ const SH=['scapsq','pushup','floorpress','squeeze','slowpush','row','scap','carr
 /* stability exercises stop at the first less clean rep (2-3 in reserve), not 1-2 from failure */
 const STAB=['scapsq','scap','ytw','superman','carry','sideplank','plankcore'];
 /* one short cue per exercise, shown big in the timer when it matters (mid-set, 1-2 m from the phone) */
-const CUE={scapsq:'Gomiti ai fianchi, mai oltre il corpo',pushup:'Petto sull’asciugamano, mai più giù',slowpush:'Petto sull’asciugamano, mai più giù',floorpress:'Cambio braccio: due mani sul petto',squeeze:'Kettlebell stretto, gomiti a terra in basso',row:'Gomito al fianco, mai oltre',ytw:'Gomito al fianco · stop prima della verticale',carry:'Solo 6 kg · cambio a due mani',scap:'Piccolo: mai fino in fondo',superman:'Gomiti sotto la linea della schiena',triext:'Gomiti fermi e verticali',sideplank:'Spingi il pavimento, spalla giù',lunge:'Se perdi l’equilibrio, giù il piede',rdl:'Spalla attiva, mai appesa',kbcrunch:'Braccia a 90° dal busto',curl:'Gomito fermo al fianco',gobsquat:'Kettlebell al petto, schiena dritta',lowerabs:'Lombare a terra',hollow:'Lombare premuta a terra',bptri:'Gomiti fermi e verticali',bprow:'Gomito al fianco, mai oltre'};
-function cueFor(id,L){if(id==='scapsq')return CUE.scapsq+(L>=2?' · bottiglie 1 L':' · bottiglie 0,5 L');const v=EX[id]&&EX[id].v[(L||1)-1];let c=CUE[id]||'';if(v&&/1½/.test(v.n))c+=(c?' · ':'')+(id==='row'?'su, giù a metà, su, giù tutto = 1':'giù, su a metà, giù, su tutto = 1');if(id==='ytw')c+=L>=3?' · bottiglia 1 L':' · bottiglia 0,5 L';return c;}
+const CUE={curlneg:'Su a due mani, giù con uno in 4 secondi',scapsq:'Gomiti ai fianchi, mai oltre il corpo',pushup:'Petto sull’asciugamano, mai più giù',slowpush:'Petto sull’asciugamano, mai più giù',floorpress:'Cambio braccio: due mani sul petto',squeeze:'Kettlebell stretto, gomiti a terra in basso',row:'Gomito al fianco, mai oltre',ytw:'Gomito al fianco · stop prima della verticale',carry:'Solo 6 kg · cambio a due mani',scap:'Piccolo: mai fino in fondo',superman:'Gomiti sotto la linea della schiena',triext:'Gomiti fermi e verticali',sideplank:'Spingi il pavimento, spalla giù',lunge:'Se perdi l’equilibrio, giù il piede',rdl:'Spalla attiva, mai appesa',kbcrunch:'Braccia a 90° dal busto',curl:'Gomito fermo al fianco',gobsquat:'Kettlebell al petto, schiena dritta',lowerabs:'Lombare a terra',hollow:'Lombare premuta a terra',bptri:'Gomiti fermi e verticali',bprow:'Gomito al fianco, mai oltre'};
+function cueFor(id,L){if(id==='curl'&&L===2)return CUE.curlneg;if(id==='scapsq')return CUE.scapsq+(L>=2?' · bottiglie 1 L':' · bottiglie 0,5 L');const v=EX[id]&&EX[id].v[(L||1)-1];let c=CUE[id]||'';if(v&&/1½/.test(v.n))c+=(c?' · ':'')+(id==='row'?'su, giù a metà, su, giù tutto = 1':'giù, su a metà, giù, su tutto = 1');if(id==='ytw')c+=L>=3?' · bottiglia 1 L':' · bottiglia 0,5 L';return c;}
 /* at the top of level 3 the generic "slow down" is replaced by the lever that fits the exercise */
 const MAXHINT={pushup:'Aggiungi una bottiglia nello zaino (massimo 4). Con 4 bottiglie tieni: la prossima leva arriva dopo la visita.',row:'Tetto del 12 kg: tieni 10 per lato, pulite.',floorpress:'Pausa di 2 secondi col gomito a terra. Tetto del 12 kg: tieni 10 pulite per lato.',squeeze:'1 secondo di pausa col kettlebell appoggiato al petto.',ytw:'Passa alla bottiglia da 1,5 L, poi tieni: è il massimo.'};
 Object.assign(EX.pushup,{saf:'Profondità fissa: asciugamano arrotolato (circa 10 cm) sotto lo sterno, il petto lo sfiora e risali. Il gomito non sale mai sopra la linea della schiena. Gomiti a 30-45°, mai larghi. In alto spingi ancora un filo (scapole in avanti), senza bloccare di colpo. Se la spalla si sente “lenta”, fermati.',v:[
@@ -2272,6 +2280,8 @@ if(!S.mig38){S.rp=S.rp||{};
   ['pushup','row','superman','ytw'].forEach(id=>{const r=S.rp[id];if(r){delete r.n;r.cut=PLAN2;}});
   Object.keys(S.ovr||{}).forEach(d=>{if(d>=PLAN2&&S.ovr[d]!==null&&S.ovr[d]!==undefined&&SCHED[S.ovr[d]]===baseFor(d))S.ovr[d]=null;});
   S.mig38=1;save();}
+/* v41: curl level 2 is a new movement (one-arm negative): new baseline */
+if(!S.mig41){const r=S.rp&&S.rp.curl;if(r){delete r.n;r.cut='2026-10-15';}S.mig41=1;save();}
 if(S.shift===null||S.shift===undefined)renderChooser();
 render();
 reconcile();
